@@ -30,6 +30,12 @@ const dict: Record<Language, Record<string, string>> = {
     'Safety checks': 'Kiểm tra an toàn',
     'Calculation summary': 'Tóm tắt tính toán',
 
+    // Beam type tab labels
+    'Single girder': 'Dầm đơn',
+    'Double girder': 'Dầm đôi',
+    'Rolled I-beam': 'Dầm I cán',
+    'V-type beam': 'Dầm dạng V',
+
     // Input labels
     'Top flange width b': 'Bề rộng cánh trên b',
     'Section height h': 'Chiều cao tiết diện h',
@@ -73,4 +79,3 @@ export const useT = () => {
   const { lang } = useLanguage();
   return (key: string) => translate(lang, key);
 };
-

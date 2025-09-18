@@ -258,48 +258,51 @@ const beamTabs: BeamTab[] = [
   },
 ];
 
-const BeamTypeTabs: React.FC<{ active: BeamType; onChange: (type: BeamType) => void }> = ({ active, onChange }) => (
-  <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
-    <div className="flex flex-col sm:flex-row sm:divide-x sm:divide-gray-200 dark:sm:divide-gray-700">
-      {beamTabs.map((tab) => {
-        const isActive = tab.id === active;
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => onChange(tab.id)}
-            className={`flex-1 text-left px-4 py-3 transition-colors ${
-              isActive
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-transparent text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-800'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <tab.icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-blue-500'}`} />
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-sm sm:text-base">{tab.label}</span>
-                  {tab.status === 'preview' && (
-                    <span
-                      className={`text-xs font-medium uppercase tracking-wide rounded-full border px-2 py-0.5 ${
-                        isActive ? 'border-white/60 text-white/80' : 'border-blue-400 text-blue-600'
-                      }`}
-                    >
-                      Preview
-                    </span>
-                  )}
+const BeamTypeTabs: React.FC<{ active: BeamType; onChange: (type: BeamType) => void }> = ({ active, onChange }) => {
+  const t = useT();
+  return (
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:divide-x sm:divide-gray-200 dark:sm:divide-gray-700">
+        {beamTabs.map((tab) => {
+          const isActive = tab.id === active;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => onChange(tab.id)}
+              className={`flex-1 text-left px-4 py-3 transition-colors ${
+                isActive
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-transparent text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-800'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <tab.icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-blue-500'}`} />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm sm:text-base">{t(tab.label)}</span>
+                    {tab.status === 'preview' && (
+                      <span
+                        className={`text-xs font-medium uppercase tracking-wide rounded-full border px-2 py-0.5 ${
+                          isActive ? 'border-white/60 text-white/80' : 'border-blue-400 text-blue-600'
+                        }`}
+                      >
+                        Preview
+                      </span>
+                    )}
+                  </div>
+                  <p className={`text-xs sm:text-sm ${isActive ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
+                    {tab.subLabel}
+                  </p>
                 </div>
-                <p className={`text-xs sm:text-sm ${isActive ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
-                  {tab.subLabel}
-                </p>
               </div>
-            </div>
-          </button>
-        );
-      })}
+            </button>
+          );
+        })}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const ComingSoonPanel: React.FC<{ tab: BeamTab }> = ({ tab }) => (
   <div className="bg-white dark:bg-gray-900 border border-dashed border-blue-400/50 dark:border-blue-400/40 rounded-lg p-6 shadow-sm">
@@ -456,14 +459,6 @@ export const CraneBeamCalculator: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
-        <div className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-widest text-blue-500">
-            {activeTab.status === 'available' ? 'Active module' : 'Preview module'}
-          </span>
-          <p className="text-sm text-gray-600 dark:text-gray-300">{activeTab.description}</p>
-        </div>
-      </div>
       <BeamTypeTabs active={beamType} onChange={setBeamType} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
