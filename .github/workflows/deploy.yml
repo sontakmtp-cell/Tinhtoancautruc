@@ -35,6 +35,8 @@ jobs:
         env:
           # Expose repo to Vite so base path is set correctly
           GITHUB_REPOSITORY: ${{ github.repository }}
+          # Inject Gemini API key for Vite define
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Add SPA fallback and nojekyll
         run: |

@@ -2,13 +2,23 @@
 import { GoogleGenAI } from "@google/genai";
 import type { BeamInputs, CalculationResults } from '../types';
 
-const API_KEY = process.env.API_KEY;
+// Read API key injected by Vite define; may be undefined in production
+const API_KEY = (process.env.API_KEY as string | undefined) || undefined;
 
-if (!API_KEY) {
-  console.error("Missing Google Gemini API Key. Please set the API_KEY environment variable.");
-}
-
-const ai = new GoogleGenAI({ apiKey: API_KEY as string });
+// Lazily initialize the client to avoid crashing at module load
+let ai: GoogleGenAI | null = null;
+const getClient = (): GoogleGenAI | null => {
+  if (!API_KEY) return null;
+  if (!ai) {
+    try {
+      ai = new GoogleGenAI({ apiKey: API_KEY });
+    } catch (err) {
+      console.error("Failed to init GoogleGenAI client:", err);
+      return null;
+    }
+  }
+  return ai;
+};
 
 const systemPrompt = `Bạn là một kỹ sư kết cấu chuyên nghiệp với nhiều năm kinh nghiệm. Một thiết kế dầm cầu trục đã không đạt các kiểm tra an toàn. Nhiệm vụ của bạn là đưa ra một khuyến nghị ngắn gọn, súc tích, và có thể hành động ngay để cải thiện thiết kế. 
 Hãy tập trung vào việc đề xuất các thay đổi cụ thể, có tính toán số học cho các thông số đầu vào (ví dụ: "Tăng chiều cao h lên 95 mm" hoặc "Giảm khẩu độ dầm L xuống 750 cm").
@@ -59,7 +69,7 @@ export const getDesignRecommendation = async (
     `;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await (getClient() as GoogleGenAI).models.generateContent({
         model: 'gemini-2.5-flash',
         contents: userQuery,
         config: {
