@@ -118,6 +118,7 @@ export const CraneBeamCalculator: React.FC = () => {
     const [diagramData, setDiagramData] = useState<DiagramData | null>(null);
     const [recommendation, setRecommendation] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isCallingAI, setIsCallingAI] = useState<boolean>(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -145,12 +146,15 @@ export const CraneBeamCalculator: React.FC = () => {
                               calculatedResults.buckling_check === 'fail';
 
             if (hasFailed) {
+                setIsCallingAI(true);
                 const geminiRec = await getDesignRecommendation(inputs, calculatedResults);
                 setRecommendation(geminiRec);
+                setIsCallingAI(false);
             }
         } catch (error) {
             console.error("Calculation Error:", error);
             setRecommendation("Xảy ra lỗi trong quá trình tính toán. Vui lòng thử lại sau.");
+            setIsCallingAI(false);
         } finally {
             const elapsed = Date.now() - loaderStart;
             if (elapsed < MIN_LOADER_DURATION_MS) {
@@ -166,6 +170,7 @@ export const CraneBeamCalculator: React.FC = () => {
         setDiagramData(null);
         setRecommendation('');
         setIsLoading(false);
+        setIsCallingAI(false);
     };
 
     return (
@@ -224,7 +229,13 @@ export const CraneBeamCalculator: React.FC = () => {
                 </form>
 
                 <div className="lg:col-span-2 space-y-8">
-                    {isLoading && <div className="flex justify-center items-center h-96"><HamsterLoader /></div>}
+                    {isLoading && (
+                        <div className="flex justify-center items-center h-96">
+                            <HamsterLoader 
+                                message={isCallingAI ? "Cảnh báo !! Tham số đầu vào không khả thi, đang gọi chuyên gia hỗ trợ xin vui lòng đợi giây lát..." : "Đang thực hiện các phép tính phức tạp..."}
+                            />
+                        </div>
+                    )}
                     
                     {!isLoading && !results && <BeamGeometryDiagram />}
 
