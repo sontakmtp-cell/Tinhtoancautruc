@@ -4,9 +4,16 @@ import { Moon, Sun } from 'lucide-react';
 import { CraneBeamCalculator } from './components/CraneBeamCalculator';
 
 const App: React.FC = () => {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    // Kiểm tra localStorage trước, nếu không có thì mặc định là true (theme tối)
+    const saved = localStorage.getItem('theme');
+    return saved ? saved === 'dark' : true;
+  });
 
   useEffect(() => {
+    // Lưu theme preference vào localStorage
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    
     if (isDark) {
       document.documentElement.classList.add('dark');
     } else {

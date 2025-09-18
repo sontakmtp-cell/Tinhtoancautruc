@@ -1,4 +1,15 @@
-﻿input[type=number]::-webkit-outer-spin-button,
+﻿/* Default dark theme */
+html {
+  background-color: #111827;
+  color: #e5e7eb;
+}
+
+body {
+  background-color: #111827;
+  color: #e5e7eb;
+}
+
+input[type=number]::-webkit-outer-spin-button,
 input[type=number]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
@@ -6,6 +17,7 @@ input[type=number]::-webkit-inner-spin-button {
 
 input[type=number] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 /* From Uiverse.io by Jaareet */ 
