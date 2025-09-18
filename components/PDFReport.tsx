@@ -205,7 +205,7 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
             <button
               onClick={handleGeneratePDF}
               disabled={isGenerating}
-              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 dark:disabled:bg-blue-800 text-white rounded-md transition-colors flex items-center justify-center"
+              className="calc-button flex-1 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
             >
               {isGenerating ? (
                 <>
@@ -262,10 +262,10 @@ export const PDFExportButton: React.FC<PDFExportButtonProps> = ({
         type="button"
         onClick={handleClick}
         disabled={!results || isLoading}
-        className={`flex items-center justify-center px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-md transition-colors ${className}`}
+        className={`calc-button flex items-center justify-center px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${className}`}
       >
         <FileText className="w-4 h-4 mr-2" />
-        Export PDF Report
+        Export PDF
       </button>
 
       {results && (
