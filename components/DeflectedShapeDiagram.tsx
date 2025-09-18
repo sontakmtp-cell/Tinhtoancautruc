@@ -36,8 +36,8 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
 
     return (
         <div id="deflection-diagram">
-            <h4 className="text-md font-semibold text-center mb-2 text-gray-300">Biểu đồ Hình dạng Võng</h4>
-            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto text-gray-400" aria-label="Biểu đồ hình dạng võng của dầm">
+            <h4 className="text-md font-semibold text-center mb-2 text-gray-700 dark:text-gray-300">Biểu đồ Hình dạng Võng</h4>
+            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto text-gray-600 dark:text-gray-400" aria-label="Biểu đồ hình dạng võng của dầm">
                 {/* Allowable deflection area */}
                 <rect 
                     x={padding.left} 
@@ -61,7 +61,7 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
                 />
 
                 {/* Deflected beam */}
-                <path d={deflectedPath} fill="none" className="stroke-blue-400" strokeWidth="2" />
+                <path d={deflectedPath} fill="none" className="stroke-blue-600 dark:stroke-blue-400" strokeWidth="2" />
                 
                 {/* Deflection annotation */}
                 <line 

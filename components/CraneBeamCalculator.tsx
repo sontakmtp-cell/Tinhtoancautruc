@@ -187,10 +187,10 @@ export const CraneBeamCalculator: React.FC = () => {
                                                 name={name}
                                                 value={inputs[name]}
                                                 onChange={handleChange}
-                                                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+                                                className="input"
                                                 step="any"
                                             />
-                                            <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-500 dark:text-gray-400">{unit}</span>
+                                            <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-300 pointer-events-none">{unit}</span>
                                         </div>
                                     </div>
                                 ))}

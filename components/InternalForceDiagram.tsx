@@ -53,8 +53,8 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
     
     return (
         <div id={diagramId}>
-            <h4 className="text-md font-semibold text-center mb-2 text-gray-300">{title}</h4>
-            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto text-gray-400" aria-label={title}>
+            <h4 className="text-md font-semibold text-center mb-2 text-gray-700 dark:text-gray-300">{title}</h4>
+            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto text-gray-600 dark:text-gray-400" aria-label={title}>
                 {/* Axes */}
                 <line x1={padding.left} y1={padding.top} x2={padding.left} y2={height - padding.bottom} stroke="currentColor" strokeWidth="0.5" />
                 <line x1={padding.left} y1={zeroLineY} x2={width - padding.right} y2={zeroLineY} stroke="currentColor" strokeWidth="0.5" />
@@ -66,7 +66,7 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
                 <path d={`${pathData} L ${xScale(xMax)} ${zeroLineY} L ${xScale(0)} ${zeroLineY} Z`} className="text-blue-500" fill="currentColor" fillOpacity="0.1" />
 
                 {/* Path line */}
-                <path d={pathData} fill="none" className="text-blue-400" stroke="currentColor" strokeWidth="1.5" />
+                <path d={pathData} fill="none" className="text-blue-600 dark:text-blue-400" stroke="currentColor" strokeWidth="1.5" />
 
                 {/* Labels */}
                 {/* Y-axis labels */}
