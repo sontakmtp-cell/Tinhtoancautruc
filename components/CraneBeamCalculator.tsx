@@ -264,10 +264,10 @@ export const CraneBeamCalculator: React.FC = () => {
                             </CollapsibleSection>
 
                            {diagramData && (
-                                <CollapsibleSection title="Biểu đồ Phân tích" icon={AreaChart}>
+                                <CollapsibleSection title="Analysis Diagrams" icon={AreaChart}>
                                     <div className="grid grid-cols-1 gap-8">
-                                        <InternalForceDiagram data={diagramData} title="Biểu đồ Nội lực (Mô-men uốn)" yKey="moment" unit="kg.cm" />
-                                        <InternalForceDiagram data={diagramData} title="Biểu đồ Nội lực (Lực cắt)" yKey="shear" unit="kg" />
+                                        <InternalForceDiagram data={diagramData} title="Internal Force Diagram (Bending Moment)" yKey="moment" unit="kg.cm" />
+                                        <InternalForceDiagram data={diagramData} title="Internal Force Diagram (Shear Force)" yKey="shear" unit="kg" />
                                         <StressDistributionDiagram inputs={inputs} results={results} />
                                         <DeflectedShapeDiagram inputs={inputs} results={results} />
                                     </div>

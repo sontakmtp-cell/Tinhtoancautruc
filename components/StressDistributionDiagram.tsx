@@ -38,8 +38,8 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
 
     return (
         <div id="stress-diagram">
-            <h4 className="text-md font-semibold text-center mb-2 text-gray-700 dark:text-gray-300">Biểu đồ Phân bố Ứng suất</h4>
-            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto text-gray-600 dark:text-gray-400" aria-label="Biểu đồ phân bố ứng suất trên mặt cắt">
+            <h4 className="text-md font-semibold text-center mb-2 text-gray-700 dark:text-gray-300">Stress Distribution Diagram</h4>
+            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto text-gray-600 dark:text-gray-400" aria-label="Stress distribution diagram on cross section">
                 <g transform={`translate(0, ${padding.top})`}>
                     {/* Dimension Lines */}
                     <g className="stroke-current" strokeWidth="0.5">
@@ -70,7 +70,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
                         x2={stressX + 130} y2={scaledH - scaledYc} 
                         className="stroke-gray-500 dark:stroke-gray-400" strokeDasharray="3,3" strokeWidth="1" 
                     />
-                    <text x={stressX + 135} y={scaledH - scaledYc} textAnchor="start" alignmentBaseline="middle" fontSize="10" className="fill-current">Trục trung hòa</text>
+                    <text x={stressX + 135} y={scaledH - scaledYc} textAnchor="start" alignmentBaseline="middle" fontSize="10" className="fill-current">Neutral Axis</text>
 
                     {/* Stress Diagram */}
                     <g transform={`translate(${stressX}, 0)`}>
@@ -83,7 +83,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
                             className="fill-red-500/20 stroke-red-500" strokeWidth="1"
                         />
                         <text x={-sigma_top_compression * stressScale - 5} y="10" textAnchor="end" fontSize="10" className="fill-red-500">
-                           -{formatValue(sigma_top_compression)} (nén)
+                           -{formatValue(sigma_top_compression)} (compression)
                         </text>
 
                         {/* Tension Area */}
@@ -92,7 +92,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
                             className="fill-blue-500/20 stroke-blue-500" strokeWidth="1"
                         />
                          <text x={sigma_bottom_tension * stressScale + 5} y={scaledH - 5} textAnchor="start" fontSize="10" className="fill-blue-500">
-                           +{formatValue(sigma_bottom_tension)} (kéo)
+                           +{formatValue(sigma_bottom_tension)} (tension)
                         </text>
 
                          <text x="0" y="-5" textAnchor="middle" fontSize="10" className="fill-current">σ (kg/cm²)</text>

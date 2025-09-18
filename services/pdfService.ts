@@ -185,11 +185,11 @@ export class PDFReportService {
     this.addSubtitle('CALCULATION RESULTS');
     
     this.addText('Geometric Properties:', 10, true);
-    this.addTableRow('Cross-sectional area (F)', results.F.toFixed(2), 'cm²');
+    this.addTableRow('Cross-sectional area (F)', results.F.toFixed(2), 'cmï¿½');
     this.addTableRow('Moment of inertia Jx', results.Jx.toExponential(2), 'cm4');
     this.addTableRow('Moment of inertia Jy', results.Jy.toExponential(2), 'cm4');
-    this.addTableRow('Section modulus Wx', results.Wx.toFixed(2), 'cm³');
-    this.addTableRow('Section modulus Wy', results.Wy.toFixed(2), 'cm³');
+    this.addTableRow('Section modulus Wx', results.Wx.toFixed(2), 'cmï¿½');
+    this.addTableRow('Section modulus Wy', results.Wy.toFixed(2), 'cmï¿½');
     this.addTableRow('Centroid Yc', results.Yc.toFixed(2), 'cm');
     this.currentY += 3;
 
@@ -389,13 +389,6 @@ export class PDFReportService {
         this.addText(`? Failed to capture ${chart.title}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         errorCount++;
       }
-    }
-
-    // Add summary
-    if (errorCount > 0) {
-      this.addText(`?? Chart Summary: ${successCount} captured successfully, ${errorCount} failed`);
-    } else {
-      this.addText(`? All ${successCount} charts captured successfully`);
     }
   }
 
