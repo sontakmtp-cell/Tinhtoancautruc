@@ -23,6 +23,7 @@ import { InternalForceDiagram } from './InternalForceDiagram';
 import { StressDistributionDiagram } from './StressDistributionDiagram';
 import { DeflectedShapeDiagram } from './DeflectedShapeDiagram';
 import { PDFExportButton } from './PDFReport';
+import { useT } from '../utils/i18n';
 
 const BeamGeometryDiagram: React.FC = () => (
   <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -451,6 +452,8 @@ export const CraneBeamCalculator: React.FC = () => {
     setIsCallingAI(false);
   };
 
+  const t = useT();
+
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
       <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
@@ -467,12 +470,12 @@ export const CraneBeamCalculator: React.FC = () => {
         <form onSubmit={handleSubmit} className="lg:col-span-1 space-y-6">
           {isPrimaryModule ? (
             inputConfig.map(({ title, icon, fields }) => (
-              <CollapsibleSection key={title} title={title} icon={icon}>
+              <CollapsibleSection key={title} title={t(title)} icon={icon}>
                 <div className="grid grid-cols-2 gap-4">
                   {fields.map(({ name, label, unit }) => (
                     <div key={name} className="col-span-2 sm:col-span-1">
                       <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        {label}
+                        {t(label)}
                       </label>
                       <div className="relative">
                         <input
@@ -507,11 +510,11 @@ export const CraneBeamCalculator: React.FC = () => {
               </CollapsibleSection>
             ))
           ) : (
-            <CollapsibleSection title="Module preview" icon={HelpCircle}>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Detailed input groups for this module will be added soon.
-              </p>
-            </CollapsibleSection>
+              <CollapsibleSection title="Module preview" icon={HelpCircle}>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Detailed input groups for this module will be added soon.
+                </p>
+              </CollapsibleSection>
           )}
 
           <div className="flex items-center gap-4">
@@ -575,37 +578,37 @@ export const CraneBeamCalculator: React.FC = () => {
                     </div>
                   )}
 
-                  <CollapsibleSection title="Safety checks" icon={HardHat}>
+                  <CollapsibleSection title={t('Safety checks')} icon={HardHat}>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <CheckBadge
                         status={results.stress_check}
-                        label="Stress check"
+                        label={t('Stress check')}
                         value={`K_sigma = ${results.K_sigma.toFixed(2)}`}
                       />
                       <CheckBadge
                         status={results.deflection_check}
-                        label="Deflection"
+                        label={t('Deflection')}
                         value={`n_f = ${results.n_f.toFixed(2)}`}
                       />
                       <CheckBadge
                         status={results.buckling_check}
-                        label="Buckling"
+                        label={t('Buckling')}
                         value={`K_buckling = ${results.K_buckling.toFixed(2)}`}
                       />
                     </div>
                   </CollapsibleSection>
 
-                  <CollapsibleSection title="Calculation summary" icon={BarChart}>
+                  <CollapsibleSection title={t('Calculation summary')} icon={BarChart}>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      <ResultItem label="Area F" value={results.F.toFixed(2)} unit="cm^2" />
-                      <ResultItem label="Moment of inertia Jx" value={results.Jx.toExponential(2)} unit="cm^4" />
-                      <ResultItem label="Moment of inertia Jy" value={results.Jy.toExponential(2)} unit="cm^4" />
-                      <ResultItem label="Section modulus Wx" value={results.Wx.toFixed(2)} unit="cm^3" />
-                      <ResultItem label="Section modulus Wy" value={results.Wy.toFixed(2)} unit="cm^3" />
-                      <ResultItem label="Neutral axis Yc" value={results.Yc.toFixed(2)} unit="cm" />
-                      <ResultItem label="Bending moment Mx" value={results.M_x.toExponential(2)} unit="kg.cm" />
-                      <ResultItem label="Stress sigma_u" value={results.sigma_u.toFixed(2)} unit="kg/cm^2" />
-                      <ResultItem label="Deflection f" value={results.f.toFixed(3)} unit="cm" />
+                      <ResultItem label={t('Area F')} value={results.F.toFixed(2)} unit="cm^2" />
+                      <ResultItem label={t('Moment of inertia Jx')} value={results.Jx.toExponential(2)} unit="cm^4" />
+                      <ResultItem label={t('Moment of inertia Jy')} value={results.Jy.toExponential(2)} unit="cm^4" />
+                      <ResultItem label={t('Section modulus Wx')} value={results.Wx.toFixed(2)} unit="cm^3" />
+                      <ResultItem label={t('Section modulus Wy')} value={results.Wy.toFixed(2)} unit="cm^3" />
+                      <ResultItem label={t('Neutral axis Yc')} value={results.Yc.toFixed(2)} unit="cm" />
+                      <ResultItem label={t('Bending moment Mx')} value={results.M_x.toExponential(2)} unit="kg.cm" />
+                      <ResultItem label={t('Stress sigma_u')} value={results.sigma_u.toFixed(2)} unit="kg/cm^2" />
+                      <ResultItem label={t('Deflection f')} value={results.f.toFixed(3)} unit="cm" />
                     </div>
                   </CollapsibleSection>
 

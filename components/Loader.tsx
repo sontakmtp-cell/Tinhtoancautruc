@@ -27,11 +27,7 @@ const cubeStyles = offsets.flatMap((x) =>
   )
 );
 
-interface HamsterLoaderProps {
-  message?: string;
-}
-
-export const HamsterLoader: React.FC<HamsterLoaderProps> = ({ message = "Đang thực hiện các phép tính phức tạp..." }) => (
+export const HamsterLoader: React.FC = () => (
   <>
     <style>{`
       @keyframes loader-hue-rotate {
@@ -112,7 +108,7 @@ export const HamsterLoader: React.FC<HamsterLoaderProps> = ({ message = "Đang t
         ))}
       </div>
       <p className="mt-32 text-sm font-medium text-gray-500 dark:text-gray-400">
-        {message}
+        Đang thực hiện các phép tính phức tạp...
       </p>
     </div>
   </>
