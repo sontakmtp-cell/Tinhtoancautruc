@@ -1,448 +1,369 @@
-﻿import jsPDF from 'jspdf';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import type { BeamInputs, CalculationResults } from '../types';
 import { ARIAL_FONT_NORMAL, ARIAL_FONT_BOLD } from './pdfFonts';
-
-interface PDFReportData {
-  inputs: BeamInputs;
-  results: CalculationResults;
-  projectName?: string;
-  engineer?: string;
-  date?: string;
-}
-
-interface ChartCaptureConfig {
-  id: string;
-  title: string;
-}
 
 interface PDFReportOptions {
   projectName?: string;
   engineer?: string;
   includeCharts?: boolean;
-  chartElements?: ChartCaptureConfig[];
+  chartElements?: { id: string; title: string }[];
 }
 
-export class PDFReportService {
+// --- HELPER TYPES FOR AUTOTABLE ---
+type TableColumn = {
+  header: string;
+  dataKey: string;
+};
+
+type TableRow = {
+  [key: string]: string | number;
+};
+
+// --- STYLING CONSTANTS ---
+const PRIMARY_COLOR = [0, 55, 100]; // Dark Blue
+const SECONDARY_COLOR = [245, 245, 245]; // Light Gray
+const TEXT_COLOR = [0, 0, 0];
+const HEADER_TEXT_COLOR = [255, 255, 255];
+
+const MARGIN = { top: 25, right: 15, bottom: 25, left: 15 };
+
+class PDFReportService {
   private pdf: jsPDF;
-  private currentY: number = 20;
-  private pageHeight: number = 297; // A4 height in mm
-  private margin: number = 20;
+  private pageHeight: number;
+  private pageWidth: number;
+  private currentY: number = 0;
 
   constructor() {
-
     this.pdf = new jsPDF('p', 'mm', 'a4');
+    this.pageHeight = this.pdf.internal.pageSize.getHeight();
+    this.pageWidth = this.pdf.internal.pageSize.getWidth();
 
+    // Add custom fonts
     this.pdf.addFileToVFS('arial-normal.ttf', ARIAL_FONT_NORMAL);
-
     this.pdf.addFileToVFS('arial-bold.ttf', ARIAL_FONT_BOLD);
-
     this.pdf.addFont('arial-normal.ttf', 'Arial', 'normal');
-
     this.pdf.addFont('arial-bold.ttf', 'Arial', 'bold');
-
-    this.pdf.setFont('Arial', 'normal');
-
-    this.pdf.setFontSize(10);
-
-    this.pdf.setTextColor(0, 0, 0);
-
-  }
-
-  private addNewPageIfNeeded(additionalHeight: number = 10): void {
-    if (this.currentY + additionalHeight > this.pageHeight - this.margin) {
-      this.pdf.addPage();
-      this.currentY = this.margin;
-    }
-  }
-
-  private addTitle(title: string, fontSize: number = 16): void {
-    this.addNewPageIfNeeded(10);
-    this.pdf.setFontSize(fontSize);
-    this.pdf.setFont('Arial', 'bold');
-    this.pdf.text(title, this.margin, this.currentY);
-    this.currentY += 10;
-  }
-
-  private addSubtitle(subtitle: string, fontSize: number = 12): void {
-    this.addNewPageIfNeeded(8);
-    this.pdf.setFontSize(fontSize);
-    this.pdf.setFont('Arial', 'bold');
-    this.pdf.text(subtitle, this.margin, this.currentY);
-    this.currentY += 8;
-  }
-
-  private addText(text: string, fontSize: number = 10, isBold: boolean = false): void {
-
-    this.addNewPageIfNeeded(6);
-
-    this.pdf.setFontSize(fontSize);
-
-    this.pdf.setFont('Arial', isBold ? 'bold' : 'normal');
-
-    const lines = this.pdf.splitTextToSize(text, 170);
-
-    for (const line of lines) {
-
-      this.addNewPageIfNeeded(6);
-
-      this.pdf.text(line, this.margin, this.currentY);
-
-      this.currentY += 6;
-
-    }
-
-  }
-
-  private addTableRow(label: string, value: string, unit: string): void {
-    this.addNewPageIfNeeded(8);
-    this.pdf.setFontSize(10);
-    this.pdf.setFont('Arial', 'normal');
-    this.pdf.text(label, this.margin, this.currentY);
-    this.pdf.text(`${value} ${unit}`, this.margin + 100, this.currentY);
-    this.currentY += 8;
-  }
-
-  private addSafetyCheck(label: string, value: string, status: 'pass' | 'fail'): void {
-
-    this.addNewPageIfNeeded(8);
-
-    this.pdf.setFontSize(10);
-
-    this.pdf.setFont('Arial', 'normal');
-
-    this.pdf.text(label, this.margin, this.currentY);
-
-    this.pdf.text(value, this.margin + 80, this.currentY);
-
-    if (status === 'pass') {
-
-      this.pdf.setTextColor(0, 128, 0);
-
-      this.pdf.text('PASS', this.margin + 140, this.currentY);
-
-    } else {
-
-      this.pdf.setTextColor(255, 0, 0);
-
-      this.pdf.text('FAIL', this.margin + 140, this.currentY);
-
-    }
-
-    this.pdf.setTextColor(0, 0, 0);
-
-    this.currentY += 8;
-
-  }
-
-  private addSeparator(): void {
-    this.addNewPageIfNeeded(5);
-    this.pdf.setLineWidth(0.5);
-    this.pdf.line(this.margin, this.currentY, 190, this.currentY);
-    this.currentY += 10;
-  }
-
-  public async generateReport(data: PDFReportData): Promise<void> {
-    const { inputs, results, projectName = 'Crane Beam Calculation Project', engineer = 'Engineer', date = new Date().toLocaleDateString('en-US') } = data;
-
-    // Header
-    this.addTitle('CRANE BEAM STRUCTURAL ANALYSIS REPORT', 18);
-    this.addSeparator();
-
-    // Project Info
-    this.addSubtitle('PROJECT INFORMATION');
-    this.addText(`Project name: ${projectName}`);
-    this.addText(`Design engineer: ${engineer}`);
-    this.addText(`Calculation date: ${date}`);
-    this.addText(`Software: Smart Crane Beam Calculator`);
-    this.currentY += 5;
-
-    // Input Parameters
-    this.addSubtitle('INPUT PARAMETERS');
     
-    this.addText('Geometric Parameters:', 10, true);
-    this.addTableRow('Beam width (b)', inputs.b.toString(), 'mm');
-    this.addTableRow('Beam height (h)', inputs.h.toString(), 'mm');
-    this.addTableRow('Top flange thickness (t1)', inputs.t1.toString(), 'mm');
-    this.addTableRow('Bottom flange thickness (t2)', inputs.t2.toString(), 'mm');
-    this.addTableRow('Web thickness (t3)', inputs.t3.toString(), 'mm');
-    this.addTableRow('Web stiffener spacing (b1)', inputs.b1.toString(), 'mm');
-    this.currentY += 3;
+    this.pdf.setFont('Arial', 'normal');
+  }
 
-    this.addText('Load and Material Properties:', 10, true);
-    this.addTableRow('Beam span (L)', inputs.L.toString(), 'cm');
-    this.addTableRow('Lifting load (P_nang)', inputs.P_nang.toString(), 'kg');
-    this.addTableRow('Equipment load (P_thietbi)', inputs.P_thietbi.toString(), 'kg');
-    this.addTableRow('Distributed load (q)', results.q.toFixed(4), 'kg/cm');
-    this.addTableRow('Allowable stress (sigma_allow)', inputs.sigma_allow.toString(), 'kg/cm2');
-    this.addTableRow('Yield strength (sigma_yield)', inputs.sigma_yield.toString(), 'kg/cm2');
-    this.addTableRow('Elastic modulus (E)', inputs.E.toExponential(2), 'kg/cm2');
-    this.addTableRow("Poisson's ratio (nu)", inputs.nu.toString(), '');
-
-    this.addSeparator();
-
-    // Calculation Results
-    this.addSubtitle('CALCULATION RESULTS');
+  // --- HEADER & FOOTER ---
+  private addHeader(projectName: string) {
+    const title = 'Crane Beam Structural Analysis Report';
     
-    this.addText('Geometric Properties:', 10, true);
-    this.addTableRow('Cross-sectional area (F)', results.F.toFixed(2), 'cm2');
-    this.addTableRow('Moment of inertia Jx', results.Jx.toExponential(2), 'cm4');
-    this.addTableRow('Moment of inertia Jy', results.Jy.toExponential(2), 'cm4');
-    this.addTableRow('Section modulus Wx', results.Wx.toFixed(2), 'cm3');
-    this.addTableRow('Section modulus Wy', results.Wy.toFixed(2), 'cm3');
-    this.addTableRow('Centroid Yc', results.Yc.toFixed(2), 'cm');
-    this.addTableRow('Centroid Xc', results.Xc.toFixed(2), 'cm');
-    this.currentY += 3;
-    this.addText('Jx components:', 10, true);
-    this.addTableRow('Top flange (Jx_top)', results.Jx_top.toExponential(2), 'cm4');
-    this.addTableRow('Bottom flange (Jx_bottom)', results.Jx_bottom.toExponential(2), 'cm4');
-    this.addTableRow('Webs total (Jx_webs)', results.Jx_webs.toExponential(2), 'cm4');
-    this.currentY += 3;
-    this.addText('Jy components:', 10, true);
-    this.addTableRow('Top flange (Jy_top)', results.Jy_top.toExponential(2), 'cm4');
-    this.addTableRow('Bottom flange (Jy_bottom)', results.Jy_bottom.toExponential(2), 'cm4');
-    this.addTableRow('Webs total (Jy_webs)', results.Jy_webs.toExponential(2), 'cm4');
+    this.pdf.setFillColor(...PRIMARY_COLOR);
+    this.pdf.rect(0, 0, this.pageWidth, MARGIN.top - 5, 'F');
 
-    this.addText('Internal Forces and Stresses:', 10, true);
-    this.addTableRow('Total bending moment (M_x)', results.M_x.toExponential(2), 'kg.cm');
-    this.addTableRow('Calculated stress (sigma_u)', results.sigma_u.toFixed(2), 'kg/cm2');
-    this.addTableRow('Calculated deflection (f)', results.f.toFixed(3), 'cm');
-    this.addTableRow('Moment from self-weight (M_bt)', results.M_bt.toExponential(2), 'kg.cm');
-    this.addTableRow('Moment from point load (M_vn)', results.M_vn.toExponential(2), 'kg.cm');
-    this.addTableRow('Bending moment about y (M_y)', results.M_y.toExponential(2), 'kg.cm');
-    this.addTableRow('Top compression stress', results.sigma_top_compression.toFixed(2), 'kg/cm2');
-    this.addTableRow('Bottom tension stress', results.sigma_bottom_tension.toFixed(2), 'kg/cm2');
-    this.addTableRow('Allowable deflection (f_allow)', results.f_allow.toFixed(3), 'cm');
+    this.pdf.setFont('Arial', 'bold');
+    this.pdf.setFontSize(16);
+    this.pdf.setTextColor(...HEADER_TEXT_COLOR);
+    this.pdf.text(title, this.pageWidth / 2, 10, { align: 'center' });
 
-    this.addSeparator();
+    this.pdf.setFontSize(10);
+    this.pdf.text(projectName, this.pageWidth / 2, 17, { align: 'center' });
 
-    // Safety Checks
-    this.addSubtitle('SAFETY CHECKS');
-    this.addSafetyCheck('Stress check (K_sigma)', results.K_sigma.toFixed(2), results.stress_check);
-    this.addSafetyCheck('Deflection check (nf)', results.n_f.toFixed(2), results.deflection_check);
-    this.addSafetyCheck('Local buckling check (K_b)', results.K_buckling.toFixed(2), results.buckling_check);
+    this.currentY = MARGIN.top;
+  }
 
-    this.addSeparator();
+  private addFooter() {
+    const pageCount = (this.pdf.internal as any).getNumberOfPages();
+    const footerText = '© Smart Crane Beam Calculator | Confidential';
+    
+    for (let i = 1; i <= pageCount; i++) {
+      this.pdf.setPage(i);
+      
+      this.pdf.setFontSize(8);
+      this.pdf.setTextColor(150, 150, 150);
 
-    // Overall Assessment
-    this.addSubtitle('OVERALL ASSESSMENT');
+      // Page number
+      const pageNumText = `Page ${i} of ${pageCount}`;
+      this.pdf.text(pageNumText, this.pageWidth / 2, this.pageHeight - MARGIN.bottom + 15, { align: 'center' });
+
+      // Footer line
+      this.pdf.setDrawColor(150, 150, 150);
+      this.pdf.line(MARGIN.left, this.pageHeight - MARGIN.bottom + 10, this.pageWidth - MARGIN.right, this.pageHeight - MARGIN.bottom + 10);
+      
+      // Footer text
+      this.pdf.text(footerText, MARGIN.left, this.pageHeight - MARGIN.bottom + 15);
+    }
+  }
+
+  // --- CONTENT SECTIONS ---
+  private addProjectInfo(engineer: string, date: string) {
+    this.pdf.setFontSize(12);
+    this.pdf.setFont('Arial', 'bold');
+    this.pdf.setTextColor(...TEXT_COLOR);
+    this.pdf.text('PROJECT INFORMATION', MARGIN.left, this.currentY);
+    this.currentY += 6;
+
+    const info = [
+      ['Design Engineer:', engineer || 'N/A'],
+      ['Calculation Date:', date],
+      ['Software:', 'Smart Crane Beam Calculator'],
+    ];
+
+    autoTable(this.pdf, {
+      body: info,
+      startY: this.currentY,
+      theme: 'plain',
+      styles: { fontSize: 10, cellPadding: 1 },
+      columnStyles: { 0: { fontStyle: 'bold' } },
+    });
+
+    this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
+  }
+
+  private addInputs(inputs: BeamInputs, results: CalculationResults) {
+    this.pdf.setFontSize(12);
+    this.pdf.setFont('Arial', 'bold');
+    this.pdf.text('INPUT PARAMETERS', MARGIN.left, this.currentY);
+    this.currentY += 6;
+
+    const geomData = [
+      ['Beam Span (L)', inputs.L, 'cm'],
+      ['Beam Width (b)', inputs.b, 'mm'],
+      ['Beam Height (h)', inputs.h, 'mm'],
+      ['Top Flange (t1)', inputs.t1, 'mm'],
+      ['Bottom Flange (t2)', inputs.t2, 'mm'],
+      ['Web Thickness (t3)', inputs.t3, 'mm'],
+      ['Stiffener Spacing (b1)', inputs.b1, 'mm'],
+    ];
+
+    const loadData = [
+      ['Lifting Load (P_nang)', inputs.P_nang, 'kg'],
+      ['Equipment Load (P_thietbi)', inputs.P_thietbi, 'kg'],
+      ['Distributed Load (q)', results.q.toFixed(4), 'kg/cm'],
+      ['Allowable Stress (σ_allow)', inputs.sigma_allow, 'kg/cm²'],
+      ['Yield Strength (σ_yield)', inputs.sigma_yield, 'kg/cm²'],
+      ['Elastic Modulus (E)', inputs.E.toExponential(2), 'kg/cm²'],
+      ["Poisson's Ratio (ν)", inputs.nu, ''],
+    ];
+
+    autoTable(this.pdf, {
+      head: [['Geometric Parameters', 'Value', 'Unit']],
+      body: geomData,
+      startY: this.currentY,
+      theme: 'grid',
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR },
+      alternateRowStyles: { fillColor: SECONDARY_COLOR },
+      margin: { right: this.pageWidth / 2 + 5 },
+    });
+
+    autoTable(this.pdf, {
+      head: [['Load & Material', 'Value', 'Unit']],
+      body: loadData,
+      startY: this.currentY,
+      theme: 'grid',
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR },
+      alternateRowStyles: { fillColor: SECONDARY_COLOR },
+      margin: { left: this.pageWidth / 2 + 5 },
+    });
+    
+    this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
+  }
+
+  private addResults(results: CalculationResults) {
+    this.pdf.setFontSize(12);
+    this.pdf.setFont('Arial', 'bold');
+    this.pdf.text('CALCULATION RESULTS', MARGIN.left, this.currentY);
+    this.currentY += 6;
+
+    const geomProps = [
+      ['Cross-sectional Area (F)', results.F.toFixed(2), 'cm²'],
+      ['Moment of Inertia (Jx)', results.Jx.toExponential(2), 'cm⁴'],
+      ['Moment of Inertia (Jy)', results.Jy.toExponential(2), 'cm⁴'],
+      ['Section Modulus (Wx)', results.Wx.toFixed(2), 'cm³'],
+      ['Section Modulus (Wy)', results.Wy.toFixed(2), 'cm³'],
+      ['Centroid (Yc)', results.Yc.toFixed(2), 'cm'],
+      ['Centroid (Xc)', results.Xc.toFixed(2), 'cm'],
+    ];
+
+    const forcesStresses = [
+      ['Total Bending Moment (M_x)', results.M_x.toExponential(2), 'kg.cm'],
+      ['Bending Moment (M_y)', results.M_y.toExponential(2), 'kg.cm'],
+      ['Calculated Stress (σ_u)', results.sigma_u.toFixed(2), 'kg/cm²'],
+      ['Top Compression Stress', results.sigma_top_compression.toFixed(2), 'kg/cm²'],
+      ['Bottom Tension Stress', results.sigma_bottom_tension.toFixed(2), 'kg/cm²'],
+      ['Calculated Deflection (f)', results.f.toFixed(3), 'cm'],
+      ['Allowable Deflection (f_allow)', results.f_allow.toFixed(3), 'cm'],
+    ];
+
+    autoTable(this.pdf, {
+      head: [['Geometric Properties', 'Value', 'Unit']],
+      body: geomProps,
+      startY: this.currentY,
+      theme: 'grid',
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR },
+      alternateRowStyles: { fillColor: SECONDARY_COLOR },
+    });
+
+    this.currentY = (this.pdf as any).lastAutoTable.finalY + 5;
+
+    autoTable(this.pdf, {
+      head: [['Internal Forces & Stresses', 'Value', 'Unit']],
+      body: forcesStresses,
+      startY: this.currentY,
+      theme: 'grid',
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR },
+      alternateRowStyles: { fillColor: SECONDARY_COLOR },
+    });
+    
+    this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
+  }
+
+  private addSafetyChecks(results: CalculationResults) {
+    this.pdf.setFontSize(12);
+    this.pdf.setFont('Arial', 'bold');
+    this.pdf.text('SAFETY CHECKS', MARGIN.left, this.currentY);
+    this.currentY += 6;
+
+    const checks = [
+      ['Stress Check (K_sigma)', results.K_sigma.toFixed(2), results.stress_check.toUpperCase()],
+      ['Deflection Check (nf)', results.n_f.toFixed(2), results.deflection_check.toUpperCase()],
+      ['Local Buckling Check (K_b)', results.K_buckling.toFixed(2), results.buckling_check.toUpperCase()],
+    ];
+
+    autoTable(this.pdf, {
+      head: [['Check', 'Value', 'Status']],
+      body: checks,
+      startY: this.currentY,
+      theme: 'grid',
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR },
+      didParseCell: (data) => {
+        if (data.column.dataKey === 'Status') {
+          if (data.cell.raw === 'PASS') {
+            data.cell.styles.textColor = [0, 128, 0];
+            data.cell.styles.fontStyle = 'bold';
+          } else if (data.cell.raw === 'FAIL') {
+            data.cell.styles.textColor = [255, 0, 0];
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+      },
+    });
+
+    this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
+  }
+
+  private addOverallAssessment(results: CalculationResults) {
+    this.pdf.setFontSize(12);
+    this.pdf.setFont('Arial', 'bold');
+    this.pdf.text('OVERALL ASSESSMENT', MARGIN.left, this.currentY);
+    this.currentY += 8;
+
     const overallStatus = results.stress_check === 'pass' && 
                          results.deflection_check === 'pass' && 
                          results.buckling_check === 'pass';
     
-    if (overallStatus) {
-      this.pdf.setTextColor(0, 128, 0);
-      this.addText('BEAM MEETS SAFETY REQUIREMENTS', 12, true);
-      this.pdf.setTextColor(0, 0, 0);
-      this.addText('All checks PASSED. The beam can be safely used with the given parameters.');
-    } else {
-      this.pdf.setTextColor(255, 0, 0);
-      this.addText('BEAM DOES NOT MEET SAFETY REQUIREMENTS', 12, true);
-      this.pdf.setTextColor(0, 0, 0);
-      this.addText('One or more checks FAILED. Design modifications are required.');
-    }
+    const statusText = overallStatus ? 'BEAM MEETS ALL SAFETY REQUIREMENTS' : 'BEAM DOES NOT MEET SAFETY REQUIREMENTS';
+    const statusColor = overallStatus ? [0, 128, 0] : [255, 0, 0];
+    const description = overallStatus 
+      ? 'All checks PASSED. The beam is considered safe for the specified loads and conditions.'
+      : 'One or more safety checks FAILED. The beam design requires modification.';
 
-    this.addSeparator();
-
+    this.pdf.setFillColor(overallStatus ? '#e8f5e9' : '#ffebee'); // Light green/red background
+    this.pdf.rect(MARGIN.left, this.currentY - 2, this.pageWidth - MARGIN.left - MARGIN.right, 20, 'F');
     
+    this.pdf.setFontSize(11);
+    this.pdf.setFont('Arial', 'bold');
+    this.pdf.setTextColor(...statusColor);
+    this.pdf.text(statusText, this.pageWidth / 2, this.currentY + 5, { align: 'center' });
 
-    // Footer
-    this.currentY = this.pageHeight - 30;
-    this.addText(`Report generated automatically on ${new Date().toLocaleString('en-US')}`, 8);
-    this.addText('Â© Smart Crane Beam Calculator', 8);
+    this.pdf.setFontSize(10);
+    this.pdf.setFont('Arial', 'normal');
+    this.pdf.setTextColor(...TEXT_COLOR);
+    this.pdf.text(description, this.pageWidth / 2, this.currentY + 12, { align: 'center' });
+
+    this.currentY += 25;
   }
 
-  public async captureElementToPDF(elementId: string, title: string = 'Diagram'): Promise<void> {
-    console.log(`Starting capture of element: ${elementId}`);
-    
-    // First, try to ensure the element is visible by expanding any collapsed sections
-    await this.ensureElementVisible(elementId);
-    
-    // Wait a bit more for potential animations to complete
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
+  // --- CHART/IMAGE HANDLING ---
+  private async captureElement(elementId: string, title: string) {
     const element = document.getElementById(elementId);
     if (!element) {
-      console.warn(`Element with id "${elementId}" not found in DOM`);
-      this.addText(`? ${title}: Element not found (ID: ${elementId})`);
+      console.warn(`Element with id "${elementId}" not found.`);
       return;
     }
 
-    // Check if element is actually visible and has content
-    const rect = element.getBoundingClientRect();
-    console.log(`Element ${elementId} dimensions:`, rect.width, 'x', rect.height);
-    
-    if (rect.width === 0 || rect.height === 0) {
-      console.warn(`Element with id "${elementId}" has zero dimensions`);
-      this.addText(`? ${title}: Element not visible (zero dimensions)`);
-      return;
+    // Ensure the element is visible
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const imgWidth = this.pageWidth - MARGIN.left - MARGIN.right;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const maxHeight = 120;
+    const finalHeight = Math.min(imgHeight, maxHeight);
+
+    if (this.currentY + finalHeight + 15 > this.pageHeight - MARGIN.bottom) {
+      this.pdf.addPage();
+      this.currentY = MARGIN.top;
     }
 
-    try {
-      // Check if element contains SVG (for diagrams)
-      const svgElement = element.querySelector('svg');
-      if (svgElement) {
-        const svgRect = svgElement.getBoundingClientRect();
-        console.log(`SVG ${elementId} dimensions:`, svgRect.width, 'x', svgRect.height);
-        
-        if (svgRect.width === 0 || svgRect.height === 0) {
-          console.warn(`SVG in element ${elementId} has zero dimensions`);
-          this.addText(`? ${title}: SVG diagram not properly rendered`);
-          return;
-        }
-      }
-      
-      console.log(`Capturing canvas for ${elementId}...`);
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-        width: Math.floor(rect.width),
-        height: Math.floor(rect.height),
-        ignoreElements: (node) => {
-          // Ignore any hidden elements
-          const computedStyle = window.getComputedStyle(node as Element);
-          return computedStyle.display === 'none' || computedStyle.visibility === 'hidden';
-        }
-      });
+    this.pdf.setFontSize(12);
+    this.pdf.setFont('Arial', 'bold');
+    this.pdf.text(title, MARGIN.left, this.currentY);
+    this.currentY += 6;
 
-      if (!canvas || canvas.width === 0 || canvas.height === 0) {
-        throw new Error('Canvas is empty or invalid');
-      }
-
-      console.log(`Canvas created for ${elementId}: ${canvas.width}x${canvas.height}`);
-
-      const imgData = canvas.toDataURL('image/png');
-      if (!imgData || imgData === 'data:,' || imgData.length < 100) {
-        throw new Error('Failed to generate image data or image is too small');
-      }
-
-      const imgWidth = 170; // PDF width minus margins
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      // Ensure we don't exceed reasonable height
-      const maxHeight = 120;
-      const finalHeight = Math.min(imgHeight, maxHeight);
-      
-      this.addNewPageIfNeeded(finalHeight + 20);
-      this.addSubtitle(title);
-      this.pdf.addImage(imgData, 'PNG', this.margin, this.currentY, imgWidth, finalHeight);
-      this.currentY += finalHeight + 10;
-      
-      console.log(`? Successfully captured ${title} (${elementId})`);
-    } catch (error) {
-      console.error(`? Error capturing element ${elementId}:`, error);
-      this.addText(`? Error capturing ${title}: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    this.pdf.addImage(imgData, 'PNG', MARGIN.left, this.currentY, imgWidth, finalHeight);
+    this.currentY += finalHeight + 10;
   }
 
-  private async ensureElementVisible(elementId: string): Promise<void> {
-    try {
-      // Try to find and expand any CollapsibleSection containing this element
-      const element = document.getElementById(elementId);
-      if (!element) {
-        console.warn(`Element ${elementId} not found in DOM`);
-        return;
+  // --- PUBLIC GENERATION METHOD ---
+  public async generate(
+    inputs: BeamInputs,
+    results: CalculationResults,
+    options: PDFReportOptions
+  ) {
+    const { 
+      projectName = 'Crane Beam Calculation', 
+      engineer = 'N/A', 
+      includeCharts = false,
+      chartElements = []
+    } = options;
+    const date = new Date().toLocaleDateString('en-GB');
+
+    this.addHeader(projectName);
+    this.addProjectInfo(engineer, date);
+    this.addInputs(inputs, results);
+    this.addResults(results);
+    this.addSafetyChecks(results);
+    this.addOverallAssessment(results);
+
+    if (includeCharts && chartElements.length > 0) {
+      if (this.currentY + 20 > this.pageHeight - MARGIN.bottom) {
+        this.pdf.addPage();
+        this.currentY = MARGIN.top;
       }
-
-      // Find the parent CollapsibleSection container
-      let parent = element.parentElement;
-      while (parent && !parent.classList.contains('bg-white')) {
-        parent = parent.parentElement;
-      }
-
-      if (parent) {
-        // Look for the button that controls this CollapsibleSection
-        const button = parent.querySelector('button[type="button"]');
-        if (button) {
-          const isExpanded = button.getAttribute('aria-expanded') === 'true';
-
-          if (!isExpanded) {
-            console.log(`Expanding collapsed section for ${elementId}`);
-            (button as HTMLElement).click();
-            // Wait for animation to finish so the chart stays visible
-            await new Promise(resolve => setTimeout(resolve, 500));
-          }
-        }
-
-      }
-
-      // Scroll element into view
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      await new Promise(resolve => setTimeout(resolve, 200));
       
-      console.log(`Element ${elementId} should now be visible`);
-    } catch (error) {
-      console.warn('Failed to ensure element visibility:', error);
-    }
-  }
+      this.pdf.setFontSize(14);
+      this.pdf.setFont('Arial', 'bold');
+      this.pdf.text('ANALYSIS DIAGRAMS', MARGIN.left, this.currentY);
+      this.currentY += 8;
 
-  public async addCharts(charts: ChartCaptureConfig[]): Promise<void> {
-    if (!charts.length) {
-      this.addText('? No charts to include in the report.');
-      return;
-    }
-
-    this.addSeparator();
-    this.addSubtitle('ANALYSIS DIAGRAMS');
-
-    let successCount = 0;
-    let errorCount = 0;
-
-    for (const chart of charts) {
-      try {
-        const initialY = this.currentY;
-        await this.captureElementToPDF(chart.id, chart.title);
-        
-        // Check if anything was actually added (Y position changed significantly)
-        if (this.currentY > initialY + 15) {
-          successCount++;
-        } else {
-          errorCount++;
-        }
-      } catch (error) {
-        console.error(`Failed to capture chart ${chart.id}:`, error);
-        this.addText(`? Failed to capture ${chart.title}: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        errorCount++;
+      for (const chart of chartElements) {
+        await this.captureElement(chart.id, chart.title);
       }
     }
-  }
 
-  public save(filename: string = 'crane-beam-analysis-report.pdf'): void {
-    this.pdf.save(filename);
-  }
-
-  public getBlob(): Blob {
-    return this.pdf.output('blob');
+    this.addFooter();
+    this.pdf.save('Crane-Beam-Analysis-Report.pdf');
   }
 }
 
 export const generatePDFReport = async (
-  inputs: BeamInputs, 
+  inputs: BeamInputs,
   results: CalculationResults,
   options: PDFReportOptions = {}
 ): Promise<void> => {
   const pdfService = new PDFReportService();
-  
-  await pdfService.generateReport({
-    inputs,
-    results,
-    projectName: options.projectName,
-    engineer: options.engineer
-  });
-
-  if (options.includeCharts && options.chartElements?.length) {
-    await pdfService.addCharts(options.chartElements);
-  }
-
-  pdfService.save();
+  await pdfService.generate(inputs, results, options);
 };
-
-
-
-
-
-
-

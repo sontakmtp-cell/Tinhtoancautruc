@@ -75,6 +75,7 @@ export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults 
 
   // Deflection (combining distributed load and central point load)
   const f = (5 * q_auto * L ** 4) / (384 * E * Jx) + (P * L ** 3) / (48 * E * Jx);
+  // Allowable deflection per requirement: f_allow = L / 1000
   const f_allow = L / 1000;
 
   // --- 3. Safety Checks ---
