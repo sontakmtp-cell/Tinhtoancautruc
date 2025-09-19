@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+﻿import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import type { BeamInputs, CalculationResults } from '../types';
 import { ARIAL_FONT_NORMAL, ARIAL_FONT_BOLD } from './pdfFonts';
@@ -142,77 +142,6 @@ export class PDFReportService {
     this.currentY += 10;
   }
 
-  // Generic key-value(-unit) renderer for arbitrary objects
-  private addKeyValueRowsFromObject(
-    obj: Record<string, any>,
-    opts: { title?: string; skipKeys?: string[] } = {}
-  ): void {
-    const { title, skipKeys = [] } = opts;
-    const keys = Object.keys(obj);
-    if (title) {
-      this.addText(title, 10, true);
-    }
-    const printed = new Set<string>();
-    for (const key of keys.sort()) {
-      if (skipKeys.includes(key)) continue;
-      if (key.endsWith('_unit') || key.endsWith('_description')) continue;
-      if (printed.has(key)) continue;
-      const value = obj[key];
-      const unit = obj[`${key}_unit`] ?? '';
-      if (value === null || value === undefined) continue;
-      if (typeof value === 'object') continue;
-      this.addTableRow(this.prettyLabel(key), String(value), String(unit || ''));
-      printed.add(key);
-      printed.add(`${key}_unit`);
-    }
-    for (const key of keys.sort()) {
-      if (!key.endsWith('_description')) continue;
-      const label = this.prettyLabel(key);
-      const text = String(obj[key]);
-      this.addText(`${label}: ${text}`);
-    }
-    this.currentY += 3;
-  }
-
-  private prettyLabel(rawKey: string): string {
-    let key = rawKey
-      .replace(/_/g, ' ')
-      .replace(/\bcm4\b/i, 'cm^4')
-      .replace(/\bcmA3\b/i, 'cm^3')
-      .replace(/\bcmA�\b/i, 'cm^2')
-      .replace(/\bcm���\b/i, 'cm^2');
-    key = key.replace(/\bunit\b|\bdescription\b/gi, '').trim();
-    return key.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1));
-  }
-
-  private parseExtraReportRaw(raw: string): Record<string, any>[] {
-    try {
-      const matches = raw.match(/\{[\s\S]*?\}/g);
-      if (!matches) return [];
-      const objs: Record<string, any>[] = [];
-      for (const m of matches) {
-        try {
-          objs.push(JSON.parse(m));
-        } catch {
-          // ignore
-        }
-      }
-      return objs;
-    } catch {
-      return [];
-    }
-  }
-
-  private async loadExtraRaw(): Promise<string | null> {
-    try {
-      // @ts-ignore
-      const mod = await import('../Bao cao PDF.json?raw');
-      return (mod && (mod as any).default) as string;
-    } catch {
-      return null;
-    }
-  }
-
   public async generateReport(data: PDFReportData): Promise<void> {
     const { inputs, results, projectName = 'Crane Beam Calculation Project', engineer = 'Engineer', date = new Date().toLocaleDateString('en-US') } = data;
 
@@ -245,10 +174,10 @@ export class PDFReportService {
     this.addTableRow('Lifting load (P_nang)', inputs.P_nang.toString(), 'kg');
     this.addTableRow('Equipment load (P_thietbi)', inputs.P_thietbi.toString(), 'kg');
     this.addTableRow('Distributed load (q)', results.q.toFixed(4), 'kg/cm');
-    this.addTableRow('Allowable stress (σ_allow)', inputs.sigma_allow.toString(), 'kg/cm²');
-    this.addTableRow('Yield strength (σ_yield)', inputs.sigma_yield.toString(), 'kg/cm²');
-    this.addTableRow('Elastic modulus (E)', inputs.E.toExponential(2), 'kg/cm²');
-    this.addTableRow('Poisson ratio (ν)', inputs.nu.toString(), '');
+    this.addTableRow('Allowable stress (sigma_allow)', inputs.sigma_allow.toString(), 'kg/cm2');
+    this.addTableRow('Yield strength (sigma_yield)', inputs.sigma_yield.toString(), 'kg/cm2');
+    this.addTableRow('Elastic modulus (E)', inputs.E.toExponential(2), 'kg/cm2');
+    this.addTableRow("Poisson's ratio (nu)", inputs.nu.toString(), '');
 
     this.addSeparator();
 
@@ -256,24 +185,40 @@ export class PDFReportService {
     this.addSubtitle('CALCULATION RESULTS');
     
     this.addText('Geometric Properties:', 10, true);
-    this.addTableRow('Cross-sectional area (F)', results.F.toFixed(2), 'cm�');
+    this.addTableRow('Cross-sectional area (F)', results.F.toFixed(2), 'cm2');
     this.addTableRow('Moment of inertia Jx', results.Jx.toExponential(2), 'cm4');
     this.addTableRow('Moment of inertia Jy', results.Jy.toExponential(2), 'cm4');
-    this.addTableRow('Section modulus Wx', results.Wx.toFixed(2), 'cm�');
-    this.addTableRow('Section modulus Wy', results.Wy.toFixed(2), 'cm�');
+    this.addTableRow('Section modulus Wx', results.Wx.toFixed(2), 'cm3');
+    this.addTableRow('Section modulus Wy', results.Wy.toFixed(2), 'cm3');
     this.addTableRow('Centroid Yc', results.Yc.toFixed(2), 'cm');
+    this.addTableRow('Centroid Xc', results.Xc.toFixed(2), 'cm');
     this.currentY += 3;
+    this.addText('Jx components:', 10, true);
+    this.addTableRow('Top flange (Jx_top)', results.Jx_top.toExponential(2), 'cm4');
+    this.addTableRow('Bottom flange (Jx_bottom)', results.Jx_bottom.toExponential(2), 'cm4');
+    this.addTableRow('Webs total (Jx_webs)', results.Jx_webs.toExponential(2), 'cm4');
+    this.currentY += 3;
+    this.addText('Jy components:', 10, true);
+    this.addTableRow('Top flange (Jy_top)', results.Jy_top.toExponential(2), 'cm4');
+    this.addTableRow('Bottom flange (Jy_bottom)', results.Jy_bottom.toExponential(2), 'cm4');
+    this.addTableRow('Webs total (Jy_webs)', results.Jy_webs.toExponential(2), 'cm4');
 
     this.addText('Internal Forces and Stresses:', 10, true);
     this.addTableRow('Total bending moment (M_x)', results.M_x.toExponential(2), 'kg.cm');
-    this.addTableRow('Calculated stress (σ)', results.sigma_u.toFixed(2), 'kg/cm²');
+    this.addTableRow('Calculated stress (sigma_u)', results.sigma_u.toFixed(2), 'kg/cm2');
     this.addTableRow('Calculated deflection (f)', results.f.toFixed(3), 'cm');
+    this.addTableRow('Moment from self-weight (M_bt)', results.M_bt.toExponential(2), 'kg.cm');
+    this.addTableRow('Moment from point load (M_vn)', results.M_vn.toExponential(2), 'kg.cm');
+    this.addTableRow('Bending moment about y (M_y)', results.M_y.toExponential(2), 'kg.cm');
+    this.addTableRow('Top compression stress', results.sigma_top_compression.toFixed(2), 'kg/cm2');
+    this.addTableRow('Bottom tension stress', results.sigma_bottom_tension.toFixed(2), 'kg/cm2');
+    this.addTableRow('Allowable deflection (f_allow)', results.f_allow.toFixed(3), 'cm');
 
     this.addSeparator();
 
     // Safety Checks
     this.addSubtitle('SAFETY CHECKS');
-    this.addSafetyCheck('Stress check (Kσ)', results.K_sigma.toFixed(2), results.stress_check);
+    this.addSafetyCheck('Stress check (K_sigma)', results.K_sigma.toFixed(2), results.stress_check);
     this.addSafetyCheck('Deflection check (nf)', results.n_f.toFixed(2), results.deflection_check);
     this.addSafetyCheck('Local buckling check (K_b)', results.K_buckling.toFixed(2), results.buckling_check);
 
@@ -287,38 +232,24 @@ export class PDFReportService {
     
     if (overallStatus) {
       this.pdf.setTextColor(0, 128, 0);
-      this.addText('✓ BEAM MEETS SAFETY REQUIREMENTS', 12, true);
+      this.addText('BEAM MEETS SAFETY REQUIREMENTS', 12, true);
       this.pdf.setTextColor(0, 0, 0);
       this.addText('All checks PASSED. The beam can be safely used with the given parameters.');
     } else {
       this.pdf.setTextColor(255, 0, 0);
-      this.addText('✗ BEAM DOES NOT MEET SAFETY REQUIREMENTS', 12, true);
+      this.addText('BEAM DOES NOT MEET SAFETY REQUIREMENTS', 12, true);
       this.pdf.setTextColor(0, 0, 0);
       this.addText('One or more checks FAILED. Design modifications are required.');
     }
 
     this.addSeparator();
 
-    // Optional: include additional parameters from Bao cao PDF.json
-    try {
-      const extraRaw = await this.loadExtraRaw();
-      if (extraRaw) {
-        const extraObjs = this.parseExtraReportRaw(extraRaw);
-        if (extraObjs.length) {
-          this.addSubtitle('ADDITIONAL PARAMETERS');
-          extraObjs.forEach((obj, idx) => {
-            const title = extraObjs.length > 1 ? `Data Set ${idx + 1}` : undefined;
-            this.addKeyValueRowsFromObject(obj, { title });
-          });
-          this.addSeparator();
-        }
-      }
-    } catch {}
+    
 
     // Footer
     this.currentY = this.pageHeight - 30;
     this.addText(`Report generated automatically on ${new Date().toLocaleString('en-US')}`, 8);
-    this.addText('© Smart Crane Beam Calculator', 8);
+    this.addText('Â© Smart Crane Beam Calculator', 8);
   }
 
   public async captureElementToPDF(elementId: string, title: string = 'Diagram'): Promise<void> {

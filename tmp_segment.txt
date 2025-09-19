@@ -1,0 +1,48 @@
+// Generic key-value(-unit) renderer for arbitrary objects
+  private addKeyValueRowsFromObject(
+    obj: Record<string, any>,
+    opts: { title?: string; skipKeys?: string[] } = {}
+  ): void {
+    const { title, skipKeys = [] } = opts;
+    const keys = Object.keys(obj);
+    if (title) {
+      this.addText(title, 10, true);
+    }
+    const printed = new Set<string>();
+    for (const key of keys.sort()) {
+      if (skipKeys.includes(key)) continue;
+      if (key.endsWith('_unit') || key.endsWith('_description')) continue;
+      if (printed.has(key)) continue;
+      const value = obj[key];
+      const unit = obj[`${key}_unit`] ?? '';
+      if (value === null || value === undefined) continue;
+      if (typeof value === 'object') continue;
+      this.addTableRow(this.prettyLabel(key), String(value), String(unit || ''));
+      printed.add(key);
+      printed.add(`${key}_unit`);
+    }
+    for (const key of keys.sort()) {
+      if (!key.endsWith('_description')) continue;
+      const label = this.prettyLabel(key);
+      const text = String(obj[key]);
+      this.addText(`${label}: ${text}`);
+    }
+    this.currentY += 3;
+  }
+
+  private prettyLabel(rawKey: string): string {
+    let key = rawKey
+      .replace(/_/g, ' ')
+      .replace(/\bcm4\b/i, 'cm^4')
+      .replace(/\bcmA3\b/i, 'cm^3')
+      .replace(/\bcmA�\b/i, 'cm^2')
+      .replace(/\bcm���\b/i, 'cm^2');
+    key = key.replace(/\bunit\b|\bdescription\b/gi, '').trim();
+    return key.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1));
+  }
+
+  
+
+  
+
+  

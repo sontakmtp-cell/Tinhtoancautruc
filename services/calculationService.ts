@@ -56,9 +56,11 @@ export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults 
 
   // --- 2. Load and Stress Calculation ---
   const P = P_nang + P_thietbi;
+  // Auto-computed distributed load from self-weight: q = F * 7850 / 1e6 (kg/cm)
+  const q_auto = F * 7850 / 1_000_000;
   
   // Moments for a simply supported beam
-  const M_bt = (q * L ** 2) / 8; // Moment from distributed load
+  const M_bt = (q_auto * L ** 2) / 8; // Moment from distributed load (auto)
   const M_vn = (P * L) / 4;      // Moment from point load at center
 
   // Total moments with safety/dynamic factors
@@ -72,7 +74,7 @@ export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults 
   const sigma_bottom_tension = (M_x * Yc) / Jx;
 
   // Deflection (combining distributed load and central point load)
-  const f = (5 * q * L ** 4) / (384 * E * Jx) + (P * L ** 3) / (48 * E * Jx);
+  const f = (5 * q_auto * L ** 4) / (384 * E * Jx) + (P * L ** 3) / (48 * E * Jx);
   const f_allow = L / 1000;
 
   // --- 3. Safety Checks ---
@@ -89,7 +91,10 @@ export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults 
 
   return {
     F, Yc, Xc, Jx, Jy, Wx, Wy,
+    Jx_top: Ix_top, Jx_bottom: Ix_bottom, Jx_webs: Ix_webs,
+    Jy_top: Iy_top, Jy_bottom: Iy_bottom, Jy_webs: Iy_webs,
     P, M_bt, M_vn, M_x, M_y,
+    q: q_auto,
     sigma_u, sigma_top_compression, sigma_bottom_tension, f, f_allow,
     K_sigma, n_f, K_buckling,
     stress_check: K_sigma >= 1 ? 'pass' : 'fail',
@@ -99,8 +104,8 @@ export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults 
 };
 
 export const generateDiagramData = (inputs: BeamInputs, results: CalculationResults): DiagramData => {
-  const { L, q } = inputs;
-  const { P, M_x } = results;
+  const { L } = inputs;
+  const { P, M_x, q } = results;
   const points = 101; // Number of points to calculate along the beam
   const data: DiagramData = [];
 

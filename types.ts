@@ -35,6 +35,15 @@ export interface CalculationResults extends GeometricProperties {
   M_vn: number; // Moment from point load (kg.cm)
   M_x: number; // Total moment about x-axis (kg.cm)
   M_y: number; // Total moment about y-axis (kg.cm)
+  q: number;   // Auto-computed distributed load (kg/cm)
+  
+  // Inertia component breakdown (cm^4)
+  Jx_top: number;    // Top flange contribution to Jx
+  Jx_bottom: number; // Bottom flange contribution to Jx
+  Jx_webs: number;   // Two webs contribution to Jx (sum)
+  Jy_top: number;    // Top flange contribution to Jy
+  Jy_bottom: number; // Bottom flange contribution to Jy
+  Jy_webs: number;   // Two webs contribution to Jy (sum)
   
   // Stress and Deflection results
   sigma_u: number; // Calculated stress (kg/cm^2)

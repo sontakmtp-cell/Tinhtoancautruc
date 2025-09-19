@@ -1,0 +1,149 @@
+1:import type { BeamInputs, CalculationResults, DiagramData, DiagramPoint } from '../types';
+2:
+3:export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults => {
+4:  const {
+5:    b: b_mm,
+6:    h: h_mm,
+7:    t1: t1_mm,
+8:    t2: t2_mm,
+9:    t3: t3_mm,
+10:    b1: b1_mm,
+11:    L,
+12:    P_nang,
+13:    P_thietbi,
+14:    sigma_allow,
+15:    sigma_yield,
+16:    E,
+17:    nu,
+18:    q,
+19:  } = inputs;
+20:
+21:  // Convert millimetre inputs to centimetres for calculations
+22:  const b = b_mm / 10;
+23:  const h = h_mm / 10;
+24:  const t1 = t1_mm / 10;
+25:  const t2 = t2_mm / 10;
+26:  const t3 = t3_mm / 10;
+27:  const b1 = b1_mm / 10;
+28:
+29:  // --- 1. Geometric Properties Calculation ---
+30:  const topFlangeArea = b * t1;
+31:  const bottomFlangeArea = b * t2;
+32:  const webHeight = h - t1 - t2;
+33:  const singleWebArea = webHeight * t3;
+34:  
+35:  const F = topFlangeArea + bottomFlangeArea + 2 * singleWebArea;
+36:
+37:  const y_top = h - t1 / 2;
+38:  const y_bottom = t2 / 2;
+39:  const y_webs = t2 + webHeight / 2;
+40:  const Yc = (topFlangeArea * y_top + bottomFlangeArea * y_bottom + 2 * singleWebArea * y_webs) / F;
+41:  const Xc = b / 2;
+42:
+43:  const Ix_top = (b * t1 ** 3) / 12 + topFlangeArea * (y_top - Yc) ** 2;
+44:  const Ix_bottom = (b * t2 ** 3) / 12 + bottomFlangeArea * (y_bottom - Yc) ** 2;
+45:  const Ix_webs = 2 * ((t3 * webHeight ** 3) / 12 + singleWebArea * (y_webs - Yc) ** 2);
+46:  const Jx = Ix_top + Ix_bottom + Ix_webs;
+47:
+48:  const Iy_top = (t1 * b ** 3) / 12;
+49:  const Iy_bottom = (t2 * b ** 3) / 12;
+50:  const web_dist_from_center = b1 / 2 + t3 / 2;
+51:  const Iy_webs = 2 * ((webHeight * t3 ** 3) / 12 + singleWebArea * web_dist_from_center ** 2);
+52:  const Jy = Iy_top + Iy_bottom + Iy_webs;
+53:  
+54:  const Wx = Jx / Math.max(Yc, h - Yc);
+55:  const Wy = Jy / (b / 2);
+56:
+57:  // --- 2. Load and Stress Calculation ---
+58:  const P = P_nang + P_thietbi;
+59:  // Auto-computed distributed load from self-weight: q = F * 7850 / 1e6 (kg/cm)
+60:  const q_auto = F * 7850 / 1_000_000;
+61:  
+62:  // Moments for a simply supported beam
+63:  const M_bt = (q_auto * L ** 2) / 8; // Moment from distributed load (auto)
+64:  const M_vn = (P * L) / 4;      // Moment from point load at center
+65:
+66:  // Total moments with safety/dynamic factors
+67:  const M_x = 1.05 * (M_bt + 1.25 * M_vn);
+68:  const M_y = 0.05 * (M_bt + M_vn);
+69:
+70:  const sigma_u = (M_x / Wx) + (M_y / Wy);
+71:
+72:  // Specific stress at top and bottom fibers due to M_x
+73:  const sigma_top_compression = (M_x * (h - Yc)) / Jx;
+74:  const sigma_bottom_tension = (M_x * Yc) / Jx;
+75:
+76:  // Deflection (combining distributed load and central point load)
+77:  const f = (5 * q_auto * L ** 4) / (384 * E * Jx) + (P * L ** 3) / (48 * E * Jx);
+78:  const f_allow = L / 1000;
+79:
+80:  // --- 3. Safety Checks ---
+81:  const K_sigma = sigma_allow / sigma_u;
+82:  const n_f = f_allow / f;
+83:
+84:  // --- 4. Advanced Checks (Local Buckling) ---
+85:  // Simplified check for local buckling of the top flange panel between webs.
+86:  // This compares the width/thickness ratio to a material-dependent limit.
+87:  const lambda_actual = b1 / t1;
+88:  // The constant 1.9 is an example value for stiffened elements.
+89:  const lambda_limit = 1.9 * Math.sqrt(E / sigma_yield); 
+90:  const K_buckling = lambda_actual > 0 ? lambda_limit / lambda_actual : Infinity;
+91:
+92:  return {
+93:    F, Yc, Xc, Jx, Jy, Wx, Wy,
+94:    P, M_bt, M_vn, M_x, M_y,
+95:    q: q_auto,
+96:    sigma_u, sigma_top_compression, sigma_bottom_tension, f, f_allow,
+97:    K_sigma, n_f, K_buckling,
+98:    stress_check: K_sigma >= 1 ? 'pass' : 'fail',
+99:    deflection_check: n_f >= 1 ? 'pass' : 'fail',
+100:    buckling_check: K_buckling >= 1 ? 'pass' : 'fail',
+101:  };
+102:};
+103:
+104:export const generateDiagramData = (inputs: BeamInputs, results: CalculationResults): DiagramData => {
+105:  const { L } = inputs;
+106:  const { P, M_x, q } = results;
+107:  const points = 101; // Number of points to calculate along the beam
+108:  const data: DiagramData = [];
+109:
+110:  const R = P / 2 + (q * L) / 2; // Reaction force at support
+111:  
+112:  // The peak moment from the simple formula is M_max_simple = (P*L)/4 + (q*L^2)/8.
+113:  // M_x from results includes safety factors. We'll use this M_x as the peak value and scale the diagram shape to it.
+114:  const M_max_simple = (P * L) / 4 + (q * L**2) / 8;
+115:  const scaleFactor = M_max_simple > 0 ? M_x / M_max_simple : 1;
+116:
+117:
+118:  for (let i = 0; i < points; i++) {
+119:    const x = (L / (points - 1)) * i;
+120:    let shear: number;
+121:    let moment: number;
+122:
+123:    // Shear force
+124:    if (x < L / 2) {
+125:      shear = R - q * x;
+126:    } else {
+127:      shear = R - q * x - P;
+128:    }
+129:
+130:    // Bending moment
+131:    if (x <= L / 2) {
+132:      moment = (R * x - (q * x ** 2) / 2);
+133:    } else {
+134:      moment = (R * x - (q * x ** 2) / 2 - P * (x - L / 2));
+135:    }
+136:    
+137:    data.push({ x, shear, moment: moment * scaleFactor });
+138:  }
+139:
+140:  // Ensure the moment at the end is exactly 0 after scaling
+141:  if (data.length > 0) {
+142:      const lastPoint = data[data.length - 1];
+143:      const simpleMomentEnd = (R * lastPoint.x - (q * lastPoint.x ** 2) / 2 - P * (lastPoint.x - L / 2));
+144:      // This should be near zero, apply scaling and clean up floating point errors
+145:      data[data.length - 1].moment = Math.abs(simpleMomentEnd) < 1e-9 ? 0 : simpleMomentEnd * scaleFactor;
+146:  }
+147:
+148:  return data;
+149:};

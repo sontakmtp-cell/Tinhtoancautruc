@@ -68,7 +68,7 @@ const inputConfig: { title: string; icon: React.FC<any>; fields: { name: keyof B
       { name: 't1', label: 'Top flange thickness t1', unit: 'mm' },
       { name: 't2', label: 'Bottom flange thickness t2', unit: 'mm' },
       { name: 't3', label: 'Web thickness t3', unit: 'mm' },
-      { name: 'b1', label: 'Web spacing b1', unit: 'mm' },
+      { name: 'b1', label: 'Web spacing b2', unit: 'mm' },
     ],
   },
   {
@@ -78,7 +78,6 @@ const inputConfig: { title: string; icon: React.FC<any>; fields: { name: keyof B
       { name: 'L', label: 'Span length L', unit: 'cm' },
       { name: 'P_nang', label: 'Hoist load', unit: 'kg' },
       { name: 'P_thietbi', label: 'Trolley weight', unit: 'kg' },
-      { name: 'q', label: 'Uniform load q', unit: 'kg/cm' },
       { name: 'sigma_allow', label: 'Allowable stress', unit: 'kg/cm^2' },
       { name: 'sigma_yield', label: 'Yield stress', unit: 'kg/cm^2' },
       { name: 'E', label: 'Elastic modulus E', unit: 'kg/cm^2' },

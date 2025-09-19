@@ -20,6 +20,11 @@ input[type=number] {
   appearance: textfield;
 }
 
+/* Hide the footer credit line */
+footer p {
+  display: none;
+}
+
 /* From Uiverse.io by Jaareet */ 
 .input {
   font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif;
