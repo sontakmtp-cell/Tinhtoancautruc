@@ -3,12 +3,14 @@ import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import type { BeamInputs, CalculationResults } from '../types';
 import { ARIAL_FONT_NORMAL, ARIAL_FONT_BOLD } from './pdfFonts';
+import { getTranslator, Language } from '../utils/translations';
 
 interface PDFReportOptions {
   projectName?: string;
   engineer?: string;
   includeCharts?: boolean;
   chartElements?: { id: string; title: string }[];
+  language?: Language;
 }
 
 // --- HELPER TYPES FOR AUTOTABLE ---
@@ -34,11 +36,13 @@ class PDFReportService {
   private pageHeight: number;
   private pageWidth: number;
   private currentY: number = 0;
+  private t: (key: keyof typeof import('../utils/translations').translations.en) => string;
 
-  constructor() {
+  constructor(language: Language = 'en') {
     this.pdf = new jsPDF('p', 'mm', 'a4');
     this.pageHeight = this.pdf.internal.pageSize.getHeight();
     this.pageWidth = this.pdf.internal.pageSize.getWidth();
+    this.t = getTranslator(language);
 
     // Add custom fonts
     this.pdf.addFileToVFS('arial-normal.ttf', ARIAL_FONT_NORMAL);
@@ -51,7 +55,7 @@ class PDFReportService {
 
   // --- HEADER & FOOTER ---
   private addHeader(projectName: string) {
-    const title = 'Crane Beam Structural Analysis Report';
+    const title = this.t('reportTitle');
     
     this.pdf.setFillColor(...PRIMARY_COLOR);
     this.pdf.rect(0, 0, this.pageWidth, MARGIN.top - 5, 'F');
@@ -69,7 +73,6 @@ class PDFReportService {
 
   private addFooter() {
     const pageCount = (this.pdf.internal as any).getNumberOfPages();
-    const footerText = '© Smart Crane Beam Calculator | Confidential';
     
     for (let i = 1; i <= pageCount; i++) {
       this.pdf.setPage(i);
@@ -78,7 +81,7 @@ class PDFReportService {
       this.pdf.setTextColor(150, 150, 150);
 
       // Page number
-      const pageNumText = `Page ${i} of ${pageCount}`;
+      const pageNumText = `${this.t('page')} ${i} ${this.t('of')} ${pageCount}`;
       this.pdf.text(pageNumText, this.pageWidth / 2, this.pageHeight - MARGIN.bottom + 15, { align: 'center' });
 
       // Footer line
@@ -86,7 +89,7 @@ class PDFReportService {
       this.pdf.line(MARGIN.left, this.pageHeight - MARGIN.bottom + 10, this.pageWidth - MARGIN.right, this.pageHeight - MARGIN.bottom + 10);
       
       // Footer text
-      this.pdf.text(footerText, MARGIN.left, this.pageHeight - MARGIN.bottom + 15);
+      this.pdf.text(this.t('footerText'), MARGIN.left, this.pageHeight - MARGIN.bottom + 15);
     }
   }
 
@@ -95,20 +98,20 @@ class PDFReportService {
     this.pdf.setFontSize(12);
     this.pdf.setFont('Arial', 'bold');
     this.pdf.setTextColor(...TEXT_COLOR);
-    this.pdf.text('PROJECT INFORMATION', MARGIN.left, this.currentY);
+    this.pdf.text(this.t('projectInformation'), MARGIN.left, this.currentY);
     this.currentY += 6;
 
     const info = [
-      ['Design Engineer:', engineer || 'N/A'],
-      ['Calculation Date:', date],
-      ['Software:', 'Smart Crane Beam Calculator'],
+      [this.t('designEngineer'), engineer || 'N/A'],
+      [this.t('calculationDate'), date],
+      [this.t('software'), this.t('softwareName')],
     ];
 
     autoTable(this.pdf, {
       body: info,
       startY: this.currentY,
       theme: 'plain',
-      styles: { fontSize: 10, cellPadding: 1 },
+      styles: { fontSize: 10, cellPadding: 1, font: 'Arial' },
       columnStyles: { 0: { fontStyle: 'bold' } },
     });
 
@@ -118,45 +121,47 @@ class PDFReportService {
   private addInputs(inputs: BeamInputs, results: CalculationResults) {
     this.pdf.setFontSize(12);
     this.pdf.setFont('Arial', 'bold');
-    this.pdf.text('INPUT PARAMETERS', MARGIN.left, this.currentY);
+    this.pdf.text(this.t('inputParameters'), MARGIN.left, this.currentY);
     this.currentY += 6;
 
     const geomData = [
-      ['Beam Span (L)', inputs.L, 'cm'],
-      ['Beam Width (b)', inputs.b, 'mm'],
-      ['Beam Height (h)', inputs.h, 'mm'],
-      ['Top Flange (t1)', inputs.t1, 'mm'],
-      ['Bottom Flange (t2)', inputs.t2, 'mm'],
-      ['Web Thickness (t3)', inputs.t3, 'mm'],
-      ['Stiffener Spacing (b1)', inputs.b1, 'mm'],
+      [this.t('beamSpan'), inputs.L, 'cm'],
+      [this.t('beamWidth'), inputs.b, 'mm'],
+      [this.t('beamHeight'), inputs.h, 'mm'],
+      [this.t('topFlange'), inputs.t1, 'mm'],
+      [this.t('bottomFlange'), inputs.t2, 'mm'],
+      [this.t('webThickness'), inputs.t3, 'mm'],
+      [this.t('stiffenerSpacing'), inputs.b1, 'mm'],
     ];
 
     const loadData = [
-      ['Lifting Load (P_nang)', inputs.P_nang, 'kg'],
-      ['Equipment Load (P_thietbi)', inputs.P_thietbi, 'kg'],
-      ['Distributed Load (q)', results.q.toFixed(4), 'kg/cm'],
-      ['Allowable Stress (σ_allow)', inputs.sigma_allow, 'kg/cm²'],
-      ['Yield Strength (σ_yield)', inputs.sigma_yield, 'kg/cm²'],
-      ['Elastic Modulus (E)', inputs.E.toExponential(2), 'kg/cm²'],
-      ["Poisson's Ratio (ν)", inputs.nu, ''],
+      [this.t('liftingLoad'), inputs.P_nang, 'kg'],
+      [this.t('equipmentLoad'), inputs.P_thietbi, 'kg'],
+      [this.t('distributedLoad'), results.q.toFixed(4), 'kg/cm'],
+      [this.t('allowableStress'), inputs.sigma_allow, 'kg/cm²'],
+      [this.t('yieldStrength'), inputs.sigma_yield, 'kg/cm²'],
+      [this.t('elasticModulus'), inputs.E.toExponential(2), 'kg/cm²'],
+      [this.t('poissonsRatio'), inputs.nu, ''],
     ];
 
     autoTable(this.pdf, {
-      head: [['Geometric Parameters', 'Value', 'Unit']],
+      head: [[this.t('geometricParameters'), this.t('value'), this.t('status')]],
       body: geomData,
       startY: this.currentY,
       theme: 'grid',
-      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR },
+      styles: { font: 'Arial' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'Arial', fontStyle: 'bold' },
       alternateRowStyles: { fillColor: SECONDARY_COLOR },
       margin: { right: this.pageWidth / 2 + 5 },
     });
 
     autoTable(this.pdf, {
-      head: [['Load & Material', 'Value', 'Unit']],
+      head: [[this.t('loadAndMaterial'), this.t('value'), this.t('status')]],
       body: loadData,
       startY: this.currentY,
       theme: 'grid',
-      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR },
+      styles: { font: 'Arial' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'Arial', fontStyle: 'bold' },
       alternateRowStyles: { fillColor: SECONDARY_COLOR },
       margin: { left: this.pageWidth / 2 + 5 },
     });
@@ -167,46 +172,48 @@ class PDFReportService {
   private addResults(results: CalculationResults) {
     this.pdf.setFontSize(12);
     this.pdf.setFont('Arial', 'bold');
-    this.pdf.text('CALCULATION RESULTS', MARGIN.left, this.currentY);
+    this.pdf.text(this.t('calculationResults'), MARGIN.left, this.currentY);
     this.currentY += 6;
 
     const geomProps = [
-      ['Cross-sectional Area (F)', results.F.toFixed(2), 'cm²'],
-      ['Moment of Inertia (Jx)', results.Jx.toExponential(2), 'cm⁴'],
-      ['Moment of Inertia (Jy)', results.Jy.toExponential(2), 'cm⁴'],
-      ['Section Modulus (Wx)', results.Wx.toFixed(2), 'cm³'],
-      ['Section Modulus (Wy)', results.Wy.toFixed(2), 'cm³'],
-      ['Centroid (Yc)', results.Yc.toFixed(2), 'cm'],
-      ['Centroid (Xc)', results.Xc.toFixed(2), 'cm'],
+      [this.t('crossSectionalArea'), results.F.toFixed(2), 'cm²'],
+      [this.t('momentOfInertiaX'), results.Jx.toExponential(2), 'cm⁴'],
+      [this.t('momentOfInertiaY'), results.Jy.toExponential(2), 'cm⁴'],
+      [this.t('sectionModulusX'), results.Wx.toFixed(2), 'cm³'],
+      [this.t('sectionModulusY'), results.Wy.toFixed(2), 'cm³'],
+      [this.t('centroidY'), results.Yc.toFixed(2), 'cm'],
+      [this.t('centroidX'), results.Xc.toFixed(2), 'cm'],
     ];
 
     const forcesStresses = [
-      ['Total Bending Moment (M_x)', results.M_x.toExponential(2), 'kg.cm'],
-      ['Bending Moment (M_y)', results.M_y.toExponential(2), 'kg.cm'],
-      ['Calculated Stress (σ_u)', results.sigma_u.toFixed(2), 'kg/cm²'],
-      ['Top Compression Stress', results.sigma_top_compression.toFixed(2), 'kg/cm²'],
-      ['Bottom Tension Stress', results.sigma_bottom_tension.toFixed(2), 'kg/cm²'],
-      ['Calculated Deflection (f)', results.f.toFixed(3), 'cm'],
-      ['Allowable Deflection (f_allow)', results.f_allow.toFixed(3), 'cm'],
+      [this.t('totalBendingMomentX'), results.M_x.toExponential(2), 'kg.cm'],
+      [this.t('bendingMomentY'), results.M_y.toExponential(2), 'kg.cm'],
+      [this.t('calculatedStress'), results.sigma_u.toFixed(2), 'kg/cm²'],
+      [this.t('topCompressionStress'), results.sigma_top_compression.toFixed(2), 'kg/cm²'],
+      [this.t('bottomTensionStress'), results.sigma_bottom_tension.toFixed(2), 'kg/cm²'],
+      [this.t('calculatedDeflection'), results.f.toFixed(3), 'cm'],
+      [this.t('allowableDeflection'), results.f_allow.toFixed(3), 'cm'],
     ];
 
     autoTable(this.pdf, {
-      head: [['Geometric Properties', 'Value', 'Unit']],
+      head: [[this.t('geometricProperties'), this.t('value'), 'Unit']],
       body: geomProps,
       startY: this.currentY,
       theme: 'grid',
-      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR },
+      styles: { font: 'Arial' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'Arial', fontStyle: 'bold' },
       alternateRowStyles: { fillColor: SECONDARY_COLOR },
     });
 
     this.currentY = (this.pdf as any).lastAutoTable.finalY + 5;
 
     autoTable(this.pdf, {
-      head: [['Internal Forces & Stresses', 'Value', 'Unit']],
+      head: [[this.t('internalForcesAndStresses'), this.t('value'), 'Unit']],
       body: forcesStresses,
       startY: this.currentY,
       theme: 'grid',
-      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR },
+      styles: { font: 'Arial' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'Arial', fontStyle: 'bold' },
       alternateRowStyles: { fillColor: SECONDARY_COLOR },
     });
     
@@ -216,27 +223,28 @@ class PDFReportService {
   private addSafetyChecks(results: CalculationResults) {
     this.pdf.setFontSize(12);
     this.pdf.setFont('Arial', 'bold');
-    this.pdf.text('SAFETY CHECKS', MARGIN.left, this.currentY);
+    this.pdf.text(this.t('safetyChecks'), MARGIN.left, this.currentY);
     this.currentY += 6;
 
     const checks = [
-      ['Stress Check (K_sigma)', results.K_sigma.toFixed(2), results.stress_check.toUpperCase()],
-      ['Deflection Check (nf)', results.n_f.toFixed(2), results.deflection_check.toUpperCase()],
-      ['Local Buckling Check (K_b)', results.K_buckling.toFixed(2), results.buckling_check.toUpperCase()],
+      [this.t('stressCheck'), results.K_sigma.toFixed(2), results.stress_check === 'pass' ? this.t('pass') : this.t('fail')],
+      [this.t('deflectionCheck'), results.n_f.toFixed(2), results.deflection_check === 'pass' ? this.t('pass') : this.t('fail')],
+      [this.t('localBucklingCheck'), results.K_buckling.toFixed(2), results.buckling_check === 'pass' ? this.t('pass') : this.t('fail')],
     ];
 
     autoTable(this.pdf, {
-      head: [['Check', 'Value', 'Status']],
+      head: [[this.t('check'), this.t('value'), this.t('status')]],
       body: checks,
       startY: this.currentY,
       theme: 'grid',
-      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR },
+      styles: { font: 'Arial' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'Arial', fontStyle: 'bold' },
       didParseCell: (data) => {
         if (data.column.dataKey === 'Status') {
-          if (data.cell.raw === 'PASS') {
+          if (data.cell.raw === this.t('pass')) {
             data.cell.styles.textColor = [0, 128, 0];
             data.cell.styles.fontStyle = 'bold';
-          } else if (data.cell.raw === 'FAIL') {
+          } else if (data.cell.raw === this.t('fail')) {
             data.cell.styles.textColor = [255, 0, 0];
             data.cell.styles.fontStyle = 'bold';
           }
@@ -250,18 +258,16 @@ class PDFReportService {
   private addOverallAssessment(results: CalculationResults) {
     this.pdf.setFontSize(12);
     this.pdf.setFont('Arial', 'bold');
-    this.pdf.text('OVERALL ASSESSMENT', MARGIN.left, this.currentY);
+    this.pdf.text(this.t('overallAssessment'), MARGIN.left, this.currentY);
     this.currentY += 8;
 
     const overallStatus = results.stress_check === 'pass' && 
                          results.deflection_check === 'pass' && 
                          results.buckling_check === 'pass';
     
-    const statusText = overallStatus ? 'BEAM MEETS ALL SAFETY REQUIREMENTS' : 'BEAM DOES NOT MEET SAFETY REQUIREMENTS';
+    const statusText = overallStatus ? this.t('beamPass') : this.t('beamFail');
     const statusColor = overallStatus ? [0, 128, 0] : [255, 0, 0];
-    const description = overallStatus 
-      ? 'All checks PASSED. The beam is considered safe for the specified loads and conditions.'
-      : 'One or more safety checks FAILED. The beam design requires modification.';
+    const description = overallStatus ? this.t('passDescription') : this.t('failDescription');
 
     this.pdf.setFillColor(overallStatus ? '#e8f5e9' : '#ffebee'); // Light green/red background
     this.pdf.rect(MARGIN.left, this.currentY - 2, this.pageWidth - MARGIN.left - MARGIN.right, 20, 'F');
@@ -327,9 +333,10 @@ class PDFReportService {
       projectName = 'Crane Beam Calculation', 
       engineer = 'N/A', 
       includeCharts = false,
-      chartElements = []
+      chartElements = [],
+      language = 'en'
     } = options;
-    const date = new Date().toLocaleDateString('en-GB');
+    const date = new Date().toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-GB');
 
     this.addHeader(projectName);
     this.addProjectInfo(engineer, date);
@@ -346,10 +353,24 @@ class PDFReportService {
       
       this.pdf.setFontSize(14);
       this.pdf.setFont('Arial', 'bold');
-      this.pdf.text('ANALYSIS DIAGRAMS', MARGIN.left, this.currentY);
+      this.pdf.text(this.t('analysisDiagrams'), MARGIN.left, this.currentY);
       this.currentY += 8;
 
       for (const chart of chartElements) {
+        // Force deflection diagram to a new page if it's not already on one
+        if (chart.id === 'deflection-diagram') {
+          // If we are still on page 1, move to page 2
+          if (this.pdf.internal.pages.length === 1) {
+            this.pdf.addPage();
+            this.currentY = MARGIN.top;
+
+            // Re-add title for the new page of diagrams
+            this.pdf.setFontSize(14);
+            this.pdf.setFont('Arial', 'bold');
+            this.pdf.text(this.t('analysisDiagrams'), MARGIN.left, this.currentY);
+            this.currentY += 8;
+          }
+        }
         await this.captureElement(chart.id, chart.title);
       }
     }
@@ -364,6 +385,6 @@ export const generatePDFReport = async (
   results: CalculationResults,
   options: PDFReportOptions = {}
 ): Promise<void> => {
-  const pdfService = new PDFReportService();
+  const pdfService = new PDFReportService(options.language);
   await pdfService.generate(inputs, results, options);
 };
