@@ -9,6 +9,7 @@ interface DiagramProps {
 
 export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, results }) => {
     const { h, b, t1, t2, t3, b1 } = inputs;
+    const b3 = (inputs as any).b3 !== undefined ? (inputs as any).b3 as number : b; // fallback if missing
     const { Yc, sigma_top_compression, sigma_bottom_tension } = results;
     const Yc_mm = Yc * 10;
 
@@ -18,7 +19,8 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
     
     const beamScale = (height - padding.top - padding.bottom) / h;
     const scaledH = h * beamScale;
-    const scaledB = b * beamScale;
+    const scaledBTop = b3 * beamScale; // top flange width
+    const scaledBBot = b * beamScale;  // bottom flange width
     const scaledT1 = t1 * beamScale;
     const scaledT2 = t2 * beamScale;
     const scaledT3 = t3 * beamScale;
@@ -26,10 +28,12 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
     const scaledYc = Yc_mm * beamScale;
 
     const beamX = padding.left + 20;
+    const maxScaledB = Math.max(scaledBTop, scaledBBot);
+    const centerX = beamX + maxScaledB / 2; // draw around centerline
 
     const maxStress = Math.max(sigma_top_compression, sigma_bottom_tension);
     const stressScale = maxStress > 0 ? 120 / maxStress : 0;
-    const stressX = beamX + scaledB + 40;
+    const stressX = beamX + maxScaledB + 40;
 
     const formatValue = (val: number) => {
         if (Math.abs(val) < 1) return val.toFixed(2);
@@ -57,11 +61,14 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
                     </g>
                     
                     {/* Beam Cross-section */}
-                    <g transform={`translate(${beamX}, 0)`} className="fill-gray-200 dark:fill-gray-700 stroke-gray-500 dark:stroke-gray-400" strokeWidth="1">
-                        <rect x="0" y="0" width={scaledB} height={scaledT1} />
-                        <rect x="0" y={scaledH - scaledT2} width={scaledB} height={scaledT2} />
-                        <rect x={(scaledB - scaledB1)/2 - scaledT3} y={scaledT1} width={scaledT3} height={scaledH - scaledT1 - scaledT2} />
-                        <rect x={(scaledB + scaledB1)/2} y={scaledT1} width={scaledT3} height={scaledH - scaledT1 - scaledT2} />
+                    <g className="fill-gray-200 dark:fill-gray-700 stroke-gray-500 dark:stroke-gray-400" strokeWidth="1">
+                        {/* Top flange */}
+                        <rect x={centerX - scaledBTop/2} y={0} width={scaledBTop} height={scaledT1} />
+                        {/* Bottom flange */}
+                        <rect x={centerX - scaledBBot/2} y={scaledH - scaledT2} width={scaledBBot} height={scaledT2} />
+                        {/* Webs positioned from centerline using b1 */}
+                        <rect x={centerX - scaledB1/2 - scaledT3} y={scaledT1} width={scaledT3} height={scaledH - scaledT1 - scaledT2} />
+                        <rect x={centerX + scaledB1/2} y={scaledT1} width={scaledT3} height={scaledH - scaledT1 - scaledT2} />
                     </g>
                     
                     {/* Neutral Axis */}
@@ -102,7 +109,6 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
         </div>
     );
 };
-
 
 
 

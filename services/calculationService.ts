@@ -2,12 +2,13 @@ import type { BeamInputs, CalculationResults, DiagramData, DiagramPoint } from '
 
 export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults => {
   const {
-    b: b_mm,
+    b: b_bottom_mm,
     h: h_mm,
     t1: t1_mm,
     t2: t2_mm,
     t3: t3_mm,
     b1: b1_mm,
+    b3: b_top_mm,
     L,
     P_nang,
     P_thietbi,
@@ -19,16 +20,17 @@ export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults 
   } = inputs;
 
   // Convert millimetre inputs to centimetres for calculations
-  const b = b_mm / 10;
+  const b_bottom = b_bottom_mm / 10; // bottom flange width (cm)
   const h = h_mm / 10;
   const t1 = t1_mm / 10;
   const t2 = t2_mm / 10;
   const t3 = t3_mm / 10;
   const b1 = b1_mm / 10;
+  const b_top = (b_top_mm ?? b_bottom_mm) / 10; // fallback for backward compatibility
 
   // --- 1. Geometric Properties Calculation ---
-  const topFlangeArea = b * t1;
-  const bottomFlangeArea = b * t2;
+  const topFlangeArea = b_top * t1;
+  const bottomFlangeArea = b_bottom * t2;
   const webHeight = h - t1 - t2;
   const singleWebArea = webHeight * t3;
   
@@ -38,21 +40,24 @@ export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults 
   const y_bottom = t2 / 2;
   const y_webs = t2 + webHeight / 2;
   const Yc = (topFlangeArea * y_top + bottomFlangeArea * y_bottom + 2 * singleWebArea * y_webs) / F;
-  const Xc = b / 2;
+  // Horizontal centroid lies on the symmetry centerline between webs
+  // We report Xc relative to that centerline as 0 for clarity (not used elsewhere)
+  const Xc = 0;
 
-  const Ix_top = (b * t1 ** 3) / 12 + topFlangeArea * (y_top - Yc) ** 2;
-  const Ix_bottom = (b * t2 ** 3) / 12 + bottomFlangeArea * (y_bottom - Yc) ** 2;
+  // Rectangular flange local inertia uses its own width (b_top/b_bottom)
+  const Ix_top = (b_top * t1 ** 3) / 12 + topFlangeArea * (y_top - Yc) ** 2;
+  const Ix_bottom = (b_bottom * t2 ** 3) / 12 + bottomFlangeArea * (y_bottom - Yc) ** 2;
   const Ix_webs = 2 * ((t3 * webHeight ** 3) / 12 + singleWebArea * (y_webs - Yc) ** 2);
   const Jx = Ix_top + Ix_bottom + Ix_webs;
 
-  const Iy_top = (t1 * b ** 3) / 12;
-  const Iy_bottom = (t2 * b ** 3) / 12;
+  const Iy_top = (t1 * b_top ** 3) / 12;
+  const Iy_bottom = (t2 * b_bottom ** 3) / 12;
   const web_dist_from_center = b1 / 2 + t3 / 2;
   const Iy_webs = 2 * ((webHeight * t3 ** 3) / 12 + singleWebArea * web_dist_from_center ** 2);
   const Jy = Iy_top + Iy_bottom + Iy_webs;
   
   const Wx = Jx / Math.max(Yc, h - Yc);
-  const Wy = Jy / (b / 2);
+  const Wy = Jy / (Math.max(b_top, b_bottom) / 2);
 
   // --- 2. Load and Stress Calculation ---
   const P = P_nang + P_thietbi;

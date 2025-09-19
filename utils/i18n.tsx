@@ -37,8 +37,13 @@ const dict: Record<Language, Record<string, string>> = {
     'V-type beam': 'D\u1EA7m d\u1EA1ng V',
 
     // Input labels
+    'Bottom flange width b1': 'B\u1EC1 r\u1ED9ng c\u00E1nh d\u01B0\u1EDBi b1',
+    'Top flange width b3': 'B\u1EC1 r\u1ED9ng c\u00E1nh tr\u00EAn b3',
+    // Legacy/unused key kept for safety
     'Top flange width b': 'B\u1EC1 r\u1ED9ng c\u00E1nh tr\u00EAn b',
+    // Support both uppercase/lowercase variants used in UI
     'Section height h': 'Chi\u1EC1u cao ti\u1EBFt di\u1EC7n h',
+    'Section height H': 'Chi\u1EC1u cao ti\u1EBFt di\u1EC7n H',
     'Top flange thickness t1': 'B\u1EC1 d\u00E0y c\u00E1nh tr\u00EAn t1',
     'Bottom flange thickness t2': 'B\u1EC1 d\u00E0y c\u00E1nh d\u01B0\u1EDBi t2',
     'Web thickness t3': 'B\u1EC1 d\u00E0y b\u1EA3n b\u1EE5ng t3',

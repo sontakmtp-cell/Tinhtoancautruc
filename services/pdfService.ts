@@ -127,6 +127,7 @@ class PDFReportService {
     const geomData = [
       [this.t('beamSpan'), inputs.L, 'cm'],
       [this.t('beamWidth'), inputs.b, 'mm'],
+      ['Top flange width (b3)', (inputs as any).b3 ?? inputs.b, 'mm'],
       [this.t('beamHeight'), inputs.h, 'mm'],
       [this.t('topFlange'), inputs.t1, 'mm'],
       [this.t('bottomFlange'), inputs.t2, 'mm'],

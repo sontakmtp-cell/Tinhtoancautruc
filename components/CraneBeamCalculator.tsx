@@ -49,6 +49,7 @@ const defaultInputs: BeamInputs = {
   t2: 30,
   t3: 15,
   b1: 400,
+  b3: 600,
   L: 800,
   P_nang: 15000,
   P_thietbi: 5000,
@@ -65,12 +66,13 @@ const inputConfig: { title: string; icon: React.FC<any>; fields: { name: keyof B
     title: 'Section geometry',
     icon: Scale,
     fields: [
-      { name: 'b', label: 'Top flange width b', unit: 'mm' },
+      { name: 'b', label: 'Bottom flange width b1', unit: 'mm' },
       { name: 'h', label: 'Section height h', unit: 'mm' },
       { name: 't1', label: 'Top flange thickness t1', unit: 'mm' },
       { name: 't2', label: 'Bottom flange thickness t2', unit: 'mm' },
       { name: 't3', label: 'Web thickness t3', unit: 'mm' },
       { name: 'b1', label: 'Web spacing b2', unit: 'mm' },
+      { name: 'b3', label: 'Top flange width b3', unit: 'mm' },
     ],
   },
   {

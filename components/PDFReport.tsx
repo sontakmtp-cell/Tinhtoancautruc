@@ -300,4 +300,3 @@ export const PDFExportButton: React.FC<PDFExportButtonProps> = ({
   );
 };
 
-
