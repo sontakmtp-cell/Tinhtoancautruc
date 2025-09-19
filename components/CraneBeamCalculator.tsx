@@ -33,7 +33,7 @@ const BeamGeometryDiagram: React.FC = () => (
       Cross-section reference
     </h3>
     <img
-      src="https://i.postimg.cc/ZR7s5JVX/Untitled1.png"
+      src="https://i.postimg.cc/43PbZZ5t/Untitled1.png"
       alt="Example beam cross section"
       className="w-full h-auto object-contain rounded-md"
     />
@@ -66,13 +66,17 @@ const inputConfig: { title: string; icon: React.FC<any>; fields: { name: keyof B
     title: 'Section geometry',
     icon: Scale,
     fields: [
+      // Pair 1: Bottom flange width b1 next to Bottom flange thickness (VI label t1 -> code t2)
       { name: 'b', label: 'Bottom flange width b1', unit: 'mm' },
-      { name: 'h', label: 'Section height h', unit: 'mm' },
-      { name: 't1', label: 'Top flange thickness t1', unit: 'mm' },
       { name: 't2', label: 'Bottom flange thickness t2', unit: 'mm' },
-      { name: 't3', label: 'Web thickness t3', unit: 'mm' },
-      { name: 'b1', label: 'Web spacing b2', unit: 'mm' },
+      // Pair 2: Top flange width (VI label b2 -> code b3) next to Top flange thickness (VI label t2 -> code t1)
       { name: 'b3', label: 'Top flange width b3', unit: 'mm' },
+      { name: 't1', label: 'Top flange thickness t1', unit: 'mm' },
+      // Pair 3: Web width (VI label b3 -> code b1) next to Web thickness t3
+      { name: 'b1', label: 'Web spacing b2', unit: 'mm' },
+      { name: 't3', label: 'Web thickness t3', unit: 'mm' },
+      // Remaining: Section height h
+      { name: 'h', label: 'Section height h', unit: 'mm' },
     ],
   },
   {
@@ -491,7 +495,7 @@ export const CraneBeamCalculator: React.FC = () => {
                 {/* Material selection radio buttons for Loading & material section */}
                 {title === 'Loading & material' && (
                   <div className="mb-4">
-                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Material</div>
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('Material')}</div>
                     <div className="radio-input">
                       {(['SS400','CT3','A36','CUSTOM'] as MaterialType[]).map((mt) => (
                         <label key={mt} className="label">
@@ -662,17 +666,17 @@ export const CraneBeamCalculator: React.FC = () => {
                   </CollapsibleSection>
 
                   {diagramData && (
-                    <CollapsibleSection title="Analysis diagrams" icon={AreaChart}>
+                    <CollapsibleSection title={t('Analysis diagrams')} icon={AreaChart}>
                       <div className="grid grid-cols-1 gap-8">
                         <InternalForceDiagram
                           data={diagramData}
-                          title="Internal Force Diagram (Bending Moment)"
+                          title={t('Internal Force Diagram (Bending Moment)')}
                           yKey="moment"
                           unit="kg.cm"
                         />
                         <InternalForceDiagram
                           data={diagramData}
-                          title="Internal Force Diagram (Shear Force)"
+                          title={t('Internal Force Diagram (Shear Force)')}
                           yKey="shear"
                           unit="kg"
                         />

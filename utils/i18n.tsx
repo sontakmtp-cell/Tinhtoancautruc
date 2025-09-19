@@ -37,18 +37,15 @@ const dict: Record<Language, Record<string, string>> = {
     'V-type beam': 'D\u1EA7m d\u1EA1ng V',
 
     // Input labels
-    'Bottom flange width b1': 'B\u1EC1 r\u1ED9ng c\u00E1nh d\u01B0\u1EDBi b1',
-    'Top flange width b3': 'B\u1EC1 r\u1ED9ng c\u00E1nh tr\u00EAn b3',
-    // Legacy/unused key kept for safety
+    'Bottom flange width b1': 'Chi\u1EC1u r\u1ED9ng c\u00E1nh d\u01B0\u1EDBi b1',
+    'Top flange width b3': 'Chi\u1EC1u r\u1ED9ng c\u00E1nh tr\u00EAn b2',
     'Top flange width b': 'B\u1EC1 r\u1ED9ng c\u00E1nh tr\u00EAn b',
-    // Support both uppercase/lowercase variants used in UI
-    'Section height h': 'Chi\u1EC1u cao ti\u1EBFt di\u1EC7n h',
-    'Section height H': 'Chi\u1EC1u cao ti\u1EBFt di\u1EC7n H',
-    'Top flange thickness t1': 'B\u1EC1 d\u00E0y c\u00E1nh tr\u00EAn t1',
-    'Bottom flange thickness t2': 'B\u1EC1 d\u00E0y c\u00E1nh d\u01B0\u1EDBi t2',
-    'Web thickness t3': 'B\u1EC1 d\u00E0y b\u1EA3n b\u1EE5ng t3',
-    'Web spacing b2': 'Kho\u1EA3ng c\u00E1ch b\u1EA3n b\u1EE5ng b2',
-    'Span length L': 'Chi\u1EC1u d\u00E0i nh\u1ECBp L',
+    'Section height h': 'Chi\u1EC1u cao d\u1EA7m H',
+    'Top flange thickness t1': 'B\u1EC1 d\u00E0y c\u00E1nh tr\u00EAn t2',
+    'Bottom flange thickness t2': 'B\u1EC1 d\u00E0y c\u00E1nh d\u01B0\u1EDBi t1',
+    'Web thickness t3': 'B\u1EC1 d\u00E0y th\u00E2n t3',
+    'Web spacing b2': 'R\u1ED9ng th\u00E2n b3',
+    'Span length L': 'Kh\u1EA9u \u0111\u1ED9 d\u1EA7m L',
     'Hoist load': 'T\u1EA3i n\u00E2ng',
     'Trolley weight': 'Tr\u1ECDng l\u01B0\u1EE3ng xe con',
     'Uniform load q': 'T\u1EA3i ph\u00E2n b\u1ED1 \u0111\u1EC1u q',
@@ -72,6 +69,14 @@ const dict: Record<Language, Record<string, string>> = {
     'Bending moment Mx': 'Momen u\u1ED1n Mx',
     'Stress sigma_u': '\u1EE8ng su\u1EA5t \u03C3_u',
     'Deflection f': '\u0110\u1ED9 v\u00F5ng f',
+
+    // Diagrams & UI
+    'Analysis diagrams': 'Bi\u1EC3u \u0111\u1ED3 ph\u00E2n t\u00EDch',
+    'Internal Force Diagram (Bending Moment)': 'Bi\u1EC3u \u0111\u1ED3 n\u1ED9i l\u1EF1c (Momen u\u1ED1n)',
+    'Internal Force Diagram (Shear Force)': 'Bi\u1EC3u \u0111\u1ED3 n\u1ED9i l\u1EF1c (L\u1EF1c c\u1EAFt)',
+    'Stress Distribution Diagram': 'Bi\u1EC3u \u0111\u1ED3 ph\u00E2n b\u1ED1 \u1EE9ng su\u1EA5t',
+    'Neutral Axis': 'Tr\u1EE5c trung h\u00F2a',
+    'Material': 'V\u1EADt li\u1EC7u',
   },
 };
 

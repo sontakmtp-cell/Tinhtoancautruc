@@ -4,10 +4,10 @@ export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults 
   const {
     b: b_bottom_mm,
     h: h_mm,
-    t1: t1_mm,
-    t2: t2_mm,
-    t3: t3_mm,
-    b1: b1_mm,
+    t1: t_top_input_mm,     // UI field "t1" now labeled as top flange thickness (symbol t2)
+    t2: t_bottom_input_mm,  // UI field "t2" now labeled as bottom flange thickness (symbol t1)
+    t3: t_web_input_mm,     // UI field "t3" now labeled as web thickness (symbol b3 per request)
+    b1: b_body_input_mm,    // UI field "b1" now labeled as body width b2
     b3: b_top_mm,
     L,
     P_nang,
@@ -21,42 +21,43 @@ export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults 
 
   // Convert millimetre inputs to centimetres for calculations
   const b_bottom = b_bottom_mm / 10; // bottom flange width (cm)
-  const h = h_mm / 10;
-  const t1 = t1_mm / 10;
-  const t2 = t2_mm / 10;
-  const t3 = t3_mm / 10;
-  const b1 = b1_mm / 10;
+  const H = h_mm / 10;               // section height, now denoted H
+  // New internal aliases to match requested symbols/labels while keeping input shape stable
+  const t2_top = t_top_input_mm / 10;        // top flange thickness (symbol t2)
+  const t1_bottom = t_bottom_input_mm / 10;  // bottom flange thickness (symbol t1)
+  const t_web_b3 = t_web_input_mm / 10;      // web thickness (requested label uses symbol b3)
+  const b2 = b_body_input_mm / 10;           // body (clear) width between webs (symbol b2)
   const b_top = (b_top_mm ?? b_bottom_mm) / 10; // fallback for backward compatibility
 
   // --- 1. Geometric Properties Calculation ---
-  const topFlangeArea = b_top * t1;
-  const bottomFlangeArea = b_bottom * t2;
-  const webHeight = h - t1 - t2;
-  const singleWebArea = webHeight * t3;
+  const topFlangeArea = b_top * t2_top;
+  const bottomFlangeArea = b_bottom * t1_bottom;
+  const webHeight = H - t2_top - t1_bottom;
+  const singleWebArea = webHeight * t_web_b3;
   
   const F = topFlangeArea + bottomFlangeArea + 2 * singleWebArea;
 
-  const y_top = h - t1 / 2;
-  const y_bottom = t2 / 2;
-  const y_webs = t2 + webHeight / 2;
+  const y_top = H - t2_top / 2;
+  const y_bottom = t1_bottom / 2;
+  const y_webs = t1_bottom + webHeight / 2;
   const Yc = (topFlangeArea * y_top + bottomFlangeArea * y_bottom + 2 * singleWebArea * y_webs) / F;
   // Horizontal centroid lies on the symmetry centerline between webs
   // We report Xc relative to that centerline as 0 for clarity (not used elsewhere)
   const Xc = 0;
 
   // Rectangular flange local inertia uses its own width (b_top/b_bottom)
-  const Ix_top = (b_top * t1 ** 3) / 12 + topFlangeArea * (y_top - Yc) ** 2;
-  const Ix_bottom = (b_bottom * t2 ** 3) / 12 + bottomFlangeArea * (y_bottom - Yc) ** 2;
-  const Ix_webs = 2 * ((t3 * webHeight ** 3) / 12 + singleWebArea * (y_webs - Yc) ** 2);
+  const Ix_top = (b_top * t2_top ** 3) / 12 + topFlangeArea * (y_top - Yc) ** 2;
+  const Ix_bottom = (b_bottom * t1_bottom ** 3) / 12 + bottomFlangeArea * (y_bottom - Yc) ** 2;
+  const Ix_webs = 2 * ((t_web_b3 * webHeight ** 3) / 12 + singleWebArea * (y_webs - Yc) ** 2);
   const Jx = Ix_top + Ix_bottom + Ix_webs;
 
-  const Iy_top = (t1 * b_top ** 3) / 12;
-  const Iy_bottom = (t2 * b_bottom ** 3) / 12;
-  const web_dist_from_center = b1 / 2 + t3 / 2;
-  const Iy_webs = 2 * ((webHeight * t3 ** 3) / 12 + singleWebArea * web_dist_from_center ** 2);
+  const Iy_top = (t2_top * b_top ** 3) / 12;
+  const Iy_bottom = (t1_bottom * b_bottom ** 3) / 12;
+  const web_dist_from_center = b2 / 2 + t_web_b3 / 2;
+  const Iy_webs = 2 * ((webHeight * t_web_b3 ** 3) / 12 + singleWebArea * web_dist_from_center ** 2);
   const Jy = Iy_top + Iy_bottom + Iy_webs;
   
-  const Wx = Jx / Math.max(Yc, h - Yc);
+  const Wx = Jx / Math.max(Yc, H - Yc);
   const Wy = Jy / (Math.max(b_top, b_bottom) / 2);
 
   // --- 2. Load and Stress Calculation ---
@@ -75,7 +76,7 @@ export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults 
   const sigma_u = (M_x / Wx) + (M_y / Wy);
 
   // Specific stress at top and bottom fibers due to M_x
-  const sigma_top_compression = (M_x * (h - Yc)) / Jx;
+  const sigma_top_compression = (M_x * (H - Yc)) / Jx;
   const sigma_bottom_tension = (M_x * Yc) / Jx;
 
   // Deflection (combining distributed load and central point load)
@@ -90,7 +91,8 @@ export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults 
   // --- 4. Advanced Checks (Local Buckling) ---
   // Simplified check for local buckling of the top flange panel between webs.
   // This compares the width/thickness ratio to a material-dependent limit.
-  const lambda_actual = b1 / t1;
+  // With new symbols, use b2 (body width) over top flange thickness t2
+  const lambda_actual = b2 / t2_top;
   // The constant 1.9 is an example value for stiffened elements.
   const lambda_limit = 1.9 * Math.sqrt(E / sigma_yield); 
   const K_buckling = lambda_actual > 0 ? lambda_limit / lambda_actual : Infinity;

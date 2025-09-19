@@ -37,12 +37,21 @@ class PDFReportService {
   private pageWidth: number;
   private currentY: number = 0;
   private t: (key: keyof typeof import('../utils/translations').translations.en) => string;
+  private lang: Language;
 
   constructor(language: Language = 'en') {
     this.pdf = new jsPDF('p', 'mm', 'a4');
     this.pageHeight = this.pdf.internal.pageSize.getHeight();
     this.pageWidth = this.pdf.internal.pageSize.getWidth();
-    this.t = getTranslator(language);
+    const baseT = getTranslator(language);
+    // Override specific labels for Vietnamese consistency
+    this.t = ((key: keyof typeof import('../utils/translations').translations.en) => {
+      if (language === 'vi' && key === 'beamSpan') {
+        return 'Khẩu độ dầm (L)';
+      }
+      return baseT(key as any);
+    }) as any;
+    this.lang = language;
 
     // Add custom fonts
     this.pdf.addFileToVFS('arial-normal.ttf', ARIAL_FONT_NORMAL);
@@ -124,15 +133,22 @@ class PDFReportService {
     this.pdf.text(this.t('inputParameters'), MARGIN.left, this.currentY);
     this.currentY += 6;
 
+    const topFlangeWidthLabel = this.lang === 'vi' ? 'Chiều rộng cánh trên b2' : 'Top flange width (b2)';
+    const beamHeightLabel = this.lang === 'vi' ? 'Chiều cao dầm H' : 'Beam Height (H)';
+    const topFlangeThkLabel = this.lang === 'vi' ? 'Bề dày cánh trên t2' : 'Top Flange (t2)';
+    const bottomFlangeThkLabel = this.lang === 'vi' ? 'Bề dày cánh dưới t1' : 'Bottom Flange (t1)';
+    const webThkLabel = this.lang === 'vi' ? 'Bề dày thân t3' : 'Web Thickness (t3)';
+    const bodyWidthLabel = this.lang === 'vi' ? 'Rộng thân b3' : 'Body Width (b3)';
+
     const geomData = [
       [this.t('beamSpan'), inputs.L, 'cm'],
       [this.t('beamWidth'), inputs.b, 'mm'],
-      ['Top flange width (b3)', (inputs as any).b3 ?? inputs.b, 'mm'],
-      [this.t('beamHeight'), inputs.h, 'mm'],
-      [this.t('topFlange'), inputs.t1, 'mm'],
-      [this.t('bottomFlange'), inputs.t2, 'mm'],
-      [this.t('webThickness'), inputs.t3, 'mm'],
-      [this.t('stiffenerSpacing'), inputs.b1, 'mm'],
+      [topFlangeWidthLabel, (inputs as any).b3 ?? inputs.b, 'mm'],
+      [beamHeightLabel, inputs.h, 'mm'],
+      [topFlangeThkLabel, inputs.t1, 'mm'],
+      [bottomFlangeThkLabel, inputs.t2, 'mm'],
+      [webThkLabel, inputs.t3, 'mm'],
+      [bodyWidthLabel, inputs.b1, 'mm'],
     ];
 
     const loadData = [

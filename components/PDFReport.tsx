@@ -40,10 +40,10 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
         includeCharts,
         language,
         chartElements: includeCharts ? [
-          { id: 'moment-diagram', title: 'Moment Diagram' },
-          { id: 'shear-diagram', title: 'Shear Force Diagram' },
-          { id: 'stress-diagram', title: 'Stress Distribution Diagram' },
-          { id: 'deflection-diagram', title: 'Deflection Diagram' }
+          { id: 'moment-diagram', title: t('momentDiagram') },
+          { id: 'shear-diagram', title: t('shearDiagram') },
+          { id: 'stress-diagram', title: t('stressDiagram') },
+          { id: 'deflection-diagram', title: t('deflectionDiagram') }
         ] : []
       });
     } catch (error) {
@@ -84,6 +84,10 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
         export: "Export PDF",
         waitMessage: "Please wait for calculations to complete before generating the report.",
         performMessage: "Please perform calculations before generating the report.",
+        momentDiagram: "Moment Diagram",
+        shearDiagram: "Shear Force Diagram",
+        stressDiagram: "Stress Distribution Diagram",
+        deflectionDiagram: "Deflection Diagram",
       },
       vi: {
         generateReport: "Tạo Báo cáo PDF",
@@ -107,6 +111,10 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
         export: "Xuất PDF",
         waitMessage: "Vui lòng đợi quá trình tính toán hoàn tất trước khi tạo báo cáo.",
         performMessage: "Vui lòng thực hiện tính toán trước khi tạo báo cáo.",
+        momentDiagram: "Biểu đồ mômen uốn",
+        shearDiagram: "Biểu đồ lực cắt",
+        stressDiagram: "Biểu đồ phân bố ứng suất",
+        deflectionDiagram: "Biểu đồ độ võng",
       },
     };
     return translations[language][key] || key;
@@ -299,4 +307,3 @@ export const PDFExportButton: React.FC<PDFExportButtonProps> = ({
     </>
   );
 };
-
