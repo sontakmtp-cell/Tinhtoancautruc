@@ -551,8 +551,8 @@ export const CraneBeamCalculator: React.FC = () => {
                   <HamsterLoader
                     message={
                       isCallingAI
-                        ? 'Safety checks failed. Consulting the design assistant...'
-                        : 'Running calculation workflow...'
+                        ? 'Cảnh báo !! Tham số đầu vào không đủ an toàn. Đang tìm giải pháp tối ưu, xin vui lòng đợi trong giây lát...'
+                        : 'Đang thực hiện quy trình tính toán...'
                     }
                   />
                 </div>
