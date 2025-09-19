@@ -490,18 +490,17 @@ export const CraneBeamCalculator: React.FC = () => {
                 {title === 'Loading & material' && (
                   <div className="mb-4">
                     <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Material</div>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="radio-input">
                       {(['SS400','CT3','A36','CUSTOM'] as MaterialType[]).map((mt) => (
-                        <label key={mt} className="inline-flex items-center gap-2 cursor-pointer">
+                        <label key={mt} className="label">
                           <input
                             type="radio"
                             name="materialType"
                             value={mt}
                             checked={materialType === mt}
                             onChange={() => handleMaterialSelect(mt)}
-                            className="text-blue-600 focus:ring-blue-500"
                           />
-                          <span className="text-sm text-gray-700 dark:text-gray-300">{MATERIAL_LABELS[mt]}</span>
+                          <span className="text">{MATERIAL_LABELS[mt]}</span>
                         </label>
                       ))}
                     </div>
