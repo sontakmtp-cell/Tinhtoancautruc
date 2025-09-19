@@ -135,6 +135,7 @@ class PDFReportService {
     ];
 
     const loadData = [
+      [(this.t as any)('materialType') || 'Material Type', (inputs as any).materialType ? String((inputs as any).materialType) : 'Custom', ''],
       [this.t('liftingLoad'), inputs.P_nang, 'kg'],
       [this.t('equipmentLoad'), inputs.P_thietbi, 'kg'],
       [this.t('distributedLoad'), results.q.toFixed(4), 'kg/cm'],

@@ -1,3 +1,5 @@
+export type MaterialType = 'SS400' | 'CT3' | 'A36' | 'CUSTOM';
+
 export interface BeamInputs {
   // Geometric properties (mm)
   b: number; // Overall width
@@ -16,6 +18,9 @@ export interface BeamInputs {
   E: number; // Modulus of Elasticity (kg/cm^2)
   nu: number; // Poisson's ratio
   q: number; // Distributed load (kg/cm)
+
+  // Selected material type (optional; for UI/reporting)
+  materialType?: MaterialType;
 }
 
 export interface GeometricProperties {

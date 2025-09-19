@@ -15,7 +15,8 @@ import {
   ChevronsRight,
   RotateCcw
 } from 'lucide-react';
-import type { BeamInputs, CalculationResults, DiagramData } from '../types';
+import type { BeamInputs, CalculationResults, DiagramData, MaterialType } from '../types';
+import { MATERIAL_LIBRARY, MATERIAL_LABELS } from '../utils/materials';
 import { calculateBeamProperties, generateDiagramData } from '../services/calculationService';
 import { getDesignRecommendation } from '../services/geminiService';
 import { HamsterLoader } from './Loader';
@@ -56,6 +57,7 @@ const defaultInputs: BeamInputs = {
   E: 2.1e6,
   nu: 0.3,
   q: 20,
+  materialType: 'SS400',
 };
 
 const inputConfig: { title: string; icon: React.FC<any>; fields: { name: keyof BeamInputs; label: string; unit: string }[] }[] = [
@@ -78,9 +80,9 @@ const inputConfig: { title: string; icon: React.FC<any>; fields: { name: keyof B
       { name: 'L', label: 'Span length L', unit: 'cm' },
       { name: 'P_nang', label: 'Hoist load', unit: 'kg' },
       { name: 'P_thietbi', label: 'Trolley weight', unit: 'kg' },
-      { name: 'sigma_allow', label: 'Allowable stress', unit: 'kg/cm^2' },
-      { name: 'sigma_yield', label: 'Yield stress', unit: 'kg/cm^2' },
-      { name: 'E', label: 'Elastic modulus E', unit: 'kg/cm^2' },
+      { name: 'sigma_allow', label: 'Allowable stress', unit: 'kg/cm²' },
+      { name: 'sigma_yield', label: 'Yield stress', unit: 'kg/cm²' },
+      { name: 'E', label: 'Elastic modulus E', unit: 'kg/cm²' },
       { name: 'nu', label: 'Poisson ratio (nu)', unit: '' },
     ],
   },
@@ -378,6 +380,7 @@ const CheckBadge: React.FC<{ status: 'pass' | 'fail'; label: string; value: stri
 export const CraneBeamCalculator: React.FC = () => {
   const [beamType, setBeamType] = useState<BeamType>('single-girder');
   const [inputs, setInputs] = useState<BeamInputs>(defaultInputs);
+  const [materialType, setMaterialType] = useState<MaterialType>(defaultInputs.materialType || 'SS400');
   const [results, setResults] = useState<CalculationResults | null>(null);
   const [diagramData, setDiagramData] = useState<DiagramData | null>(null);
   const [recommendation, setRecommendation] = useState<string>('');
@@ -398,6 +401,24 @@ export const CraneBeamCalculator: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setInputs((prev) => ({ ...prev, [name]: parseFloat(value) || 0 }));
+  };
+
+  const handleMaterialSelect = (type: MaterialType) => {
+    setMaterialType(type);
+    setInputs((prev) => {
+      if (type === 'CUSTOM') {
+        return { ...prev, materialType: type };
+      }
+      const mat = MATERIAL_LIBRARY[type];
+      return {
+        ...prev,
+        materialType: type,
+        sigma_allow: mat.sigma_allow,
+        sigma_yield: mat.sigma_yield,
+        E: mat.E,
+        nu: mat.nu,
+      };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -465,28 +486,56 @@ export const CraneBeamCalculator: React.FC = () => {
           {isPrimaryModule ? (
             inputConfig.map(({ title, icon, fields }) => (
               <CollapsibleSection key={title} title={t(title)} icon={icon}>
-                <div className="grid grid-cols-2 gap-4">
-                  {fields.map(({ name, label, unit }) => (
-                    <div key={name} className="col-span-2 sm:col-span-1">
-                      <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        {t(label)}
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          id={name}
-                          name={name}
-                          value={inputs[name]}
-                          onChange={handleChange}
-                          className="input"
-                          step="any"
-                        />
-                        <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-300 pointer-events-none">
-                          {unit}
-                        </span>
-                      </div>
+                {/* Material selection radio buttons for Loading & material section */}
+                {title === 'Loading & material' && (
+                  <div className="mb-4">
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Material</div>
+                    <div className="flex flex-wrap gap-3">
+                      {(['SS400','CT3','A36','CUSTOM'] as MaterialType[]).map((mt) => (
+                        <label key={mt} className="inline-flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="materialType"
+                            value={mt}
+                            checked={materialType === mt}
+                            onChange={() => handleMaterialSelect(mt)}
+                            className="text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700 dark:text-gray-300">{MATERIAL_LABELS[mt]}</span>
+                        </label>
+                      ))}
                     </div>
-                  ))}
+                    {/* Removed auto-fill hint per request */}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  {fields.map(({ name, label, unit }) => {
+                    const isMaterialField = ['sigma_allow','sigma_yield','E','nu'].includes(name as string);
+                    const disabled = isMaterialField && materialType !== 'CUSTOM';
+                    return (
+                      <div key={name} className="col-span-2 sm:col-span-1">
+                        <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          {t(label)}
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            id={name}
+                            name={name}
+                            value={inputs[name]}
+                            onChange={handleChange}
+                            className={`input ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+                            step="any"
+                            disabled={disabled}
+                          />
+                          <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-300 pointer-events-none">
+                            {unit}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </CollapsibleSection>
             ))
@@ -606,7 +655,7 @@ export const CraneBeamCalculator: React.FC = () => {
                       <ResultItem label={t('Section modulus Wy')} value={results.Wy.toFixed(2)} unit="cm^3" />
                       <ResultItem label={t('Neutral axis Yc')} value={results.Yc.toFixed(2)} unit="cm" />
                       <ResultItem label={t('Bending moment Mx')} value={results.M_x.toExponential(2)} unit="kg.cm" />
-                      <ResultItem label={t('Stress sigma_u')} value={results.sigma_u.toFixed(2)} unit="kg/cm^2" />
+                      <ResultItem label={t('Stress sigma_u')} value={results.sigma_u.toFixed(2)} unit="kg/cm²" />
                       <ResultItem label={t('Deflection f')} value={results.f.toFixed(3)} unit="cm" />
                     </div>
                   </CollapsibleSection>

@@ -9,6 +9,7 @@ export const translations = {
     inputParameters: "INPUT PARAMETERS",
     geometricParameters: "Geometric Parameters",
     loadAndMaterial: "Load & Material",
+    materialType: "Material Type",
     beamSpan: "Beam Span (L)",
     beamWidth: "Beam Width (b)",
     beamHeight: "Beam Height (h)",
