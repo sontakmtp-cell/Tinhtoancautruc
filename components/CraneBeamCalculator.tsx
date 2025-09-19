@@ -32,14 +32,14 @@ const BeamGeometryDiagram: React.FC = () => (
       Cross-section reference
     </h3>
     <img
-      src="https://i.postimg.cc/9Qm1ykCM/Unt1itled.png"
+      src="https://i.postimg.cc/ZR7s5JVX/Untitled1.png"
       alt="Example beam cross section"
       className="w-full h-auto object-contain rounded-md"
     />
   </div>
 );
 
-const MIN_LOADER_DURATION_MS = 2_000;
+const MIN_LOADER_DURATION_MS = 4_000;
 
 const defaultInputs: BeamInputs = {
   b: 600,
@@ -548,10 +548,15 @@ export const CraneBeamCalculator: React.FC = () => {
               {isLoading && (
                 <div className="flex justify-center items-center h-96">
                   <HamsterLoader
-                    message={
+                    messageVi={
                       isCallingAI
                         ? 'Cảnh báo !! Tham số đầu vào không đủ an toàn. Đang tìm giải pháp tối ưu, xin vui lòng đợi trong giây lát...'
                         : 'Đang thực hiện quy trình tính toán...'
+                    }
+                    messageEn={
+                      isCallingAI
+                        ? 'Warning! Input parameters may be unsafe. Searching for an optimal solution, please wait...'
+                        : 'Performing complex calculations...'
                     }
                   />
                 </div>

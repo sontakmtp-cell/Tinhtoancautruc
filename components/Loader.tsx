@@ -1,4 +1,5 @@
-﻿import React from 'react';
+import React from 'react';
+import { useLanguage } from '../utils/i18n';
 
 const offsets = [-1, 0, 1];
 
@@ -27,7 +28,19 @@ const cubeStyles = offsets.flatMap((x) =>
   )
 );
 
-export const HamsterLoader: React.FC = () => (
+type LoaderProps = {
+  messageVi?: string;
+  messageEn?: string;
+  // Backward compatibility: older callers may pass a single message (ignored)
+  message?: string;
+};
+
+export const HamsterLoader: React.FC<LoaderProps> = ({ messageVi, messageEn }) => {
+  const { lang } = useLanguage();
+  const viText = messageVi ?? '\u0110ang th\u1EF1c hi\u1EC7n c\u00E1c ph\u00E9p t\u00EDnh ph\u1EE9c t\u1EA1p...';
+  const enText = messageEn ?? 'Performing complex calculations...';
+  const aria = lang === 'vi' ? viText : enText;
+  return (
   <>
     <style>{`
       @keyframes loader-hue-rotate {
@@ -101,15 +114,24 @@ export const HamsterLoader: React.FC = () => (
         }
       }
     `}</style>
-    <div aria-label="Đang tính toán..." role="status" className="flex items-center justify-center flex-col">
+    <div
+      aria-label={aria}
+      role="status"
+      className="flex items-center justify-center flex-col"
+    >
       <div className="loader-cube-container">
         {cubeStyles.map((style, index) => (
           <div key={index} className="loader-cube" style={style} />
         ))}
       </div>
-      <p className="mt-32 text-sm font-medium text-gray-500 dark:text-gray-400">
-        Đang thực hiện các phép tính phức tạp...
-      </p>
+      <div className="mt-32 text-center">
+        {lang === 'vi' ? (
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{viText}</p>
+        ) : (
+          <p className="text-xs font-normal text-gray-500 dark:text-gray-400 mt-1">{enText}</p>
+        )}
+      </div>
     </div>
   </>
-);
+  );
+};
