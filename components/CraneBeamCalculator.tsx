@@ -886,11 +886,11 @@ export const CraneBeamCalculator: React.FC = () => {
                     icon={BarChart}
                   >
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      <ResultItem label={t('Area F')} value={results.F.toFixed(2)} unit="cm^2" />
-                      <ResultItem label={t('Moment of inertia Jx')} value={results.Jx.toExponential(2)} unit="cm^4" />
-                      <ResultItem label={t('Moment of inertia Jy')} value={results.Jy.toExponential(2)} unit="cm^4" />
-                      <ResultItem label={t('Section modulus Wx')} value={results.Wx.toFixed(2)} unit="cm^3" />
-                      <ResultItem label={t('Section modulus Wy')} value={results.Wy.toFixed(2)} unit="cm^3" />
+                      <ResultItem label={t('Area F')} value={results.F.toFixed(2)} unit="cm²" />
+                      <ResultItem label={t('Moment of inertia Jx')} value={results.Jx.toExponential(2)} unit="cm⁴" />
+                      <ResultItem label={t('Moment of inertia Jy')} value={results.Jy.toExponential(2)} unit="cm⁴" />
+                      <ResultItem label={t('Section modulus Wx')} value={results.Wx.toFixed(2)} unit="cm³" />
+                      <ResultItem label={t('Section modulus Wy')} value={results.Wy.toFixed(2)} unit="cm³" />
                       <ResultItem label={t('Neutral axis Yc')} value={results.Yc.toFixed(2)} unit="cm" />
                       <ResultItem label={t('Bending moment Mx')} value={results.M_x.toExponential(2)} unit="kg.cm" />
                       <ResultItem label={t('Stress sigma_u')} value={results.sigma_u.toFixed(2)} unit="kg/cm²" />
