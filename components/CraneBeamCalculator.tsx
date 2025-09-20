@@ -753,6 +753,7 @@ export const CraneBeamCalculator: React.FC = () => {
               inputs={inputs}
               results={results}
               isLoading={isLoading}
+              aiRecommendation={recommendation}
               className={`w-1/3 ${!isPrimaryModule ? 'pointer-events-none opacity-50' : ''}`}
             />
           </div>

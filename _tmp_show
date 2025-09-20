@@ -184,3 +184,4 @@ export const getTranslator = (lang: Language) => {
     return translations_lang[key] || translations_en[key] || key;
   };
 };
+

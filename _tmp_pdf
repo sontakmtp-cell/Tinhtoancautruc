@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { FileText, Download, Settings, User, Calendar, FolderOpen, Globe } from 'lucide-react';
 import type { BeamInputs, CalculationResults } from '../types';
 import { generatePDFReport } from '../services/pdfService';
@@ -22,7 +22,6 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
   const [projectName, setProjectName] = useState('Crane Beam Calculation Project');
   const [engineer, setEngineer] = useState('');
   const [includeCharts, setIncludeCharts] = useState(true);
-  const [includeAI, setIncludeAI] = useState(false);
   const [language, setLanguage] = useState<Language>('en');
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -42,7 +41,7 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
         engineer,
         includeCharts,
         language,
-        aiRecommendation: includeAI && aiRecommendation ? aiRecommendation : undefined,
+        aiRecommendation,
         chartElements: includeCharts ? [
           { id: 'moment-diagram', title: t('momentDiagram') },
           { id: 'shear-diagram', title: t('shearDiagram') },
@@ -74,7 +73,6 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
         enterEngineerName: "Enter engineer name...",
         reportLanguage: "Report Language",
         includeDiagrams: "Include analysis diagrams",
-        includeAI: "Include design improvement suggestions",
         reportContents: "Report Contents",
         contentProject: "Project and engineer information",
         contentInputs: "Input parameters (geometry, loads, materials)",
@@ -82,7 +80,6 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
         contentChecks: "Safety checks (stress, deflection, stability)",
         contentAssessment: "Overall assessment and conclusions",
         contentDiagrams: "Analysis diagrams (forces, stress, deflection)",
-        contentAI: "Design improvement suggestions",
         created: "Created",
         cancel: "Cancel",
         generating: "Generating...",
@@ -96,31 +93,31 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
         deflectionDiagram: "Deflection Diagram",
       },
       vi: {
-        generateReport: "Tạo Báo cáo PDF",
-        projectName: "Tên dự án",
-        enterProjectName: "Nhập tên dự án...",
-        designEngineer: "Kỹ sư thiết kế",
-        enterEngineerName: "Nhập tên kỹ sư...",
-        reportLanguage: "Ngôn ngữ Báo cáo",
-        includeDiagrams: "Bao gồm biểu đồ phân tích",
-        reportContents: "Nội dung Báo cáo",
-        contentProject: "Thông tin dự án và kỹ sư",
-        contentInputs: "Thông số đầu vào (hình học, tải trọng, vật liệu)",
-        contentResults: "Kết quả tính toán chi tiết",
-        contentChecks: "Kiểm tra an toàn (ứng suất, độ võng, ổn định)",
-        contentAssessment: "Đánh giá tổng thể và kết luận",
-        contentDiagrams: "Biểu đồ phân tích (lực, ứng suất, độ võng)",
-        created: "Ngày tạo",
-        cancel: "Hủy",
-        generating: "Đang tạo...",
-        generate: "Tạo PDF",
-        export: "Xuất PDF",
-        waitMessage: "Vui lòng đợi quá trình tính toán hoàn tất trước khi tạo báo cáo.",
-        performMessage: "Vui lòng thực hiện tính toán trước khi tạo báo cáo.",
-        momentDiagram: "Biểu đồ mômen uốn",
-        shearDiagram: "Biểu đồ lực cắt",
-        stressDiagram: "Biểu đồ phân bố ứng suất",
-        deflectionDiagram: "Biểu đồ độ võng",
+        generateReport: "T?o B�o c�o PDF",
+        projectName: "T�n d? �n",
+        enterProjectName: "Nh?p t�n d? �n...",
+        designEngineer: "K? su thi?t k?",
+        enterEngineerName: "Nh?p t�n k? su...",
+        reportLanguage: "Ng�n ng? B�o c�o",
+        includeDiagrams: "Bao g?m bi?u d? ph�n t�ch",
+        reportContents: "N?i dung B�o c�o",
+        contentProject: "Th�ng tin d? �n v� k? su",
+        contentInputs: "Th�ng s? d?u v�o (h�nh h?c, t?i tr?ng, v?t li?u)",
+        contentResults: "K?t qu? t�nh to�n chi ti?t",
+        contentChecks: "Ki?m tra an to�n (?ng su?t, d? v�ng, ?n d?nh)",
+        contentAssessment: "��nh gi� t?ng th? v� k?t lu?n",
+        contentDiagrams: "Bi?u d? ph�n t�ch (l?c, ?ng su?t, d? v�ng)",
+        created: "Ng�y t?o",
+        cancel: "H?y",
+        generating: "�ang t?o...",
+        generate: "T?o PDF",
+        export: "Xu?t PDF",
+        waitMessage: "Vui l�ng d?i qu� tr�nh t�nh to�n ho�n t?t tru?c khi t?o b�o c�o.",
+        performMessage: "Vui l�ng th?c hi?n t�nh to�n tru?c khi t?o b�o c�o.",
+        momentDiagram: "Bi?u d? m�men u?n",
+        shearDiagram: "Bi?u d? l?c c?t",
+        stressDiagram: "Bi?u d? ph�n b? ?ng su?t",
+        deflectionDiagram: "Bi?u d? d? v�ng",
       },
     };
     return translations[language][key] || key;
@@ -188,7 +185,7 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
                 className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               >
                 <option value="en">English</option>
-                <option value="vi">Tiếng Việt</option>
+                <option value="vi">Ti?ng Vi?t</option>
               </select>
             </div>
 
@@ -206,20 +203,6 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
               </label>
             </div>
 
-            {/* Include AI Recommendations Option */}
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="includeAI"
-                checked={includeAI}
-                onChange={(e) => setIncludeAI(e.target.checked)}
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-              />
-              <label htmlFor="includeAI" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                {language === 'vi' ? 'Thêm Đề xuất cải tiến thiết kế' : 'Include design improvement suggestions'}
-              </label>
-            </div>
-
             {/* Report Preview Info */}
             <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
@@ -227,15 +210,12 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
                 {t('reportContents')}
               </h3>
               <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                <li>• {t('contentProject')}</li>
-                <li>• {t('contentInputs')}</li>
-                <li>• {t('contentResults')}</li>
-                <li>• {t('contentChecks')}</li>
-                <li>• {t('contentAssessment')}</li>
-                {includeCharts && <li>• {t('contentDiagrams')}</li>}
-                {includeAI && aiRecommendation && (
-                  <li>{language === 'vi' ? 'Đề xuất cải tiến thiết kế' : 'Design improvement suggestions'}</li>
-                )}
+                <li>� {t('contentProject')}</li>
+                <li>� {t('contentInputs')}</li>
+                <li>� {t('contentResults')}</li>
+                <li>� {t('contentChecks')}</li>
+                <li>� {t('contentAssessment')}</li>
+                {includeCharts && <li>� {t('contentDiagrams')}</li>}
               </ul>
             </div>
 
@@ -334,3 +314,4 @@ export const PDFExportButton: React.FC<PDFExportButtonProps> = ({
     </>
   );
 };
+

@@ -11,6 +11,7 @@ interface PDFReportOptions {
   includeCharts?: boolean;
   chartElements?: { id: string; title: string }[];
   language?: Language;
+  aiRecommendation?: string;
 }
 
 // --- HELPER TYPES FOR AUTOTABLE ---
@@ -387,6 +388,44 @@ class PDFReportService {
     this.currentY += 25;
   }
 
+  // --- AI RECOMMENDATIONS SECTION ---
+  private addAIRecommendations(text: string) {
+    const title = this.lang === 'vi' ? 'Đề xuất cải tiến thiết kế' : 'Design Improvement Suggestions';
+
+    if (this.currentY + 30 > this.pageHeight - MARGIN.bottom) {
+      this.pdf.addPage();
+      this.currentY = MARGIN.top;
+    }
+
+    this.pdf.setFontSize(12);
+    this.pdf.setFont('Arial', 'bold');
+    this.pdf.setTextColor(...TEXT_COLOR);
+    this.pdf.text(title, MARGIN.left, this.currentY);
+    this.currentY += 6;
+
+    this.pdf.setFont('Arial', 'normal');
+    this.pdf.setFontSize(10);
+    const maxWidth = this.pageWidth - MARGIN.left - MARGIN.right;
+
+    // Remove leading markdown heading like "### ..." to avoid duplicating the section title
+    let normalized = (text || '').replace(/\r\n/g, '\n');
+    normalized = normalized.replace(/^(?:\s*#{1,6}[^\n]*\n+)+/, '');
+
+    const lines = this.pdf.splitTextToSize(normalized, maxWidth);
+
+    // Render lines with simple page-break handling
+    for (const line of lines as string[]) {
+      if (this.currentY > this.pageHeight - MARGIN.bottom) {
+        this.pdf.addPage();
+        this.currentY = MARGIN.top;
+      }
+      this.pdf.text(line, MARGIN.left, this.currentY);
+      this.currentY += 5;
+    }
+
+    this.currentY += 5;
+  }
+
   // --- CHART/IMAGE HANDLING ---
   private async captureElement(elementId: string, title: string) {
     const element = document.getElementById(elementId);
@@ -454,6 +493,9 @@ class PDFReportService {
     }
     this.addSafetyChecks(results);
     this.addOverallAssessment(results);
+    if (options.aiRecommendation && options.aiRecommendation.trim().length > 0) {
+      this.addAIRecommendations(options.aiRecommendation);
+    }
 
     if (includeCharts && chartElements.length > 0) {
       if (this.currentY + 20 > this.pageHeight - MARGIN.bottom) {
