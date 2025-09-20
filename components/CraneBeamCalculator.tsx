@@ -29,7 +29,6 @@ import { useT, useLanguage } from '../utils/i18n';
 const BeamGeometryDiagram: React.FC = () => (
   <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
     <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200 flex items-center">
-      <HelpCircle className="w-5 h-5 mr-2 text-blue-500" />
       Cross-section reference
     </h3>
     <img
@@ -340,14 +339,14 @@ const ComingSoonPanel: React.FC<{ tab: BeamTab }> = ({ tab }) => (
   </div>
 );
 
-const CollapsibleSection: React.FC<{ title: string; icon: React.FC<any>; children: React.ReactNode; defaultOpen?: boolean }> = ({ title, icon: Icon, children, defaultOpen = true }) => {
+const CollapsibleSection: React.FC<{ title: string | React.ReactNode; icon: React.FC<any>; children: React.ReactNode; defaultOpen?: boolean }> = ({ title, icon: Icon, children, defaultOpen = true }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   return (
     <div className="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
       <button
         type="button"
         aria-expanded={isOpen}
-        data-section-title={title}
+        data-section-title={typeof title === 'string' ? title : 'Section'}
         className="w-full flex justify-between items-center p-4"
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -626,17 +625,19 @@ export const CraneBeamCalculator: React.FC = () => {
               type="button"
               onClick={handleReset}
               className="calc-button w-1/3 flex justify-center items-center py-3 px-4"
+              style={{ fontSize: 'clamp(0.75rem, 2.5vw, 1rem)' }}
             >
-              <RotateCcw className="mr-2 h-5 w-5" />
+              <RotateCcw className="mr-2 h-5 w-5 flex-shrink-0" />
               Reset
             </button>
             <button
               type="submit"
               disabled={!isPrimaryModule || isLoading}
               className="calc-button w-1/3 flex justify-center items-center py-3 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ fontSize: 'clamp(0.75rem, 2.5vw, 1rem)' }}
             >
               {isPrimaryModule ? (isLoading ? 'Calculating...' : 'Calculate') : 'In design'}
-              {isPrimaryModule && <ChevronsRight className="ml-2 h-5 w-5" />}
+              {isPrimaryModule && !isLoading && <ChevronsRight className="ml-2 h-5 w-5 flex-shrink-0" />}
             </button>
             <PDFExportButton
               inputs={inputs}
@@ -707,7 +708,29 @@ export const CraneBeamCalculator: React.FC = () => {
                     </div>
                   </CollapsibleSection>
 
-                  <CollapsibleSection title={t('Geometric balance')} icon={Scale}>
+                  <CollapsibleSection 
+                    title={
+                      <div className="flex items-center gap-2">
+                        <span>{t('Geometric balance')}</span>
+                        <div className="group relative">
+                          <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
+                          <div className="absolute left-0 top-6 w-80 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                            <div className="font-medium mb-2">
+                              {lang === 'vi' ? 'Cân đối hình học' : 'Geometric Balance'}
+                            </div>
+                            <div>
+                              {lang === 'vi' 
+                                ? 'Các phần tử trong cầu trục cần có kích thước tương quan hài hòa để đảm bảo tính thẩm mỹ và hoạt động an toàn, hiệu quả theo nguyên tắc kỹ thuật.'
+                                : 'Crane elements must have harmoniously proportioned dimensions to ensure aesthetics and safe, efficient operation according to engineering principles.'
+                              }
+                            </div>
+                            <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
+                          </div>
+                        </div>
+                      </div>
+                    } 
+                    icon={Scale}
+                  >
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {geometricBalanceItems.map((it) => (
                         <CheckBadge key={it.key} status={it.status} label={it.label} value={it.value} />

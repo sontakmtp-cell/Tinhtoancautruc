@@ -9,7 +9,7 @@ type I18nContextValue = {
 
 const I18nContext = createContext<I18nContextValue | undefined>(undefined);
 
-export const LanguageProvider = ({ children, initial = 'en' as Language }: { children: ReactNode; initial?: Language }) => {
+export const LanguageProvider = ({ children, initial = 'vi' as Language }: { children: ReactNode; initial?: Language }) => {
   const [lang, setLang] = useState<Language>(initial);
   return <I18nContext.Provider value={{ lang, setLang }}>{children}</I18nContext.Provider>;
 };
