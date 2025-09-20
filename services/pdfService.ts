@@ -172,8 +172,13 @@ class PDFReportService {
       styles: { font: 'Arial' },
       headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'Arial', fontStyle: 'bold' },
       alternateRowStyles: { fillColor: SECONDARY_COLOR },
-      margin: { right: this.pageWidth / 2 + 5 },
     });
+
+    this.currentY = (this.pdf as any).lastAutoTable.finalY + 8;
+    if (this.currentY > this.pageHeight - MARGIN.bottom - 50) { // Check if space is enough for next table
+        this.pdf.addPage();
+        this.currentY = MARGIN.top;
+    }
 
     autoTable(this.pdf, {
       head: [[this.t('loadAndMaterial'), this.t('value'), this.t('status')]],
@@ -183,7 +188,6 @@ class PDFReportService {
       styles: { font: 'Arial' },
       headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'Arial', fontStyle: 'bold' },
       alternateRowStyles: { fillColor: SECONDARY_COLOR },
-      margin: { left: this.pageWidth / 2 + 5 },
     });
     
     this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
