@@ -53,6 +53,14 @@ const dict: Record<Language, Record<string, string>> = {
     'Span length L': 'Khẩu độ dầm L',
     'End carriage wheel center distance A': 'Tâm bánh xe dầm biên A',
     'End inclined segment length C': 'Chiều dài đoạn nghiêng đầu dầm C',
+    
+    // I-beam specific labels
+    'Flange width b': 'Rộng cánh b',
+    'Flange thickness t1': 'Độ dày cánh t1',
+    'Web thickness b2': 'Rộng thân b2',
+    'Beam height H': 'Chiều cao dầm H',
+    'Beam span L': 'Khẩu độ dầm L',
+    
     'Hoist load': 'Tải nâng',
     'Trolley weight': 'Trọng lượng xe con',
     'Uniform load q': 'Tải phân bố đều q',

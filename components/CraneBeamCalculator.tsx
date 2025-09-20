@@ -39,6 +39,19 @@ const BeamGeometryDiagram: React.FC = () => (
   </div>
 );
 
+const IBeamGeometryDiagram: React.FC = () => (
+  <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+    <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200 flex items-center">
+      Cross-section reference
+    </h3>
+    <img
+      src="https://i.postimg.cc/bwBM01ns/Untitled1.png"
+      alt="I-beam cross section"
+      className="w-full h-auto object-contain rounded-md"
+    />
+  </div>
+);
+
 const MIN_LOADER_DURATION_MS = 4_000;
 
 const defaultInputs: BeamInputs = {
@@ -54,6 +67,27 @@ const defaultInputs: BeamInputs = {
   C: 0,
   P_nang: 15000,
   P_thietbi: 5000,
+  sigma_allow: 1650,
+  sigma_yield: 2450,
+  E: 2.1e6,
+  nu: 0.3,
+  q: 20,
+  materialType: 'SS400',
+};
+
+const defaultIBeamInputs: BeamInputs = {
+  b: 200,      // Flange width b (mm)
+  h: 400,      // Beam height H (mm)  
+  t1: 15,      // Flange thickness t1 (mm)
+  t2: 15,      // (same as t1 for I-beam, for compatibility)
+  t3: 8,       // Web thickness b2 (mm) - used for web thickness in I-beam
+  b1: 350,     // (kept for compatibility)
+  b3: 200,     // (same as b for I-beam, for compatibility)
+  L: 600,      // Beam span L (cm)
+  A: 0,
+  C: 0,
+  P_nang: 10000,
+  P_thietbi: 3000,
   sigma_allow: 1650,
   sigma_yield: 2450,
   E: 2.1e6,
@@ -82,6 +116,33 @@ const inputConfig: { title: string; icon: React.FC<any>; fields: { name: keyof B
       // Additional geometry-related distances (now in mm)
       { name: 'A', label: 'End carriage wheel center distance A', unit: 'mm' },
       { name: 'C', label: 'End inclined segment length C', unit: 'mm' },
+    ],
+  },
+  {
+    title: 'Loading & material',
+    icon: HardHat,
+    fields: [
+      { name: 'P_nang', label: 'Hoist load', unit: 'kg' },
+      { name: 'P_thietbi', label: 'Trolley weight', unit: 'kg' },
+      { name: 'sigma_allow', label: 'Allowable stress', unit: 'kg/cm²' },
+      { name: 'sigma_yield', label: 'Yield stress', unit: 'kg/cm²' },
+      { name: 'E', label: 'Elastic modulus E', unit: 'kg/cm²' },
+      { name: 'nu', label: 'Poisson ratio (nu)', unit: '' },
+    ],
+  },
+];
+
+const iBeamInputConfig: { title: string; icon: React.FC<any>; fields: { name: keyof BeamInputs; label: string; unit: string }[] }[] = [
+  {
+    title: 'Section geometry',
+    icon: Scale,
+    fields: [
+      // Dầm I cán với các tham số: Rộng cánh b, Độ dày cánh t1, Rộng thân b2 (sử dụng t3), Chiều cao dầm H, Khẩu độ dầm L
+      { name: 'b', label: 'Flange width b', unit: 'mm' },
+      { name: 't1', label: 'Flange thickness t1', unit: 'mm' },
+      { name: 't3', label: 'Web thickness b2', unit: 'mm' },
+      { name: 'h', label: 'Beam height H', unit: 'mm' },
+      { name: 'L', label: 'Beam span L', unit: 'cm' },
     ],
   },
   {
@@ -180,46 +241,14 @@ const beamTabs: BeamTab[] = [
   {
     id: 'i-beam',
     label: 'Rolled I-beam',
-    subLabel: 'Preview layout',
-    description: 'UI mock for selecting standard rolled I sections with combined checks.',
-    status: 'preview',
+    subLabel: 'Live module',
+    description: 'Design rolled I-beam crane beams with standard section properties.',
+    status: 'available',
     icon: BarChart,
-    previewSections: [
-      {
-        title: 'Section selection',
-        icon: BarChart,
-        description: 'Choose catalogue sections or define custom welded profiles.',
-        items: [
-          'Catalogue profile ID',
-          'Section modulus about strong axis',
-          'Shear area factors',
-        ],
-      },
-      {
-        title: 'Service criteria',
-        icon: HelpCircle,
-        description: 'Control allowable stress and deflection combinations.',
-        items: [
-          'Allowable bending stress',
-          'Allowable web shear stress',
-          'Deflection limit (L/ratio)',
-        ],
-      },
-      {
-        title: 'Connections & support',
-        icon: HardHat,
-        description: 'Document support type and splice locations.',
-        items: [
-          'Support condition library',
-          'Splice location list',
-          'Bearing plate thickness',
-        ],
-      },
-    ],
     highlights: [
-      'Library of standard rolled sections',
-      'Combined bending and shear verification',
-      'Connection checklist for splice plates',
+      'Standard rolled I-section geometry',
+      'Stress, deflection, and buckling verification',
+      'PDF reporting with diagrams',
     ],
   },
   {
@@ -406,11 +435,25 @@ export const CraneBeamCalculator: React.FC = () => {
     setRecommendation('');
     setIsLoading(false);
     setIsCallingAI(false);
+    
+    // Set default inputs based on beam type
+    if (beamType === 'i-beam') {
+      setInputs(defaultIBeamInputs);
+      setMaterialType(defaultIBeamInputs.materialType || 'SS400');
+    } else if (beamType === 'single-girder') {
+      setInputs(defaultInputs);
+      setMaterialType(defaultInputs.materialType || 'SS400');
+    }
   }, [beamType]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setInputs((prev) => ({ ...prev, [name]: parseFloat(value) || 0 }));
+    // Allow decimal input by not forcing immediate conversion
+    const numValue = value === '' ? 0 : parseFloat(value);
+    // Only update if it's a valid number or empty string
+    if (value === '' || !isNaN(numValue)) {
+      setInputs((prev) => ({ ...prev, [name]: value === '' ? 0 : numValue }));
+    }
   };
 
   const handleMaterialSelect = (type: MaterialType) => {
@@ -477,7 +520,9 @@ export const CraneBeamCalculator: React.FC = () => {
   };
 
   const handleReset = () => {
-    setInputs(defaultInputs);
+    const defaultValues = beamType === 'i-beam' ? defaultIBeamInputs : defaultInputs;
+    setInputs(defaultValues);
+    setMaterialType(defaultValues.materialType || 'SS400');
     setResults(null);
     setDiagramData(null);
     setRecommendation('');
@@ -490,7 +535,7 @@ export const CraneBeamCalculator: React.FC = () => {
 
   const geometricBalanceItems = React.useMemo(() => {
     const items: { key: string; label: string; status: 'pass' | 'fail'; value: string }[] = [];
-    if (!results) return items;
+    if (!results || beamType !== 'single-girder') return items;
 
     const H_cm = inputs.h / 10;
     const L_cm = inputs.L; // already in cm
@@ -499,7 +544,7 @@ export const CraneBeamCalculator: React.FC = () => {
     // A and C inputs are now in mm on the UI; convert to cm for checks
     const A_cm = inputs.A / 10;
     const C_cm = inputs.C / 10;
-
+    
     const assess = (
       key: string,
       label: string,
@@ -524,6 +569,7 @@ export const CraneBeamCalculator: React.FC = () => {
       }
     };
 
+    // Single girder specific geometric balance checks
     // 1) H = 1/18 .. 1/14 of L
     assess('H', lang === 'vi' ? 'Chiều cao dầm H' : 'Beam height H', H_cm, L_cm, 1 / 18, 1 / 14);
     // 2) b1 (bottom flange width) = 1/3 .. 1/2 of H
@@ -536,7 +582,7 @@ export const CraneBeamCalculator: React.FC = () => {
     assess('C', lang === 'vi' ? 'Chiều dài đoạn nghiêng đầu dầm C' : 'End inclined segment length C', C_cm, L_cm, 0.10, 0.15);
 
     return items;
-  }, [inputs, results, t]);
+  }, [inputs, results, t, beamType, lang]);
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
@@ -545,7 +591,7 @@ export const CraneBeamCalculator: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <form onSubmit={handleSubmit} className="lg:col-span-1 space-y-6">
           {isPrimaryModule ? (
-            inputConfig.map(({ title, icon, fields }) => (
+            (beamType === 'i-beam' ? iBeamInputConfig : inputConfig).map(({ title, icon, fields }) => (
               <CollapsibleSection key={title} title={t(title)} icon={icon}>
                 {/* Material selection radio buttons for Loading & material section */}
                 {title === 'Loading & material' && (
@@ -673,7 +719,9 @@ export const CraneBeamCalculator: React.FC = () => {
                 </div>
               )}
 
-              {!isLoading && !results && <BeamGeometryDiagram />}
+              {!isLoading && !results && (
+                beamType === 'i-beam' ? <IBeamGeometryDiagram /> : <BeamGeometryDiagram />
+              )}
 
               {!isLoading && results && (
                 <>
@@ -708,35 +756,37 @@ export const CraneBeamCalculator: React.FC = () => {
                     </div>
                   </CollapsibleSection>
 
-                  <CollapsibleSection 
-                    title={
-                      <div className="flex items-center gap-2">
-                        <span>{t('Geometric balance')}</span>
-                        <div className="group relative">
-                          <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
-                          <div className="absolute left-0 top-6 w-80 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
-                            <div className="font-medium mb-2">
-                              {lang === 'vi' ? 'Cân đối hình học' : 'Geometric Balance'}
+                  {beamType === 'single-girder' && (
+                    <CollapsibleSection 
+                      title={
+                        <div className="flex items-center gap-2">
+                          <span>{t('Geometric balance')}</span>
+                          <div className="group relative">
+                            <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
+                            <div className="absolute left-0 top-6 w-80 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                              <div className="font-medium mb-2">
+                                {lang === 'vi' ? 'Cân đối hình học' : 'Geometric Balance'}
+                              </div>
+                              <div>
+                                {lang === 'vi' 
+                                  ? 'Các phần tử trong cầu trục cần có kích thước tương quan hài hòa để đảm bảo tính thẩm mỹ và hoạt động an toàn, hiệu quả theo nguyên tắc kỹ thuật.'
+                                  : 'Crane elements must have harmoniously proportioned dimensions to ensure aesthetics and safe, efficient operation according to engineering principles.'
+                                }
+                              </div>
+                              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
                             </div>
-                            <div>
-                              {lang === 'vi' 
-                                ? 'Các phần tử trong cầu trục cần có kích thước tương quan hài hòa để đảm bảo tính thẩm mỹ và hoạt động an toàn, hiệu quả theo nguyên tắc kỹ thuật.'
-                                : 'Crane elements must have harmoniously proportioned dimensions to ensure aesthetics and safe, efficient operation according to engineering principles.'
-                              }
-                            </div>
-                            <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
                           </div>
                         </div>
+                      } 
+                      icon={Scale}
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {geometricBalanceItems.map((it) => (
+                          <CheckBadge key={it.key} status={it.status} label={it.label} value={it.value} />
+                        ))}
                       </div>
-                    } 
-                    icon={Scale}
-                  >
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {geometricBalanceItems.map((it) => (
-                        <CheckBadge key={it.key} status={it.status} label={it.label} value={it.value} />
-                      ))}
-                    </div>
-                  </CollapsibleSection>
+                    </CollapsibleSection>
+                  )}
 
                   <CollapsibleSection title={t('Calculation summary')} icon={BarChart}>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">

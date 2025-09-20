@@ -66,6 +66,26 @@ export const translations = {
     meetsCriterion: "Meets criterion",
     increaseByPct: "Increase by {pct}%",
     decreaseByPct: "Decrease by {pct}%",
+    // I-beam specific translations
+    "Single girder": "Single girder",
+    "Rolled I-beam": "Rolled I-beam",
+    "Double girder": "Double girder",
+    "V-type beam": "V-type beam",
+    "Section geometry": "Section geometry",
+    "Loading & material": "Loading & material",
+    "Material": "Material",
+    "Flange width b": "Flange width b",
+    "Flange thickness t1": "Flange thickness t1",
+    "Web width b2": "Web width b2",
+    "Web thickness b2": "Web thickness b2",
+    "Beam height H": "Beam height H",
+    "Beam span L": "Beam span L",
+    "Hoist load": "Hoist load",
+    "Trolley weight": "Trolley weight",
+    "Allowable stress": "Allowable stress",
+    "Yield stress": "Yield stress",
+    "Elastic modulus E": "Elastic modulus E",
+    "Poisson ratio (nu)": "Poisson ratio (nu)",
   },
   vi: {
     reportTitle: "Báo cáo Phân tích Kết cấu Dầm Cẩu",
@@ -134,11 +154,35 @@ export const translations = {
     footerText: "Ac Smart Crane Beam Calculator | Bảo mật",
     pass: "ĐẠT",
     fail: "KHÔNG ĐẠT",
+    // I-beam specific translations
+    "Single girder": "Dầm đơn",
+    "Rolled I-beam": "Dầm I cán",
+    "Double girder": "Dầm đôi",
+    "V-type beam": "Dầm chữ V",
+    "Section geometry": "Hình học tiết diện",
+    "Loading & material": "Tải trọng & vật liệu",
+    "Material": "Vật liệu",
+    "Flange width b": "Rộng cánh b",
+    "Flange thickness t1": "Độ dày cánh t1",
+    "Web width b2": "Rộng thân b2",
+    "Web thickness b2": "Rộng thân b2",
+    "Beam height H": "Chiều cao dầm H",
+    "Beam span L": "Khẩu độ dầm L",
+    "Hoist load": "Tải nâng",
+    "Trolley weight": "Trọng lượng xe con",
+    "Allowable stress": "Ứng suất cho phép",
+    "Yield stress": "Ứng suất chảy",
+    "Elastic modulus E": "Môđun đàn hồi E",
+    "Poisson ratio (nu)": "Hệ số Poisson (nu)",
   },
 };
 
 export type Language = keyof typeof translations;
 
 export const getTranslator = (lang: Language) => {
-  return (key: keyof typeof translations.en) => translations[lang][key] || translations.en[key];
+  return (key: string) => {
+    const translations_lang = translations[lang] as any;
+    const translations_en = translations.en as any;
+    return translations_lang[key] || translations_en[key] || key;
+  };
 };
