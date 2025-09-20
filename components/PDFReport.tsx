@@ -23,7 +23,7 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
   const [engineer, setEngineer] = useState('');
   const [includeCharts, setIncludeCharts] = useState(true);
   const [includeAI, setIncludeAI] = useState(false);
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('vi');
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleGeneratePDF = async () => {
