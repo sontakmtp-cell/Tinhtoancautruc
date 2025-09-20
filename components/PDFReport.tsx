@@ -290,11 +290,11 @@ export const PDFExportButton: React.FC<PDFExportButtonProps> = ({
         type="button"
         onClick={handleClick}
         disabled={!results || isLoading}
-        className={`calc-button flex items-center justify-center px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${className}`}
+        className={`calc-button flex items-center justify-center py-3 px-4 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${className}`}
         style={{ fontSize: 'clamp(0.75rem, 2.5vw, 1rem)' }}
       >
         <FileText className="w-4 h-4 mr-2 flex-shrink-0" />
-        Export PDF
+        Export
       </button>
 
       {results && (
