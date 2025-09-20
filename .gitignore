@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+ 
+# OS and tooling junk
+Thumbs.db
+.playwright-mcp/
+*.tmp
+tmp_*.txt
+public/debug-*.js
+Untitled*.png

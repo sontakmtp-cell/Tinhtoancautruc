@@ -76,8 +76,9 @@ const inputConfig: { title: string; icon: React.FC<any>; fields: { name: keyof B
       // Pair 3: Web width (VI label b3 -> code b1) next to Web thickness t3
       { name: 'b1', label: 'Web spacing b2', unit: 'mm' },
       { name: 't3', label: 'Web thickness t3', unit: 'mm' },
-      // Remaining: Section height h
+      // Pair 4: Section height h next to Span length L
       { name: 'h', label: 'Section height h', unit: 'mm' },
+      { name: 'L', label: 'Span length L', unit: 'cm' },
       // Additional geometry-related distances (now in mm)
       { name: 'A', label: 'End carriage wheel center distance A', unit: 'mm' },
       { name: 'C', label: 'End inclined segment length C', unit: 'mm' },
@@ -87,7 +88,6 @@ const inputConfig: { title: string; icon: React.FC<any>; fields: { name: keyof B
     title: 'Loading & material',
     icon: HardHat,
     fields: [
-      { name: 'L', label: 'Span length L', unit: 'cm' },
       { name: 'P_nang', label: 'Hoist load', unit: 'kg' },
       { name: 'P_thietbi', label: 'Trolley weight', unit: 'kg' },
       { name: 'sigma_allow', label: 'Allowable stress', unit: 'kg/cm²' },
