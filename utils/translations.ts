@@ -59,6 +59,13 @@ export const translations = {
     footerText: "Ac Smart Crane Beam Calculator | Confidential",
     pass: "PASS",
     fail: "FAIL",
+    geometricBalance: "Geometric Balance",
+    bottomFlangeWidthB1: "Bottom Flange Width (b1)",
+    endCarriageWheelCenterA: "End carriage wheel center distance (A)",
+    endInclinedSegmentC: "End inclined segment length (C)",
+    meetsCriterion: "Meets criterion",
+    increaseByPct: "Increase by {pct}%",
+    decreaseByPct: "Decrease by {pct}%",
   },
   vi: {
     reportTitle: "Báo cáo Phân tích Kết cấu Dầm Cẩu",
@@ -116,6 +123,13 @@ export const translations = {
     failDescription: "Một hoặc nhiều kiểm tra KHÔNG ĐẠT. Cần điều chỉnh thiết kế dầm.",
     analysisDiagrams: "BIỂU ĐỒ PHÂN TÍCH",
     page: "Trang",
+    geometricBalance: "Cân đối hình học",
+    bottomFlangeWidthB1: "Chiều rộng cánh dưới (b1)",
+    endCarriageWheelCenterA: "Tâm bánh xe dầm biên (A)",
+    endInclinedSegmentC: "Chiều dài đoạn nghiêng đầu dầm (C)",
+    meetsCriterion: "Đạt",
+    increaseByPct: "Cần tăng {pct}%",
+    decreaseByPct: "Cần giảm {pct}%",
     of: "của",
     footerText: "Ac Smart Crane Beam Calculator | Bảo mật",
     pass: "ĐẠT",
@@ -128,4 +142,3 @@ export type Language = keyof typeof translations;
 export const getTranslator = (lang: Language) => {
   return (key: keyof typeof translations.en) => translations[lang][key] || translations.en[key];
 };
-

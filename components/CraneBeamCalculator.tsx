@@ -25,7 +25,6 @@ import { StressDistributionDiagram } from './StressDistributionDiagram';
 import { DeflectedShapeDiagram } from './DeflectedShapeDiagram';
 import { PDFExportButton } from './PDFReport';
 import { useT, useLanguage } from '../utils/i18n';
-import { gbT } from '../utils/geometryBalanceI18n';
 
 const BeamGeometryDiagram: React.FC = () => (
   <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -514,15 +513,15 @@ export const CraneBeamCalculator: React.FC = () => {
       const maxVal = maxRatio * ref;
       if (actual < minVal && actual > 0) {
         const pct = ((minVal - actual) / actual) * 100;
-        items.push({ key, label, status: 'fail', value: gbT(lang, 'increaseBy').replace('{pct}', pct.toFixed(1)) });
+        items.push({ key, label, status: 'fail', value: t('Increase by {pct}%').replace('{pct}', pct.toFixed(1)) });
       } else if (actual > maxVal && actual > 0) {
         const pct = ((actual - maxVal) / actual) * 100;
-        items.push({ key, label, status: 'fail', value: gbT(lang, 'decreaseBy').replace('{pct}', pct.toFixed(1)) });
+        items.push({ key, label, status: 'fail', value: t('Decrease by {pct}%').replace('{pct}', pct.toFixed(1)) });
       } else if (actual === 0) {
         // If not provided, mark as fail with increase suggestion to reach min
-        items.push({ key, label, status: 'fail', value: gbT(lang, 'increaseBy').replace('{pct}', '100.0') });
+        items.push({ key, label, status: 'fail', value: t('Increase by {pct}%').replace('{pct}', '100.0') });
       } else {
-        items.push({ key, label, status: 'pass', value: gbT(lang, 'meets') });
+        items.push({ key, label, status: 'pass', value: t('Meets criterion') });
       }
     };
 
@@ -708,7 +707,7 @@ export const CraneBeamCalculator: React.FC = () => {
                     </div>
                   </CollapsibleSection>
 
-                  <CollapsibleSection title={gbT(lang, 'geometricBalance')} icon={Scale}>
+                  <CollapsibleSection title={t('Geometric balance')} icon={Scale}>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {geometricBalanceItems.map((it) => (
                         <CheckBadge key={it.key} status={it.status} label={it.label} value={it.value} />

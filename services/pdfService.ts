@@ -149,6 +149,8 @@ class PDFReportService {
       [bottomFlangeThkLabel, inputs.t2, 'mm'],
       [webThkLabel, inputs.t3, 'mm'],
       [bodyWidthLabel, inputs.b1, 'mm'],
+      [this.t('endCarriageWheelCenterA'), inputs.A, 'mm'],
+      [this.t('endInclinedSegmentC'), inputs.C, 'mm'],
     ];
 
     const loadData = [
@@ -235,6 +237,66 @@ class PDFReportService {
       alternateRowStyles: { fillColor: SECONDARY_COLOR },
     });
     
+    this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
+  }
+
+  private addGeometricBalance(inputs: BeamInputs) {
+    // Ensure space
+    if (this.currentY + 20 > this.pageHeight - MARGIN.bottom) {
+      this.pdf.addPage();
+      this.currentY = MARGIN.top;
+    }
+
+    this.pdf.setFontSize(12);
+    this.pdf.setFont('Arial', 'bold');
+    this.pdf.text(this.t('geometricBalance'), MARGIN.left, this.currentY);
+    this.currentY += 6;
+
+    // Convert to cm where needed
+    const H_cm = inputs.h / 10; // mm -> cm
+    const L_cm = inputs.L;      // already cm
+    const b1_cm = inputs.b / 10; // bottom flange width (b1) mm -> cm
+    const body_cm = inputs.b1 / 10; // b3 spacing mm -> cm
+    const A_cm = inputs.A / 10; // A mm -> cm
+    const C_cm = inputs.C / 10; // C mm -> cm
+
+    type Row = [string, string];
+    const rows: Row[] = [];
+
+    const assess = (label: string, actual: number, ref: number, rMin: number, rMax: number) => {
+      const minVal = rMin * ref;
+      const maxVal = rMax * ref;
+      let result: string;
+      if (actual > 0 && actual < minVal) {
+        const pct = ((minVal - actual) / actual) * 100;
+        result = this.t('increaseByPct').replace('{pct}', pct.toFixed(1));
+      } else if (actual > maxVal) {
+        const pct = ((actual - maxVal) / actual) * 100;
+        result = this.t('decreaseByPct').replace('{pct}', pct.toFixed(1));
+      } else if (actual === 0) {
+        result = this.t('increaseByPct').replace('{pct}', '100.0');
+      } else {
+        result = this.t('meetsCriterion');
+      }
+      rows.push([label, result]);
+    };
+
+    assess(this.lang === 'vi' ? 'Chiều cao dầm H' : 'Beam Height (H)', H_cm, L_cm, 1 / 18, 1 / 14);
+    assess(this.t('bottomFlangeWidthB1'), b1_cm, H_cm, 1 / 3, 1 / 2);
+    assess(this.lang === 'vi' ? 'Rộng thân (b3)' : 'Body Width (b3)', body_cm, L_cm, 1 / 50, 1 / 40);
+    assess(this.t('endCarriageWheelCenterA'), A_cm, L_cm, 1 / 7, 1 / 5);
+    assess(this.t('endInclinedSegmentC'), C_cm, L_cm, 0.10, 0.15);
+
+    autoTable(this.pdf, {
+      head: [[this.t('geometricBalance'), this.t('status')]],
+      body: rows,
+      startY: this.currentY,
+      theme: 'grid',
+      styles: { font: 'Arial' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'Arial', fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: SECONDARY_COLOR },
+    });
+
     this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
   }
 
@@ -360,6 +422,7 @@ class PDFReportService {
     this.addProjectInfo(engineer, date);
     this.addInputs(inputs, results);
     this.addResults(results);
+    this.addGeometricBalance(inputs);
     this.addSafetyChecks(results);
     this.addOverallAssessment(results);
 

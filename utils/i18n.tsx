@@ -24,6 +24,11 @@ export const useLanguage = () => {
 const dict: Record<Language, Record<string, string>> = {
   en: {},
   vi: {
+    // Geometric balance
+    'Geometric balance': 'Cân đối hình học',
+    'Meets criterion': 'Đạt',
+    'Increase by {pct}%': 'Cần tăng {pct}%',
+    'Decrease by {pct}%': 'Cần giảm {pct}%',
     // Section titles
     'Section geometry': 'Hình học tiết diện',
     'Loading & material': 'Tải trọng & vật liệu',
