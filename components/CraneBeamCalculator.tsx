@@ -424,6 +424,13 @@ const CheckBadge: React.FC<{ status: 'pass' | 'fail'; label: string; value: stri
 export const CraneBeamCalculator: React.FC = () => {
   const [beamType, setBeamType] = useState<BeamType>('single-girder');
   const [inputs, setInputs] = useState<BeamInputs>(defaultInputs);
+  const [inputStrings, setInputStrings] = useState<Partial<Record<keyof BeamInputs, string>>>(() => {
+    const map: Partial<Record<keyof BeamInputs, string>> = {};
+    (Object.keys(defaultInputs) as (keyof BeamInputs)[]).forEach((k) => {
+      map[k] = String((defaultInputs as any)[k] ?? '');
+    });
+    return map;
+  });
   const [materialType, setMaterialType] = useState<MaterialType>(defaultInputs.materialType || 'SS400');
   const [results, setResults] = useState<CalculationResults | null>(null);
   const [diagramData, setDiagramData] = useState<DiagramData | null>(null);
@@ -444,20 +451,53 @@ export const CraneBeamCalculator: React.FC = () => {
     // Set default inputs based on beam type
     if (beamType === 'i-beam') {
       setInputs(defaultIBeamInputs);
+      const map: Partial<Record<keyof BeamInputs, string>> = {};
+      (Object.keys(defaultIBeamInputs) as (keyof BeamInputs)[]).forEach((k) => {
+        map[k] = String((defaultIBeamInputs as any)[k] ?? '');
+      });
+      setInputStrings(map);
       setMaterialType(defaultIBeamInputs.materialType || 'SS400');
     } else if (beamType === 'single-girder') {
       setInputs(defaultInputs);
+      const map: Partial<Record<keyof BeamInputs, string>> = {};
+      (Object.keys(defaultInputs) as (keyof BeamInputs)[]).forEach((k) => {
+        map[k] = String((defaultInputs as any)[k] ?? '');
+      });
+      setInputStrings(map);
       setMaterialType(defaultInputs.materialType || 'SS400');
     }
   }, [beamType]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    // Allow decimal input by not forcing immediate conversion
-    const numValue = value === '' ? 0 : parseFloat(value);
-    // Only update if it's a valid number or empty string
-    if (value === '' || !isNaN(numValue)) {
-      setInputs((prev) => ({ ...prev, [name]: value === '' ? 0 : numValue }));
+    // Keep raw string for better UX with decimals and partial typing
+    setInputStrings((prev) => ({ ...prev, [name]: value }));
+
+    // Normalize decimal separator to dot for parsing
+    const normalized = value.replace(',', '.');
+    const isIntermediate =
+      normalized === '' ||
+      normalized === '-' ||
+      normalized === '.' ||
+      normalized === '-.' ||
+      /\.$/.test(normalized);
+
+    if (!isIntermediate) {
+      const numValue = Number(normalized);
+      if (!Number.isNaN(numValue)) {
+        setInputs((prev) => ({ ...prev, [name]: numValue as any }));
+      }
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name } = e.target;
+    const raw = inputStrings[name as keyof BeamInputs] ?? '';
+    const normalized = String(raw).replace(',', '.');
+    const numValue = Number(normalized);
+    if (!Number.isNaN(numValue)) {
+      setInputs((prev) => ({ ...prev, [name]: numValue as any }));
+      setInputStrings((prev) => ({ ...prev, [name]: String(numValue) }));
     }
   };
 
@@ -494,9 +534,20 @@ export const CraneBeamCalculator: React.FC = () => {
     const loaderStart = Date.now();
 
     try {
+      // Sanitize any pending string inputs to numbers before calculation
+      const sanitized: BeamInputs = { ...(inputs as any) };
+      (Object.keys(sanitized) as (keyof BeamInputs)[]).forEach((k) => {
+        const raw = inputStrings[k];
+        if (typeof raw === 'string') {
+          const n = Number(raw.replace(',', '.'));
+          if (!Number.isNaN(n)) (sanitized as any)[k] = n;
+        }
+      });
+      setInputs(sanitized);
+
       const calcMode = (beamType === 'i-beam') ? 'i-beam' : 'single-girder';
-      const calculatedResults = calculateBeamProperties(inputs, calcMode);
-      const newDiagramData = generateDiagramData(inputs, calculatedResults);
+      const calculatedResults = calculateBeamProperties(sanitized, calcMode);
+      const newDiagramData = generateDiagramData(sanitized, calculatedResults);
 
       setResults(calculatedResults);
       setDiagramData(newDiagramData);
@@ -528,6 +579,11 @@ export const CraneBeamCalculator: React.FC = () => {
   const handleReset = () => {
     const defaultValues = beamType === 'i-beam' ? defaultIBeamInputs : defaultInputs;
     setInputs(defaultValues);
+    const map: Partial<Record<keyof BeamInputs, string>> = {};
+    (Object.keys(defaultValues) as (keyof BeamInputs)[]).forEach((k) => {
+      map[k] = String((defaultValues as any)[k] ?? '');
+    });
+    setInputStrings(map);
     setMaterialType(defaultValues.materialType || 'SS400');
     setResults(null);
     setDiagramData(null);
@@ -635,10 +691,12 @@ export const CraneBeamCalculator: React.FC = () => {
                             type="number"
                             id={name}
                             name={name}
-                            value={inputs[name]}
+                            value={inputStrings[name] ?? String(inputs[name] ?? '')}
                             onChange={handleChange}
+                            onBlur={handleBlur}
                             className={`input ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
                             step="any"
+                            inputMode="decimal"
                             disabled={disabled}
                           />
                           <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-300 pointer-events-none">

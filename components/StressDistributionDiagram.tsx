@@ -13,6 +13,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
   const b3 = (inputs as any).b3 !== undefined ? ((inputs as any).b3 as number) : b; // fallback if missing
   const { Yc, sigma_top_compression, sigma_bottom_tension } = results;
   const Yc_mm = Yc * 10;
+  const isIBeam = (results as any)?.calculationMode === 'i-beam';
 
   const width = 500;
   const height = 300;
@@ -20,10 +21,10 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
 
   const beamScale = (height - padding.top - padding.bottom) / h;
   const scaledH = h * beamScale;
-  const scaledBTop = b3 * beamScale; // top flange width
+  const scaledBTop = (isIBeam ? b : b3) * beamScale; // I-beam: same flange width top/bottom = b
   const scaledBBot = b * beamScale; // bottom flange width
-  const scaledT1 = t1 * beamScale;
-  const scaledT2 = t2 * beamScale;
+  const scaledT1 = t1 * beamScale; // top flange thickness
+  const scaledT2 = (isIBeam ? t1 : t2) * beamScale; // I-beam: bottom flange thickness equals t1
   const scaledT3 = t3 * beamScale;
   const scaledB1 = b1 * beamScale;
   const scaledYc = Yc_mm * beamScale;
@@ -89,9 +90,17 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
             <rect x={centerX - scaledBTop / 2} y={0} width={scaledBTop} height={scaledT1} />
             {/* Bottom flange */}
             <rect x={centerX - scaledBBot / 2} y={scaledH - scaledT2} width={scaledBBot} height={scaledT2} />
-            {/* Webs positioned from centerline using b1 */}
-            <rect x={centerX - scaledB1 / 2 - scaledT3} y={scaledT1} width={scaledT3} height={scaledH - scaledT1 - scaledT2} />
-            <rect x={centerX + scaledB1 / 2} y={scaledT1} width={scaledT3} height={scaledH - scaledT1 - scaledT2} />
+            {/* Web(s) */}
+            {isIBeam ? (
+              // Rolled I-beam: single web centered on the section
+              <rect x={centerX - scaledT3 / 2} y={scaledT1} width={scaledT3} height={scaledH - scaledT1 - scaledT2} />
+            ) : (
+              // Built-up girder: two webs positioned from centerline using b1
+              <>
+                <rect x={centerX - scaledB1 / 2 - scaledT3} y={scaledT1} width={scaledT3} height={scaledH - scaledT1 - scaledT2} />
+                <rect x={centerX + scaledB1 / 2} y={scaledT1} width={scaledT3} height={scaledH - scaledT1 - scaledT2} />
+              </>
+            )}
           </g>
 
           {/* Neutral Axis */}
@@ -148,4 +157,3 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
     </div>
   );
 };
-
