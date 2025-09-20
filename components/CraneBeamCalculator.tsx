@@ -829,7 +829,7 @@ export const CraneBeamCalculator: React.FC = () => {
                           <div className="group relative">
                             <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
                             <div className="absolute left-0 top-6 w-80 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
-                              <div className="font-medium mb-2">
+                              <div className="hidden">
                                 {lang === 'vi' ? 'Cân đối hình học' : 'Geometric Balance'}
                               </div>
                               <div>
@@ -853,7 +853,38 @@ export const CraneBeamCalculator: React.FC = () => {
                     </CollapsibleSection>
                   )}
 
-                  <CollapsibleSection title={t('Calculation summary')} icon={BarChart}>
+                  <CollapsibleSection 
+                    title={
+                      <div className="flex items-center gap-2">
+                        <span>{t('Calculation summary')}</span>
+                        <div className="group relative">
+                          <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
+                          <div className="absolute left-0 top-6 w-96 max-w-[22rem] p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                            <div className="font-medium mb-2">
+                              {lang === 'vi' ? 'Tài liệu tham khảo' : 'References'}
+                            </div>
+                            {lang === 'vi' ? (
+                              <ul className="list-disc list-inside space-y-1">
+                                <li>"Sức bền vật liệu" – Tập 1, Chương: Đặc trưng hình học của hình phẳng.</li>
+                                <li>"Tính toán máy trục" (Huỳnh Văn Hoàng, Đào Trọng Thường) – Chương: Kết cấu kim loại của các máy trục thông dụng.</li>
+                              </ul>
+                            ) : (
+                              <ul className="list-disc list-inside space-y-1">
+                                <li>"Strength of Materials" – Vol. 1, Chapter: Geometric properties of plane areas.</li>
+                                <li>"Crane Machinery Calculation" (Huynh Van Hoang, Dao Trong Thuong) – Chapter: Metal structures of common cranes.</li>
+                              </ul>
+                            )}
+                            <ul className="list-disc list-inside space-y-1 hidden">
+                              <li>"Sức bền vật liệu" – Tập 1, Chương: Đặc trưng hình học của hình phẳng.</li>
+                              <li>"Tính toán máy trục" (Huỳnh Văn Hoàng, Đào Trọng Thường) – Chương: Kết cấu kim loại của các máy trục thông dụng.</li>
+                            </ul>
+                            <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                    icon={BarChart}
+                  >
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       <ResultItem label={t('Area F')} value={results.F.toFixed(2)} unit="cm^2" />
                       <ResultItem label={t('Moment of inertia Jx')} value={results.Jx.toExponential(2)} unit="cm^4" />

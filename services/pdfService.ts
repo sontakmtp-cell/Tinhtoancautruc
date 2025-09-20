@@ -426,6 +426,50 @@ class PDFReportService {
     this.currentY += 5;
   }
 
+  // --- REFERENCES SECTION ---
+  private addReferences() {
+    const title = this.lang === 'vi' ? 'Tài liệu tham khảo' : 'References';
+
+    // Ensure space for header and at least one line
+    if (this.currentY + 20 > this.pageHeight - MARGIN.bottom) {
+      this.pdf.addPage();
+      this.currentY = MARGIN.top;
+    }
+
+    this.pdf.setFontSize(12);
+    this.pdf.setFont('Arial', 'bold');
+    this.pdf.setTextColor(...TEXT_COLOR);
+    this.pdf.text(title, MARGIN.left, this.currentY);
+    this.currentY += 6;
+
+    const refs: string[] = [
+      'Sức bền vật liệu – Tập 1 (Lê Quang Minh, Nguyễn Văn Lượng).',
+      'Kết cấu thép – Cấu kiện cơ bản (Phạm Văn Hội).',
+      'Tính toán máy trục (Huỳnh Văn Hoàng, Đào Trọng Thường).',
+      'Máy nâng chuyển (Đào Trọng Thường).',
+      'Sổ tay thiết kế cơ khí – Tập 1 (PGS. Hà Văn Vui).',
+    ];
+
+    this.pdf.setFont('Arial', 'normal');
+    this.pdf.setFontSize(10);
+    const maxWidth = this.pageWidth - MARGIN.left - MARGIN.right - 4; // indent for bullet
+
+    for (const ref of refs) {
+      const lines = this.pdf.splitTextToSize(ref, maxWidth) as string[];
+      for (let i = 0; i < lines.length; i++) {
+        if (this.currentY > this.pageHeight - MARGIN.bottom) {
+          this.pdf.addPage();
+          this.currentY = MARGIN.top;
+        }
+        const text = (i === 0 ? '• ' : '  ') + lines[i];
+        this.pdf.text(text, MARGIN.left, this.currentY);
+        this.currentY += 5;
+      }
+    }
+
+    this.currentY += 3;
+  }
+
   // --- CHART/IMAGE HANDLING ---
   private async captureElement(elementId: string, title: string) {
     const element = document.getElementById(elementId);
@@ -526,6 +570,9 @@ class PDFReportService {
         await this.captureElement(chart.id, chart.title);
       }
     }
+
+    // Append references at the end
+    this.addReferences();
 
     this.addFooter();
     this.pdf.save('Crane-Beam-Analysis-Report.pdf');
