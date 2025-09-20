@@ -24,7 +24,8 @@ import { InternalForceDiagram } from './InternalForceDiagram';
 import { StressDistributionDiagram } from './StressDistributionDiagram';
 import { DeflectedShapeDiagram } from './DeflectedShapeDiagram';
 import { PDFExportButton } from './PDFReport';
-import { useT } from '../utils/i18n';
+import { useT, useLanguage } from '../utils/i18n';
+import { gbT } from '../utils/geometryBalanceI18n';
 
 const BeamGeometryDiagram: React.FC = () => (
   <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -51,6 +52,8 @@ const defaultInputs: BeamInputs = {
   b1: 400,
   b3: 600,
   L: 800,
+  A: 0,
+  C: 0,
   P_nang: 15000,
   P_thietbi: 5000,
   sigma_allow: 1650,
@@ -77,6 +80,9 @@ const inputConfig: { title: string; icon: React.FC<any>; fields: { name: keyof B
       { name: 't3', label: 'Web thickness t3', unit: 'mm' },
       // Remaining: Section height h
       { name: 'h', label: 'Section height h', unit: 'mm' },
+      // Additional geometry-related distances (now in mm)
+      { name: 'A', label: 'End carriage wheel center distance A', unit: 'mm' },
+      { name: 'C', label: 'End inclined segment length C', unit: 'mm' },
     ],
   },
   {
@@ -482,6 +488,57 @@ export const CraneBeamCalculator: React.FC = () => {
   };
 
   const t = useT();
+  const { lang } = useLanguage();
+
+  const geometricBalanceItems = React.useMemo(() => {
+    const items: { key: string; label: string; status: 'pass' | 'fail'; value: string }[] = [];
+    if (!results) return items;
+
+    const H_cm = inputs.h / 10;
+    const L_cm = inputs.L; // already in cm
+    const b1_cm = inputs.b / 10; // bottom flange width (label b1)
+    const body_cm = inputs.b1 / 10; // web spacing (labelled as body width)
+    // A and C inputs are now in mm on the UI; convert to cm for checks
+    const A_cm = inputs.A / 10;
+    const C_cm = inputs.C / 10;
+
+    const assess = (
+      key: string,
+      label: string,
+      actual: number,
+      ref: number,
+      minRatio: number,
+      maxRatio: number
+    ) => {
+      const minVal = minRatio * ref;
+      const maxVal = maxRatio * ref;
+      if (actual < minVal && actual > 0) {
+        const pct = ((minVal - actual) / actual) * 100;
+        items.push({ key, label, status: 'fail', value: gbT(lang, 'increaseBy').replace('{pct}', pct.toFixed(1)) });
+      } else if (actual > maxVal && actual > 0) {
+        const pct = ((actual - maxVal) / actual) * 100;
+        items.push({ key, label, status: 'fail', value: gbT(lang, 'decreaseBy').replace('{pct}', pct.toFixed(1)) });
+      } else if (actual === 0) {
+        // If not provided, mark as fail with increase suggestion to reach min
+        items.push({ key, label, status: 'fail', value: gbT(lang, 'increaseBy').replace('{pct}', '100.0') });
+      } else {
+        items.push({ key, label, status: 'pass', value: gbT(lang, 'meets') });
+      }
+    };
+
+    // 1) H = 1/18 .. 1/14 of L
+    assess('H', lang === 'vi' ? 'Chiều cao dầm H' : 'Beam height H', H_cm, L_cm, 1 / 18, 1 / 14);
+    // 2) b1 (bottom flange width) = 1/3 .. 1/2 of H
+    assess('b1', lang === 'vi' ? 'Chiều rộng cánh dưới b1' : 'Bottom flange width b1', b1_cm, H_cm, 1 / 3, 1 / 2);
+    // 3) body width (web spacing) b3 (UI label maps to b1) = 1/50 .. 1/40 of L
+    assess('b3', lang === 'vi' ? 'Rộng thân b3' : 'Body width b3', body_cm, L_cm, 1 / 50, 1 / 40);
+    // 4) A = 1/7 .. 1/5 of L
+    assess('A', lang === 'vi' ? 'Tâm bánh xe dầm biên A' : 'End carriage wheel center distance A', A_cm, L_cm, 1 / 7, 1 / 5);
+    // 5) C = 0.10 .. 0.15 of L
+    assess('C', lang === 'vi' ? 'Chiều dài đoạn nghiêng đầu dầm C' : 'End inclined segment length C', C_cm, L_cm, 0.10, 0.15);
+
+    return items;
+  }, [inputs, results, t]);
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
@@ -648,6 +705,14 @@ export const CraneBeamCalculator: React.FC = () => {
                         label={t('Buckling')}
                         value={`K_buckling = ${results.K_buckling.toFixed(2)}`}
                       />
+                    </div>
+                  </CollapsibleSection>
+
+                  <CollapsibleSection title={gbT(lang, 'geometricBalance')} icon={Scale}>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {geometricBalanceItems.map((it) => (
+                        <CheckBadge key={it.key} status={it.status} label={it.label} value={it.value} />
+                      ))}
                     </div>
                   </CollapsibleSection>
 

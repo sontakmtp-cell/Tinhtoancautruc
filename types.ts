@@ -12,6 +12,8 @@ export interface BeamInputs {
 
   // Material and Load properties
   L: number; // Beam span (cm)
+  A: number; // End carriage wheel center distance (cm)
+  C: number; // End inclined segment length (cm)
   P_nang: number; // Lifting load (kg)
   P_thietbi: number; // Equipment load (kg)
   sigma_allow: number; // Allowable stress (kg/cm^2)
