@@ -140,18 +140,29 @@ class PDFReportService {
     const webThkLabel = this.lang === 'vi' ? 'Bề dày thân t3' : 'Web Thickness (t3)';
     const bodyWidthLabel = this.lang === 'vi' ? 'Rộng thân b3' : 'Body Width (b3)';
 
-    const geomData = [
-      [this.t('beamSpan'), inputs.L, 'cm'],
-      [this.t('beamWidth'), inputs.b, 'mm'],
-      [topFlangeWidthLabel, (inputs as any).b3 ?? inputs.b, 'mm'],
-      [beamHeightLabel, inputs.h, 'mm'],
-      [topFlangeThkLabel, inputs.t1, 'mm'],
-      [bottomFlangeThkLabel, inputs.t2, 'mm'],
-      [webThkLabel, inputs.t3, 'mm'],
-      [bodyWidthLabel, inputs.b1, 'mm'],
-      [this.t('endCarriageWheelCenterA'), inputs.A, 'mm'],
-      [this.t('endInclinedSegmentC'), inputs.C, 'mm'],
-    ];
+    let geomData: (string | number)[][];
+    if ((results as any).calculationMode === 'i-beam') {
+      geomData = [
+        [this.t('Beam span L'), inputs.L, 'cm'],
+        [this.t('Flange width b'), inputs.b, 'mm'],
+        [this.t('Beam height H'), inputs.h, 'mm'],
+        [this.t('Flange thickness t1'), inputs.t1, 'mm'],
+        [this.t('Web thickness t2'), inputs.t3, 'mm'], // UI label uses t2; underlying field is inputs.t3 (web thickness)
+      ];
+    } else {
+      geomData = [
+        [this.t('beamSpan'), inputs.L, 'cm'], // Khẩu độ dầm (L)
+        [this.t('beamWidth'), inputs.b, 'mm'], // Chiều rộng dầm (b) -> Chiều rộng cánh dưới
+        [topFlangeWidthLabel, (inputs as any).b3 ?? inputs.b, 'mm'], // Chiều rộng cánh trên b2
+        [beamHeightLabel, inputs.h, 'mm'], // Chiều cao dầm H
+        [bottomFlangeThkLabel, inputs.t2, 'mm'], // Bề dày cánh dưới t1
+        [topFlangeThkLabel, inputs.t1, 'mm'], // Bề dày cánh trên t2
+        [webThkLabel, inputs.t3, 'mm'], // Bề dày thân t3
+        [bodyWidthLabel, inputs.b1, 'mm'], // Rộng thân b3
+        [this.t('endCarriageWheelCenterA'), inputs.A, 'mm'],
+        [this.t('endInclinedSegmentC'), inputs.C, 'mm'],
+      ];
+    }
 
     const loadData = [
       [(this.t as any)('materialType') || 'Material Type', (inputs as any).materialType ? String((inputs as any).materialType) : 'Custom', ''],
@@ -230,6 +241,13 @@ class PDFReportService {
     });
 
     this.currentY = (this.pdf as any).lastAutoTable.finalY + 5;
+
+    // Check if there's enough space for the next table, if not, add a new page
+    // Estimate next table height: header + 7 rows * ~6mm/row = ~50mm
+    if (this.currentY > this.pageHeight - MARGIN.bottom - 50) {
+      this.pdf.addPage();
+      this.currentY = MARGIN.top;
+    }
 
     autoTable(this.pdf, {
       head: [[this.t('internalForcesAndStresses'), this.t('value'), 'Unit']],
@@ -426,7 +444,14 @@ class PDFReportService {
     this.addProjectInfo(engineer, date);
     this.addInputs(inputs, results);
     this.addResults(results);
-    this.addGeometricBalance(inputs);
+    if ((results as any).calculationMode !== 'i-beam') {
+      // Check for space before adding the geometric balance table
+      if (this.currentY > this.pageHeight - MARGIN.bottom - 60) { // Estimate height
+        this.pdf.addPage();
+        this.currentY = MARGIN.top;
+      }
+      this.addGeometricBalance(inputs);
+    }
     this.addSafetyChecks(results);
     this.addOverallAssessment(results);
 

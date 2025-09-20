@@ -57,7 +57,7 @@ const dict: Record<Language, Record<string, string>> = {
     // I-beam specific labels
     'Flange width b': 'Rộng cánh b',
     'Flange thickness t1': 'Độ dày cánh t1',
-    'Web thickness b2': 'Rộng thân b2',
+    'Web thickness t2': 'Độ dày thân t2',
     'Beam height H': 'Chiều cao dầm H',
     'Beam span L': 'Khẩu độ dầm L',
     

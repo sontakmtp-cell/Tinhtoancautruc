@@ -76,13 +76,13 @@ const defaultInputs: BeamInputs = {
 };
 
 const defaultIBeamInputs: BeamInputs = {
-  b: 200,      // Flange width b (mm)
-  h: 400,      // Beam height H (mm)  
-  t1: 15,      // Flange thickness t1 (mm)
-  t2: 15,      // (same as t1 for I-beam, for compatibility)
-  t3: 8,       // Web thickness b2 (mm) - used for web thickness in I-beam
+  b: 150,      // Flange width b (mm) - typical for rolled I-beam
+  h: 300,      // Total height H (mm)  
+  t1: 10,      // Flange thickness t (mm)
+  t2: 10,      // (same as t1 for compatibility)
+  t3: 6,       // Web thickness tw (mm) — UI label shows "Web thickness t2" to match spec/i18n
   b1: 350,     // (kept for compatibility)
-  b3: 200,     // (same as b for I-beam, for compatibility)
+  b3: 150,     // (same as b for compatibility)
   L: 600,      // Beam span L (cm)
   A: 0,
   C: 0,
@@ -137,10 +137,15 @@ const iBeamInputConfig: { title: string; icon: React.FC<any>; fields: { name: ke
     title: 'Section geometry',
     icon: Scale,
     fields: [
-      // Dầm I cán với các tham số: Rộng cánh b, Độ dày cánh t1, Rộng thân b2 (sử dụng t3), Chiều cao dầm H, Khẩu độ dầm L
+      // Standard I-beam parameters
+      // - b: flange width
+      // - t1: flange thickness (both flanges equal for rolled I)
+      // - t3: web thickness (stored as inputs.t3)
+      // UI note: For consistency with the app's spec and translations, the UI label intentionally shows
+      // "Web thickness t2" while the underlying data is kept in inputs.t3.
       { name: 'b', label: 'Flange width b', unit: 'mm' },
       { name: 't1', label: 'Flange thickness t1', unit: 'mm' },
-      { name: 't3', label: 'Web thickness b2', unit: 'mm' },
+      { name: 't3', label: 'Web thickness t2', unit: 'mm' }, // UI label t2, data field t3 (intentional)
       { name: 'h', label: 'Beam height H', unit: 'mm' },
       { name: 'L', label: 'Beam span L', unit: 'cm' },
     ],
@@ -489,7 +494,8 @@ export const CraneBeamCalculator: React.FC = () => {
     const loaderStart = Date.now();
 
     try {
-      const calculatedResults = calculateBeamProperties(inputs);
+      const calcMode = (beamType === 'i-beam') ? 'i-beam' : 'single-girder';
+      const calculatedResults = calculateBeamProperties(inputs, calcMode);
       const newDiagramData = generateDiagramData(inputs, calculatedResults);
 
       setResults(calculatedResults);

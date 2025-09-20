@@ -1,12 +1,15 @@
 import type { BeamInputs, CalculationResults, DiagramData, DiagramPoint } from '../types';
 
-export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults => {
+type CalcMode = 'single-girder' | 'i-beam';
+
+export const calculateBeamProperties = (inputs: BeamInputs, mode: CalcMode = 'single-girder'): CalculationResults => {
   const {
     b: b_bottom_mm,
     h: h_mm,
-    t1: t_top_input_mm,     // UI field "t1" now labeled as top flange thickness (symbol t2)
-    t2: t_bottom_input_mm,  // UI field "t2" now labeled as bottom flange thickness (symbol t1)
-    t3: t_web_input_mm,     // UI field "t3" now labeled as web thickness (symbol b3 per request)
+    t1: t_top_input_mm,     // UI: top flange thickness (I-beam tab shows "Flange thickness t1")
+    t2: t_bottom_input_mm,  // UI: bottom flange thickness in single-girder layout
+    t3: t_web_input_mm,     // UI: web thickness. In the I-beam tab, the visible label is "Web thickness t2"
+                            //      for consistency with the spec, while the data is stored in inputs.t3
     b1: b_body_input_mm,    // UI field "b1" now labeled as body width b2
     b3: b_top_mm,
     L,
@@ -20,45 +23,104 @@ export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults 
   } = inputs;
 
   // Convert millimetre inputs to centimetres for calculations
-  const b_bottom = b_bottom_mm / 10; // bottom flange width (cm)
-  const H = h_mm / 10;               // section height, now denoted H
+  const H = h_mm / 10; // section height, now denoted H
   // New internal aliases to match requested symbols/labels while keeping input shape stable
-  const t2_top = t_top_input_mm / 10;        // top flange thickness (symbol t2)
-  const t1_bottom = t_bottom_input_mm / 10;  // bottom flange thickness (symbol t1)
-  const t_web_b3 = t_web_input_mm / 10;      // web thickness (requested label uses symbol b3)
-  const b2 = b_body_input_mm / 10;           // body (clear) width between webs (symbol b2)
-  const b_top = (b_top_mm ?? b_bottom_mm) / 10; // fallback for backward compatibility
+  const t_top = t_top_input_mm / 10;         // top flange thickness (symbol t1 in I-beam tab)
+  const t_bottom = t_bottom_input_mm / 10;   // bottom flange thickness (symbol t2)
+  const t_web = t_web_input_mm / 10;         // web thickness
+  const b_body = b_body_input_mm / 10;       // body (clear) width between webs (symbol b2) for built-up girder
+  const b_top = (b_top_mm ?? b_bottom_mm) / 10; // top flange width (cm). fallback for backward compatibility
+  const b_bottom = b_bottom_mm / 10;            // bottom flange width (cm)
 
   // --- 1. Geometric Properties Calculation ---
-  const topFlangeArea = b_top * t2_top;
-  const bottomFlangeArea = b_bottom * t1_bottom;
-  const webHeight = H - t2_top - t1_bottom;
-  const singleWebArea = webHeight * t_web_b3;
-  
-  const F = topFlangeArea + bottomFlangeArea + 2 * singleWebArea;
+  let F: number;
+  let Yc: number;
+  const Xc = 0; // Symmetric about vertical axis in both modes (coordinate origin centered horizontally)
 
-  const y_top = H - t2_top / 2;
-  const y_bottom = t1_bottom / 2;
-  const y_webs = t1_bottom + webHeight / 2;
-  const Yc = (topFlangeArea * y_top + bottomFlangeArea * y_bottom + 2 * singleWebArea * y_webs) / F;
-  // Horizontal centroid lies on the symmetry centerline between webs
-  // We report Xc relative to that centerline as 0 for clarity (not used elsewhere)
-  const Xc = 0;
+  let Ix_top: number;
+  let Ix_bottom: number;
+  let Ix_webs_or_web: number; // for single web in I-beam, or two webs in built-up girder
+  let Jx: number;
 
-  // Rectangular flange local inertia uses its own width (b_top/b_bottom)
-  const Ix_top = (b_top * t2_top ** 3) / 12 + topFlangeArea * (y_top - Yc) ** 2;
-  const Ix_bottom = (b_bottom * t1_bottom ** 3) / 12 + bottomFlangeArea * (y_bottom - Yc) ** 2;
-  const Ix_webs = 2 * ((t_web_b3 * webHeight ** 3) / 12 + singleWebArea * (y_webs - Yc) ** 2);
-  const Jx = Ix_top + Ix_bottom + Ix_webs;
+  let Iy_top: number;
+  let Iy_bottom: number;
+  let Iy_webs_or_web: number; // for single web in I-beam, or two webs in built-up girder
+  let Jy: number;
 
-  const Iy_top = (t2_top * b_top ** 3) / 12;
-  const Iy_bottom = (t1_bottom * b_bottom ** 3) / 12;
-  const web_dist_from_center = b2 / 2 + t_web_b3 / 2;
-  const Iy_webs = 2 * ((webHeight * t_web_b3 ** 3) / 12 + singleWebArea * web_dist_from_center ** 2);
-  const Jy = Iy_top + Iy_bottom + Iy_webs;
-  
-  const Wx = Jx / Math.max(Yc, H - Yc);
-  const Wy = Jy / (Math.max(b_top, b_bottom) / 2);
+  let Wx: number;
+  let Wy: number;
+
+  if (mode === 'i-beam') {
+    // Standard rolled I-beam: symmetric section with equal flanges
+    // For standard I-beam: b = flange width, t1 = flange thickness, t3 = web thickness, H = total height
+    const b_flange = b_bottom; // flange width (same for both top and bottom)
+    const t_flange = t_top;    // flange thickness (same for both flanges)
+    const t_web_thickness = t_web; // web thickness
+    
+    // Calculate component areas
+    const A_top_flange = b_flange * t_flange;
+    const A_bottom_flange = b_flange * t_flange;
+    const h_web = Math.max(H - 2 * t_flange, 0); // web height = total height - 2 * flange thickness
+    const A_web = t_web_thickness * h_web;
+
+    // Total cross-sectional area
+    F = A_top_flange + A_bottom_flange + A_web;
+
+    // Calculate centroidal distances from bottom fiber
+    const y_top_flange = H - t_flange / 2;
+    const y_bottom_flange = t_flange / 2;
+    const y_web = t_flange + h_web / 2;
+    
+    // Centroidal position (should be at H/2 for symmetric I-beam)
+    Yc = (A_top_flange * y_top_flange + A_bottom_flange * y_bottom_flange + A_web * y_web) / (F || 1);
+
+    // Moment of inertia about x-axis (strong axis) using parallel axis theorem
+    // I = I_local + A * d²
+    Ix_top = (b_flange * t_flange ** 3) / 12 + A_top_flange * (y_top_flange - Yc) ** 2;
+    Ix_bottom = (b_flange * t_flange ** 3) / 12 + A_bottom_flange * (y_bottom_flange - Yc) ** 2;
+    Ix_webs_or_web = (t_web_thickness * h_web ** 3) / 12 + A_web * (y_web - Yc) ** 2;
+    Jx = Ix_top + Ix_bottom + Ix_webs_or_web;
+
+    // Moment of inertia about y-axis (weak axis)
+    // For flanges: I_local = t * b³/12 (about their own centroidal axis)
+    // For web: I_local = h * t³/12 (about its own centroidal axis)
+    Iy_top = (t_flange * b_flange ** 3) / 12;
+    Iy_bottom = (t_flange * b_flange ** 3) / 12;
+    Iy_webs_or_web = (h_web * t_web_thickness ** 3) / 12; // web contributes minimal Iy
+    Jy = Iy_top + Iy_bottom + Iy_webs_or_web;
+
+    // Section moduli
+    const c_max_x = Math.max(Yc, H - Yc); // maximum distance from neutral axis to extreme fiber
+    Wx = Jx / c_max_x;
+    Wy = Jy / (b_flange / 2); // distance from y-axis to edge of flange
+  } else {
+    // Built-up single girder with two webs spaced by b_body
+    const A_top = b_top * t_top;
+    const A_bottom = b_bottom * t_bottom;
+    const h_web = Math.max(H - t_top - t_bottom, 0);
+    const A_one_web = h_web * t_web;
+
+    F = A_top + A_bottom + 2 * A_one_web;
+
+    const y_top = H - t_top / 2;
+    const y_bottom = t_bottom / 2;
+    const y_webs = t_bottom + h_web / 2;
+    Yc = (A_top * y_top + A_bottom * y_bottom + 2 * A_one_web * y_webs) / (F || 1);
+
+    Ix_top = (b_top * t_top ** 3) / 12 + A_top * (y_top - Yc) ** 2;
+    Ix_bottom = (b_bottom * t_bottom ** 3) / 12 + A_bottom * (y_bottom - Yc) ** 2;
+    Ix_webs_or_web = 2 * ((t_web * h_web ** 3) / 12 + A_one_web * (y_webs - Yc) ** 2);
+    Jx = Ix_top + Ix_bottom + Ix_webs_or_web;
+
+    Iy_top = (t_top * b_top ** 3) / 12;
+    Iy_bottom = (t_bottom * b_bottom ** 3) / 12;
+    const web_dist_from_center = b_body / 2 + t_web / 2; // distance from centroidal axis to each web centerline
+    Iy_webs_or_web = 2 * ((h_web * t_web ** 3) / 12 + A_one_web * web_dist_from_center ** 2);
+    Jy = Iy_top + Iy_bottom + Iy_webs_or_web;
+
+    Wx = Jx / Math.max(Yc, H - Yc);
+    Wy = Jy / (Math.max(b_top, b_bottom) / 2);
+  }
 
   // --- 2. Load and Stress Calculation ---
   const P = P_nang + P_thietbi;
@@ -81,26 +143,41 @@ export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults 
 
   // Deflection (combining distributed load and central point load)
   const f = (5 * q_auto * L ** 4) / (384 * E * Jx) + (P * L ** 3) / (48 * E * Jx);
-  // Allowable deflection per requirement: f_allow = L / 1000
-  const f_allow = L / 1000;
+  // Allowable deflection per requirement: 
+  // I-beam: f_allow = L / 800
+  // Single girder: f_allow = L / 1000
+  const f_allow = mode === 'i-beam' ? L / 800 : L / 1000;
 
   // --- 3. Safety Checks ---
   const K_sigma = sigma_allow / sigma_u;
   const n_f = f_allow / f;
 
   // --- 4. Advanced Checks (Local Buckling) ---
-  // Simplified check for local buckling of the top flange panel between webs.
-  // This compares the width/thickness ratio to a material-dependent limit.
-  // With new symbols, use b2 (body width) over top flange thickness t2
-  const lambda_actual = b2 / t2_top;
-  // The constant 1.9 is an example value for stiffened elements.
+  // Simplified check for local buckling of the compression element.
+  // For I-beam: check flange local buckling (b/2t ratio)
+  // For built-up girder: check panel buckling between webs
+  let representative_b: number;
+  let representative_t: number;
+  
+  if (mode === 'i-beam') {
+    // For I-beam flange local buckling: b/2t where b is flange width, t is flange thickness
+    representative_b = b_bottom / 2; // half flange width (flange overhang from web)
+    representative_t = t_top; // flange thickness
+  } else {
+    // For built-up girder: panel between webs
+    representative_b = b_body;
+    representative_t = t_top;
+  }
+  
+  const lambda_actual = representative_b / (representative_t || 1);
+  // The constant 1.9 is an example value for stiffened elements (may need adjustment based on standards)
   const lambda_limit = 1.9 * Math.sqrt(E / sigma_yield); 
   const K_buckling = lambda_actual > 0 ? lambda_limit / lambda_actual : Infinity;
 
   return {
     F, Yc, Xc, Jx, Jy, Wx, Wy,
-    Jx_top: Ix_top, Jx_bottom: Ix_bottom, Jx_webs: Ix_webs,
-    Jy_top: Iy_top, Jy_bottom: Iy_bottom, Jy_webs: Iy_webs,
+    Jx_top: Ix_top, Jx_bottom: Ix_bottom, Jx_webs: Ix_webs_or_web,
+    Jy_top: Iy_top, Jy_bottom: Iy_bottom, Jy_webs: Iy_webs_or_web,
     P, M_bt, M_vn, M_x, M_y,
     q: q_auto,
     sigma_u, sigma_top_compression, sigma_bottom_tension, f, f_allow,
@@ -108,6 +185,7 @@ export const calculateBeamProperties = (inputs: BeamInputs): CalculationResults 
     stress_check: K_sigma >= 1 ? 'pass' : 'fail',
     deflection_check: n_f >= 1 ? 'pass' : 'fail',
     buckling_check: K_buckling >= 1 ? 'pass' : 'fail',
+    calculationMode: mode,
   };
 };
 
