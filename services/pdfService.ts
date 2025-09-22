@@ -2,9 +2,23 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import type { TFunction } from 'i18next';
-import i18n from '../i18n';
+import i18n from '../src/i18n';
 import type { BeamInputs, CalculationResults, Language } from '../types';
-import { ARIAL_FONT_NORMAL, ARIAL_FONT_BOLD } from './pdfFonts';
+// Import from src to avoid MIME issues in Vite dev server
+// Load fonts from public assets at runtime to avoid module MIME issues in dev
+let fontCache: { regular?: string; bold?: string } = {};
+async function loadFontBase64(url: string): Promise<string> {
+  const res = await fetch(url);
+  const buf = await res.arrayBuffer();
+  let binary = '';
+  const bytes = new Uint8Array(buf);
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize) as any);
+  }
+  return btoa(binary);
+}
+
 
 interface PDFReportOptions {
   projectName?: string;
@@ -26,12 +40,21 @@ type TableRow = {
 };
 
 // --- STYLING CONSTANTS ---
-const PRIMARY_COLOR = [0, 55, 100]; // Dark Blue
-const SECONDARY_COLOR = [245, 245, 245]; // Light Gray
-const TEXT_COLOR = [0, 0, 0];
-const HEADER_TEXT_COLOR = [255, 255, 255];
+const PRIMARY_COLOR: [number, number, number] = [0, 55, 100]; // Dark Blue
+const SECONDARY_COLOR: [number, number, number] = [245, 245, 245]; // Light Gray
+const TEXT_COLOR: [number, number, number] = [0, 0, 0];
+const HEADER_TEXT_COLOR: [number, number, number] = [255, 255, 255];
 
 const MARGIN = { top: 25, right: 15, bottom: 25, left: 15 };
+
+// --- UNITS (use Unicode superscripts to avoid encoding issues) ---
+const SUP2 = '\u00B2'; // ²
+const SUP3 = '\u00B3'; // ³
+const SUP4 = '\u2074'; // ⁴
+const UNIT_SIGMA = `kg/cm${SUP2}`;
+const UNIT_AREA = `cm${SUP2}`;
+const UNIT_I = `cm${SUP4}`;
+const UNIT_W = `cm${SUP3}`;
 
 class PDFReportService {
   private pdf: jsPDF;
@@ -48,25 +71,19 @@ class PDFReportService {
     this.t = i18n.getFixedT(language);
     this.lang = language;
 
-    // Add custom fonts
-    this.pdf.addFileToVFS('arial-normal.ttf', ARIAL_FONT_NORMAL);
-    this.pdf.addFileToVFS('arial-bold.ttf', ARIAL_FONT_BOLD);
-    this.pdf.addFont('arial-normal.ttf', 'Arial', 'normal');
-    this.pdf.addFont('arial-bold.ttf', 'Arial', 'bold');
-    
-    this.pdf.setFont('Arial', 'normal');
+    // Font is loaded asynchronously in generate() to avoid blocking constructor
   }
 
   // --- HEADER & FOOTER ---
   private addHeader(projectName: string) {
     const title = this.t('reportTitle');
     
-    this.pdf.setFillColor(...PRIMARY_COLOR);
+    this.pdf.setFillColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
     this.pdf.rect(0, 0, this.pageWidth, MARGIN.top - 5, 'F');
 
-    this.pdf.setFont('Arial', 'bold');
+    this.pdf.setFont('NotoSans', 'bold');
     this.pdf.setFontSize(16);
-    this.pdf.setTextColor(...HEADER_TEXT_COLOR);
+    this.pdf.setTextColor(HEADER_TEXT_COLOR[0], HEADER_TEXT_COLOR[1], HEADER_TEXT_COLOR[2]);
     this.pdf.text(title, this.pageWidth / 2, 10, { align: 'center' });
 
     this.pdf.setFontSize(10);
@@ -100,8 +117,8 @@ class PDFReportService {
   // --- CONTENT SECTIONS ---
   private addProjectInfo(engineer: string, date: string) {
     this.pdf.setFontSize(12);
-    this.pdf.setFont('Arial', 'bold');
-    this.pdf.setTextColor(...TEXT_COLOR);
+    this.pdf.setFont('NotoSans', 'bold');
+    this.pdf.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
     this.pdf.text(this.t('projectInformation'), MARGIN.left, this.currentY);
     this.currentY += 6;
 
@@ -115,7 +132,7 @@ class PDFReportService {
       body: info,
       startY: this.currentY,
       theme: 'plain',
-      styles: { fontSize: 10, cellPadding: 1, font: 'Arial' },
+      styles: { fontSize: 10, cellPadding: 1, font: 'NotoSans' },
       columnStyles: { 0: { fontStyle: 'bold' } },
     });
 
@@ -124,21 +141,14 @@ class PDFReportService {
 
   private addInputs(inputs: BeamInputs, results: CalculationResults) {
     this.pdf.setFontSize(12);
-    this.pdf.setFont('Arial', 'bold');
+    this.pdf.setFont('NotoSans', 'bold');
     this.pdf.text(this.t('inputParameters'), MARGIN.left, this.currentY);
     this.currentY += 6;
-
-    const topFlangeWidthLabel = this.lang === 'vi' ? 'Chiều rộng cánh trên b2' : 'Top flange width (b2)';
-    const beamHeightLabel = this.lang === 'vi' ? 'Chiều cao dầm H' : 'Beam Height (H)';
-    const topFlangeThkLabel = this.lang === 'vi' ? 'Bề dày cánh trên t2' : 'Top Flange (t2)';
-    const bottomFlangeThkLabel = this.lang === 'vi' ? 'Bề dày cánh dưới t1' : 'Bottom Flange (t1)';
-    const webThkLabel = this.lang === 'vi' ? 'Bề dày thân t3' : 'Web Thickness (t3)';
-    const bodyWidthLabel = this.lang === 'vi' ? 'Rộng thân b3' : 'Body Width (b3)';
 
     let geomData: (string | number)[][];
     if ((results as any).calculationMode === 'i-beam') {
       geomData = [
-        [this.t('Beam span L'), inputs.L, 'cm'],
+        [this.t('beamSpan'), inputs.L, 'cm'],
         [this.t('Flange width b'), inputs.b, 'mm'],
         [this.t('Beam height H'), inputs.h, 'mm'],
         [this.t('Flange thickness t1'), inputs.t1, 'mm'],
@@ -146,21 +156,21 @@ class PDFReportService {
       ];
     } else {
       geomData = [
-        [this.t('beamSpan'), inputs.L, 'cm'], // Khẩu độ dầm (L)
-        [this.t('beamWidth'), inputs.b, 'mm'], // Chiều rộng dầm (b) -> Chiều rộng cánh dưới
-        [topFlangeWidthLabel, (inputs as any).b3 ?? inputs.b, 'mm'], // Chiều rộng cánh trên b2
-        [beamHeightLabel, inputs.h, 'mm'], // Chiều cao dầm H
-        [bottomFlangeThkLabel, inputs.t2, 'mm'], // Bề dày cánh dưới t1
-        [topFlangeThkLabel, inputs.t1, 'mm'], // Bề dày cánh trên t2
-        [webThkLabel, inputs.t3, 'mm'], // Bề dày thân t3
-        [bodyWidthLabel, inputs.b1, 'mm'], // Rộng thân b3
+        [this.t('beamSpan'), inputs.L, 'cm'],
+        [this.t('beamWidth'), inputs.b, 'mm'],
+        [this.t('calculator.topFlangeWidthB3'), (inputs as any).b3 ?? inputs.b, 'mm'],
+        [this.t('beamHeight'), inputs.h, 'mm'],
+        [this.t('calculator.bottomFlangeThicknessT2'), inputs.t2, 'mm'],
+        [this.t('calculator.topFlangeThicknessT1'), inputs.t1, 'mm'],
+        [this.t('calculator.webThicknessT3'), inputs.t3, 'mm'],
+        [this.t('calculator.bodyWidthB3'), inputs.b1, 'mm'],
         [this.t('endCarriageWheelCenterA'), inputs.A, 'mm'],
         [this.t('endInclinedSegmentC'), inputs.C, 'mm'],
       ];
     }
 
     const loadData = [
-      [(this.t as any)('materialType') || 'Material Type', (inputs as any).materialType ? String((inputs as any).materialType) : this.t('pdf.customMaterial'), ''],
+      [this.t('materialType'), (inputs as any).materialType ? String((inputs as any).materialType) : this.t('pdf.customMaterial') || 'Custom', ''],
       [this.t('liftingLoad'), inputs.P_nang, 'kg'],
       [this.t('equipmentLoad'), inputs.P_thietbi, 'kg'],
       [this.t('distributedLoad'), results.q.toFixed(4), 'kg/cm'],
@@ -171,12 +181,12 @@ class PDFReportService {
     ];
 
     autoTable(this.pdf, {
-      head: [[this.t('geometricParameters'), this.t('value'), this.t('status')]],
+      head: [[this.t('geometricParameters'), this.t('value'), this.t('unit')]],
       body: geomData,
       startY: this.currentY,
       theme: 'grid',
-      styles: { font: 'Arial' },
-      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'Arial', fontStyle: 'bold' },
+      styles: { font: 'NotoSans' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'NotoSans', fontStyle: 'bold' },
       alternateRowStyles: { fillColor: SECONDARY_COLOR },
     });
 
@@ -187,12 +197,12 @@ class PDFReportService {
     }
 
     autoTable(this.pdf, {
-      head: [[this.t('loadAndMaterial'), this.t('value'), this.t('status')]],
+      head: [[this.t('loadAndMaterial'), this.t('value'), this.t('unit')]],
       body: loadData,
       startY: this.currentY,
       theme: 'grid',
-      styles: { font: 'Arial' },
-      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'Arial', fontStyle: 'bold' },
+      styles: { font: 'NotoSans' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'NotoSans', fontStyle: 'bold' },
       alternateRowStyles: { fillColor: SECONDARY_COLOR },
     });
     
@@ -201,7 +211,7 @@ class PDFReportService {
 
   private addResults(results: CalculationResults) {
     this.pdf.setFontSize(12);
-    this.pdf.setFont('Arial', 'bold');
+    this.pdf.setFont('NotoSans', 'bold');
     this.pdf.text(this.t('calculationResults'), MARGIN.left, this.currentY);
     this.currentY += 6;
 
@@ -230,8 +240,8 @@ class PDFReportService {
       body: geomProps,
       startY: this.currentY,
       theme: 'grid',
-      styles: { font: 'Arial' },
-      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'Arial', fontStyle: 'bold' },
+      styles: { font: 'NotoSans' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'NotoSans', fontStyle: 'bold' },
       alternateRowStyles: { fillColor: SECONDARY_COLOR },
     });
 
@@ -249,8 +259,8 @@ class PDFReportService {
       body: forcesStresses,
       startY: this.currentY,
       theme: 'grid',
-      styles: { font: 'Arial' },
-      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'Arial', fontStyle: 'bold' },
+      styles: { font: 'NotoSans' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'NotoSans', fontStyle: 'bold' },
       alternateRowStyles: { fillColor: SECONDARY_COLOR },
     });
     
@@ -265,7 +275,7 @@ class PDFReportService {
     }
 
     this.pdf.setFontSize(12);
-    this.pdf.setFont('Arial', 'bold');
+    this.pdf.setFont('NotoSans', 'bold');
     this.pdf.text(this.t('geometricBalance'), MARGIN.left, this.currentY);
     this.currentY += 6;
 
@@ -310,8 +320,8 @@ class PDFReportService {
       body: rows,
       startY: this.currentY,
       theme: 'grid',
-      styles: { font: 'Arial' },
-      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'Arial', fontStyle: 'bold' },
+      styles: { font: 'NotoSans' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'NotoSans', fontStyle: 'bold' },
       alternateRowStyles: { fillColor: SECONDARY_COLOR },
     });
 
@@ -320,7 +330,7 @@ class PDFReportService {
 
   private addSafetyChecks(results: CalculationResults) {
     this.pdf.setFontSize(12);
-    this.pdf.setFont('Arial', 'bold');
+    this.pdf.setFont('NotoSans', 'bold');
     this.pdf.text(this.t('safetyChecks'), MARGIN.left, this.currentY);
     this.currentY += 6;
 
@@ -335,8 +345,8 @@ class PDFReportService {
       body: checks,
       startY: this.currentY,
       theme: 'grid',
-      styles: { font: 'Arial' },
-      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'Arial', fontStyle: 'bold' },
+      styles: { font: 'NotoSans' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'NotoSans', fontStyle: 'bold' },
       didParseCell: (data) => {
         if (data.column.dataKey === 'Status') {
           if (data.cell.raw === this.t('pass')) {
@@ -355,7 +365,7 @@ class PDFReportService {
 
   private addOverallAssessment(results: CalculationResults) {
     this.pdf.setFontSize(12);
-    this.pdf.setFont('Arial', 'bold');
+    this.pdf.setFont('NotoSans', 'bold');
     this.pdf.text(this.t('overallAssessment'), MARGIN.left, this.currentY);
     this.currentY += 8;
 
@@ -364,20 +374,20 @@ class PDFReportService {
                          results.buckling_check === 'pass';
     
     const statusText = overallStatus ? this.t('beamPass') : this.t('beamFail');
-    const statusColor = overallStatus ? [0, 128, 0] : [255, 0, 0];
+    const statusColor: [number, number, number] = overallStatus ? [0, 128, 0] : [255, 0, 0];
     const description = overallStatus ? this.t('passDescription') : this.t('failDescription');
 
     this.pdf.setFillColor(overallStatus ? '#e8f5e9' : '#ffebee'); // Light green/red background
     this.pdf.rect(MARGIN.left, this.currentY - 2, this.pageWidth - MARGIN.left - MARGIN.right, 20, 'F');
     
     this.pdf.setFontSize(11);
-    this.pdf.setFont('Arial', 'bold');
-    this.pdf.setTextColor(...statusColor);
+    this.pdf.setFont('NotoSans', 'bold');
+    this.pdf.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
     this.pdf.text(statusText, this.pageWidth / 2, this.currentY + 5, { align: 'center' });
 
     this.pdf.setFontSize(10);
-    this.pdf.setFont('Arial', 'normal');
-    this.pdf.setTextColor(...TEXT_COLOR);
+    this.pdf.setFont('NotoSans', 'normal');
+    this.pdf.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
     this.pdf.text(description, this.pageWidth / 2, this.currentY + 12, { align: 'center' });
 
     this.currentY += 25;
@@ -393,12 +403,12 @@ class PDFReportService {
     }
 
     this.pdf.setFontSize(12);
-    this.pdf.setFont('Arial', 'bold');
-    this.pdf.setTextColor(...TEXT_COLOR);
+    this.pdf.setFont('NotoSans', 'bold');
+    this.pdf.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
     this.pdf.text(title, MARGIN.left, this.currentY);
     this.currentY += 6;
 
-    this.pdf.setFont('Arial', 'normal');
+    this.pdf.setFont('NotoSans', 'normal');
     this.pdf.setFontSize(10);
     const maxWidth = this.pageWidth - MARGIN.left - MARGIN.right;
 
@@ -432,14 +442,14 @@ class PDFReportService {
     }
 
     this.pdf.setFontSize(12);
-    this.pdf.setFont('Arial', 'bold');
-    this.pdf.setTextColor(...TEXT_COLOR);
+    this.pdf.setFont('NotoSans', 'bold');
+    this.pdf.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
     this.pdf.text(title, MARGIN.left, this.currentY);
     this.currentY += 6;
 
     const refs = this.t('pdf.references', { returnObjects: true }) as string[];
 
-    this.pdf.setFont('Arial', 'normal');
+    this.pdf.setFont('NotoSans', 'normal');
     this.pdf.setFontSize(10);
     const maxWidth = this.pageWidth - MARGIN.left - MARGIN.right - 4; // indent for bullet
 
@@ -489,7 +499,7 @@ class PDFReportService {
     }
 
     this.pdf.setFontSize(12);
-    this.pdf.setFont('Arial', 'bold');
+    this.pdf.setFont('NotoSans', 'bold');
     this.pdf.text(title, MARGIN.left, this.currentY);
     this.currentY += 6;
 
@@ -519,6 +529,19 @@ class PDFReportService {
     }
 
     try {
+      // Ensure Noto Sans is loaded into VFS (supports Vietnamese diacritics)
+      if (!fontCache.regular) {
+        fontCache.regular = await loadFontBase64('/fonts/NotoSans-Regular.ttf');
+      }
+      if (!fontCache.bold) {
+        fontCache.bold = await loadFontBase64('/fonts/NotoSans-Bold.ttf');
+      }
+      this.pdf.addFileToVFS('NotoSans-Regular.ttf', fontCache.regular);
+      this.pdf.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
+      this.pdf.addFileToVFS('NotoSans-Bold.ttf', fontCache.bold);
+      this.pdf.addFont('NotoSans-Bold.ttf', 'NotoSans', 'bold');
+      this.pdf.setFont('NotoSans', 'normal');
+
       this.addHeader(projectName);
       this.addProjectInfo(engineer, date);
       this.addInputs(inputs, results);
@@ -544,7 +567,7 @@ class PDFReportService {
         }
         
         this.pdf.setFontSize(14);
-        this.pdf.setFont('Arial', 'bold');
+        this.pdf.setFont('NotoSans', 'bold');
         this.pdf.text(this.t('analysisDiagrams'), MARGIN.left, this.currentY);
         this.currentY += 8;
 
@@ -558,7 +581,7 @@ class PDFReportService {
 
               // Re-add title for the new page of diagrams
               this.pdf.setFontSize(14);
-              this.pdf.setFont('Arial', 'bold');
+              this.pdf.setFont('NotoSans', 'bold');
               this.pdf.text(this.t('analysisDiagrams'), MARGIN.left, this.currentY);
               this.currentY += 8;
             }
@@ -588,3 +611,4 @@ export const generatePDFReport = async (
   const pdfService = new PDFReportService(options.language);
   await pdfService.generate(inputs, results, options);
 };
+
