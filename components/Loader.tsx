@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLanguage } from '../utils/i18n';
+import { useTranslation } from 'react-i18next';
 
 const offsets = [-1, 0, 1];
 
@@ -29,20 +29,22 @@ const cubeStyles = offsets.flatMap((x) =>
 );
 
 type LoaderProps = {
-  messageVi?: string;
-  messageEn?: string;
-  // Backward compatibility: older callers may pass a single message (ignored)
-  message?: string;
+  status?: 'default' | 'warning';
+  messageKey?: string;
+  warningMessageKey?: string;
 };
 
-export const HamsterLoader: React.FC<LoaderProps> = ({ messageVi, messageEn }) => {
-  const { lang } = useLanguage();
-  const viText = messageVi ?? '\u0110ang th\u1EF1c hi\u1EC7n c\u00E1c ph\u00E9p t\u00EDnh ph\u1EE9c t\u1EA1p...';
-  const enText = messageEn ?? 'Performing complex calculations...';
-  const aria = lang === 'vi' ? viText : enText;
+export const HamsterLoader: React.FC<LoaderProps> = ({
+  status = 'default',
+  messageKey = 'loader.default',
+  warningMessageKey = 'loader.warning',
+}) => {
+  const { t, i18n } = useTranslation();
+  const lang = (i18n.resolvedLanguage || i18n.language || 'vi').split('-')[0];
+  const text = status === 'warning' ? t(warningMessageKey) : t(messageKey);
   return (
-  <>
-    <style>{`
+    <>
+      <style>{`
       @keyframes loader-hue-rotate {
         to {
           filter: hue-rotate(360deg);
@@ -114,24 +116,20 @@ export const HamsterLoader: React.FC<LoaderProps> = ({ messageVi, messageEn }) =
         }
       }
     `}</style>
-    <div
-      aria-label={aria}
-      role="status"
-      className="flex items-center justify-center flex-col"
-    >
-      <div className="loader-cube-container">
-        {cubeStyles.map((style, index) => (
-          <div key={index} className="loader-cube" style={style} />
-        ))}
+      <div aria-label={text} role="status" className="flex items-center justify-center flex-col">
+        <div className="loader-cube-container">
+          {cubeStyles.map((style, index) => (
+            <div key={index} className="loader-cube" style={style} />
+          ))}
+        </div>
+        <div className="mt-32 text-center">
+          {lang === 'vi' ? (
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{text}</p>
+          ) : (
+            <p className="text-xs font-normal text-gray-500 dark:text-gray-400 mt-1">{text}</p>
+          )}
+        </div>
       </div>
-      <div className="mt-32 text-center">
-        {lang === 'vi' ? (
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{viText}</p>
-        ) : (
-          <p className="text-xs font-normal text-gray-500 dark:text-gray-400 mt-1">{enText}</p>
-        )}
-      </div>
-    </div>
-  </>
+    </>
   );
 };

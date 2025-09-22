@@ -1,9 +1,10 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
-import type { BeamInputs, CalculationResults } from '../types';
+import type { TFunction } from 'i18next';
+import i18n from '../i18n';
+import type { BeamInputs, CalculationResults, Language } from '../types';
 import { ARIAL_FONT_NORMAL, ARIAL_FONT_BOLD } from './pdfFonts';
-import { getTranslator, Language } from '../utils/translations';
 
 interface PDFReportOptions {
   projectName?: string;
@@ -37,21 +38,14 @@ class PDFReportService {
   private pageHeight: number;
   private pageWidth: number;
   private currentY: number = 0;
-  private t: (key: keyof typeof import('../utils/translations').translations.en) => string;
+  private t: TFunction<'translation', undefined>;
   private lang: Language;
 
   constructor(language: Language = 'en') {
     this.pdf = new jsPDF('p', 'mm', 'a4');
     this.pageHeight = this.pdf.internal.pageSize.getHeight();
     this.pageWidth = this.pdf.internal.pageSize.getWidth();
-    const baseT = getTranslator(language);
-    // Override specific labels for Vietnamese consistency
-    this.t = ((key: keyof typeof import('../utils/translations').translations.en) => {
-      if (language === 'vi' && key === 'beamSpan') {
-        return 'Khẩu độ dầm (L)';
-      }
-      return baseT(key as any);
-    }) as any;
+    this.t = i18n.getFixedT(language);
     this.lang = language;
 
     // Add custom fonts
@@ -112,7 +106,7 @@ class PDFReportService {
     this.currentY += 6;
 
     const info = [
-      [this.t('designEngineer'), engineer || 'N/A'],
+      [this.t('designEngineer'), engineer || this.t('pdf.notAvailable')],
       [this.t('calculationDate'), date],
       [this.t('software'), this.t('softwareName')],
     ];
@@ -166,7 +160,7 @@ class PDFReportService {
     }
 
     const loadData = [
-      [(this.t as any)('materialType') || 'Material Type', (inputs as any).materialType ? String((inputs as any).materialType) : 'Custom', ''],
+      [(this.t as any)('materialType') || 'Material Type', (inputs as any).materialType ? String((inputs as any).materialType) : this.t('pdf.customMaterial'), ''],
       [this.t('liftingLoad'), inputs.P_nang, 'kg'],
       [this.t('equipmentLoad'), inputs.P_thietbi, 'kg'],
       [this.t('distributedLoad'), results.q.toFixed(4), 'kg/cm'],
@@ -232,7 +226,7 @@ class PDFReportService {
     ];
 
     autoTable(this.pdf, {
-      head: [[this.t('geometricProperties'), this.t('value'), 'Unit']],
+      head: [[this.t('geometricProperties'), this.t('value'), this.t('unit')]],
       body: geomProps,
       startY: this.currentY,
       theme: 'grid',
@@ -251,7 +245,7 @@ class PDFReportService {
     }
 
     autoTable(this.pdf, {
-      head: [[this.t('internalForcesAndStresses'), this.t('value'), 'Unit']],
+      head: [[this.t('internalForcesAndStresses'), this.t('value'), this.t('unit')]],
       body: forcesStresses,
       startY: this.currentY,
       theme: 'grid',
@@ -292,21 +286,22 @@ class PDFReportService {
       let result: string;
       if (actual > 0 && actual < minVal) {
         const pct = ((minVal - actual) / actual) * 100;
-        result = this.t('increaseByPct').replace('{pct}', pct.toFixed(1));
+        result = this.t('increaseByPct', { pct: pct.toFixed(1) });
       } else if (actual > maxVal) {
         const pct = ((actual - maxVal) / actual) * 100;
-        result = this.t('decreaseByPct').replace('{pct}', pct.toFixed(1));
+        result = this.t('decreaseByPct', { pct: pct.toFixed(1) });
       } else if (actual === 0) {
-        result = this.t('increaseByPct').replace('{pct}', '100.0');
+        result = this.t('increaseByPct', { pct: '100.0' });
       } else {
         result = this.t('meetsCriterion');
       }
       rows.push([label, result]);
     };
 
-    assess(this.lang === 'vi' ? 'Chiều cao dầm H' : 'Beam Height (H)', H_cm, L_cm, 1 / 18, 1 / 14);
+    // Localized labels via i18n keys for consistency with UI
+    assess(this.t('Beam height H'), H_cm, L_cm, 1 / 18, 1 / 14);
     assess(this.t('bottomFlangeWidthB1'), b1_cm, H_cm, 1 / 3, 1 / 2);
-    assess(this.lang === 'vi' ? 'Rộng thân (b3)' : 'Body Width (b3)', body_cm, L_cm, 1 / 50, 1 / 40);
+    assess(this.t('calculator.bodyWidthB3'), body_cm, L_cm, 1 / 50, 1 / 40);
     assess(this.t('endCarriageWheelCenterA'), A_cm, L_cm, 1 / 7, 1 / 5);
     assess(this.t('endInclinedSegmentC'), C_cm, L_cm, 0.10, 0.15);
 
@@ -390,7 +385,7 @@ class PDFReportService {
 
   // --- AI RECOMMENDATIONS SECTION ---
   private addAIRecommendations(text: string) {
-    const title = this.lang === 'vi' ? 'Đề xuất cải tiến thiết kế' : 'Design Improvement Suggestions';
+    const title = this.t('pdf.aiRecommendationsTitle');
 
     if (this.currentY + 30 > this.pageHeight - MARGIN.bottom) {
       this.pdf.addPage();
@@ -428,7 +423,7 @@ class PDFReportService {
 
   // --- REFERENCES SECTION ---
   private addReferences() {
-    const title = this.lang === 'vi' ? 'Tài liệu tham khảo' : 'References';
+    const title = this.t('pdf.referencesTitle');
 
     // Ensure space for header and at least one line
     if (this.currentY + 20 > this.pageHeight - MARGIN.bottom) {
@@ -442,13 +437,7 @@ class PDFReportService {
     this.pdf.text(title, MARGIN.left, this.currentY);
     this.currentY += 6;
 
-    const refs: string[] = [
-      'Sức bền vật liệu – Tập 1 (Lê Quang Minh, Nguyễn Văn Lượng).',
-      'Kết cấu thép – Cấu kiện cơ bản (Phạm Văn Hội).',
-      'Tính toán máy trục (Huỳnh Văn Hoàng, Đào Trọng Thường).',
-      'Máy nâng chuyển (Đào Trọng Thường).',
-      'Sổ tay thiết kế cơ khí – Tập 1 (PGS. Hà Văn Vui).',
-    ];
+    const refs = this.t('pdf.references', { returnObjects: true }) as string[];
 
     this.pdf.setFont('Arial', 'normal');
     this.pdf.setFontSize(10);
@@ -515,7 +504,7 @@ class PDFReportService {
     options: PDFReportOptions
   ) {
     const { 
-      projectName = 'Crane Beam Calculation', 
+      projectName = this.t('pdf.defaultProjectName'), 
       engineer = 'N/A', 
       includeCharts = false,
       chartElements = [],
@@ -523,59 +512,71 @@ class PDFReportService {
     } = options;
     const date = new Date().toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-GB');
 
-    this.addHeader(projectName);
-    this.addProjectInfo(engineer, date);
-    this.addInputs(inputs, results);
-    this.addResults(results);
-    if ((results as any).calculationMode !== 'i-beam') {
-      // Check for space before adding the geometric balance table
-      if (this.currentY > this.pageHeight - MARGIN.bottom - 60) { // Estimate height
-        this.pdf.addPage();
-        this.currentY = MARGIN.top;
-      }
-      this.addGeometricBalance(inputs);
-    }
-    this.addSafetyChecks(results);
-    this.addOverallAssessment(results);
-    if (options.aiRecommendation && options.aiRecommendation.trim().length > 0) {
-      this.addAIRecommendations(options.aiRecommendation);
+    // Ensure on-screen diagrams (captured as images) use the same language as the PDF
+    const prevLang = i18n.language;
+    if (language && language !== prevLang) {
+      try { await i18n.changeLanguage(language); } catch {}
     }
 
-    if (includeCharts && chartElements.length > 0) {
-      if (this.currentY + 20 > this.pageHeight - MARGIN.bottom) {
-        this.pdf.addPage();
-        this.currentY = MARGIN.top;
-      }
-      
-      this.pdf.setFontSize(14);
-      this.pdf.setFont('Arial', 'bold');
-      this.pdf.text(this.t('analysisDiagrams'), MARGIN.left, this.currentY);
-      this.currentY += 8;
-
-      for (const chart of chartElements) {
-        // Force deflection diagram to a new page if it's not already on one
-        if (chart.id === 'deflection-diagram') {
-          // If we are still on page 1, move to page 2
-          if (this.pdf.internal.pages.length === 1) {
-            this.pdf.addPage();
-            this.currentY = MARGIN.top;
-
-            // Re-add title for the new page of diagrams
-            this.pdf.setFontSize(14);
-            this.pdf.setFont('Arial', 'bold');
-            this.pdf.text(this.t('analysisDiagrams'), MARGIN.left, this.currentY);
-            this.currentY += 8;
-          }
+    try {
+      this.addHeader(projectName);
+      this.addProjectInfo(engineer, date);
+      this.addInputs(inputs, results);
+      this.addResults(results);
+      if ((results as any).calculationMode !== 'i-beam') {
+        // Check for space before adding the geometric balance table
+        if (this.currentY > this.pageHeight - MARGIN.bottom - 60) { // Estimate height
+          this.pdf.addPage();
+          this.currentY = MARGIN.top;
         }
-        await this.captureElement(chart.id, chart.title);
+        this.addGeometricBalance(inputs);
+      }
+      this.addSafetyChecks(results);
+      this.addOverallAssessment(results);
+      if (options.aiRecommendation && options.aiRecommendation.trim().length > 0) {
+        this.addAIRecommendations(options.aiRecommendation);
+      }
+
+      if (includeCharts && chartElements.length > 0) {
+        if (this.currentY + 20 > this.pageHeight - MARGIN.bottom) {
+          this.pdf.addPage();
+          this.currentY = MARGIN.top;
+        }
+        
+        this.pdf.setFontSize(14);
+        this.pdf.setFont('Arial', 'bold');
+        this.pdf.text(this.t('analysisDiagrams'), MARGIN.left, this.currentY);
+        this.currentY += 8;
+
+        for (const chart of chartElements) {
+          // Force deflection diagram to a new page if it's not already on one
+          if (chart.id === 'deflection-diagram') {
+            // If we are still on page 1, move to page 2
+            if (this.pdf.internal.pages.length === 1) {
+              this.pdf.addPage();
+              this.currentY = MARGIN.top;
+
+              // Re-add title for the new page of diagrams
+              this.pdf.setFontSize(14);
+              this.pdf.setFont('Arial', 'bold');
+              this.pdf.text(this.t('analysisDiagrams'), MARGIN.left, this.currentY);
+              this.currentY += 8;
+            }
+          }
+          await this.captureElement(chart.id, chart.title);
+        }
+      }
+
+      // Append references at the end
+      this.addReferences();
+
+      this.addFooter();
+      this.pdf.save('Crane-Beam-Analysis-Report.pdf');
+    } finally {
+      if (language && language !== prevLang) {
+        try { await i18n.changeLanguage(prevLang); } catch {}
       }
     }
-
-    // Append references at the end
-    this.addReferences();
-
-    this.addFooter();
-    this.pdf.save('Crane-Beam-Analysis-Report.pdf');
   }
 }
 

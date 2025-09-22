@@ -19,38 +19,44 @@ import type { BeamInputs, CalculationResults, DiagramData, MaterialType } from '
 import { MATERIAL_LIBRARY, MATERIAL_LABELS } from '../utils/materials';
 import { calculateBeamProperties, generateDiagramData } from '../services/calculationService';
 import { getDesignRecommendation } from '../services/geminiService';
+import { useTranslation } from 'react-i18next';
 import { HamsterLoader } from './Loader';
 import { InternalForceDiagram } from './InternalForceDiagram';
 import { StressDistributionDiagram } from './StressDistributionDiagram';
 import { DeflectedShapeDiagram } from './DeflectedShapeDiagram';
 import { PDFExportButton } from './PDFReport';
-import { useT, useLanguage } from '../utils/i18n';
 
-const BeamGeometryDiagram: React.FC = () => (
-  <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-    <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200 flex items-center">
-      Cross-section reference
-    </h3>
-    <img
-      src="https://i.postimg.cc/43PbZZ5t/Untitled1.png"
-      alt="Example beam cross section"
-      className="w-full h-auto object-contain rounded-md"
-    />
-  </div>
-);
+const BeamGeometryDiagram: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+      <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200 flex items-center">
+        {t('Cross-section reference')}
+      </h3>
+      <img
+        src="https://i.postimg.cc/43PbZZ5t/Untitled1.png"
+        alt={t('Example beam cross section')}
+        className="w-full h-auto object-contain rounded-md"
+      />
+    </div>
+  );
+};
 
-const IBeamGeometryDiagram: React.FC = () => (
-  <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-    <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200 flex items-center">
-      Cross-section reference
-    </h3>
-    <img
-      src="https://i.postimg.cc/bwBM01ns/Untitled1.png"
-      alt="I-beam cross section"
-      className="w-full h-auto object-contain rounded-md"
-    />
-  </div>
-);
+const IBeamGeometryDiagram: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+      <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200 flex items-center">
+        {t('Cross-section reference')}
+      </h3>
+      <img
+        src="https://i.postimg.cc/bwBM01ns/Untitled1.png"
+        alt={t('I-beam cross section')}
+        className="w-full h-auto object-contain rounded-md"
+      />
+    </div>
+  );
+};
 
 const MIN_LOADER_DURATION_MS = 4_000;
 
@@ -96,26 +102,22 @@ const defaultIBeamInputs: BeamInputs = {
   materialType: 'SS400',
 };
 
-const inputConfig: { title: string; icon: React.FC<any>; fields: { name: keyof BeamInputs; label: string; unit: string }[] }[] = [
+// Return translation KEYS, not translated strings; UI will call t(key) when rendering
+const getInputConfig = (t: (key: string, opts?: any) => string) => [
   {
     title: 'Section geometry',
     icon: Scale,
     fields: [
-      // Pair 1: Bottom flange width b1 next to Bottom flange thickness (VI label t1 -> code t2)
-      { name: 'b', label: 'Bottom flange width b1', unit: 'mm' },
-      { name: 't2', label: 'Bottom flange thickness t2', unit: 'mm' },
-      // Pair 2: Top flange width (VI label b2 -> code b3) next to Top flange thickness (VI label t2 -> code t1)
-      { name: 'b3', label: 'Top flange width b3', unit: 'mm' },
-      { name: 't1', label: 'Top flange thickness t1', unit: 'mm' },
-      // Pair 3: Web width (VI label b3 -> code b1) next to Web thickness t3
-      { name: 'b1', label: 'Web spacing b2', unit: 'mm' },
-      { name: 't3', label: 'Web thickness t3', unit: 'mm' },
-      // Pair 4: Section height h next to Span length L
-      { name: 'h', label: 'Section height h', unit: 'mm' },
-      { name: 'L', label: 'Span length L', unit: 'cm' },
-      // Additional geometry-related distances (now in mm)
-      { name: 'A', label: 'End carriage wheel center distance A', unit: 'mm' },
-      { name: 'C', label: 'End inclined segment length C', unit: 'mm' },
+      { name: 'b', label: 'calculator.bottomFlangeWidthB1Short', unit: 'mm' },
+      { name: 't2', label: 'calculator.bottomFlangeThicknessT2', unit: 'mm' },
+      { name: 'b3', label: 'calculator.topFlangeWidthB3', unit: 'mm' },
+      { name: 't1', label: 'calculator.topFlangeThicknessT1', unit: 'mm' },
+      { name: 'b1', label: 'calculator.webSpacingB2', unit: 'mm' },
+      { name: 't3', label: 'calculator.webThicknessT3', unit: 'mm' },
+      { name: 'h', label: 'calculator.sectionHeightH', unit: 'mm' },
+      { name: 'L', label: 'calculator.spanLengthL', unit: 'cm' },
+      { name: 'A', label: 'endCarriageWheelCenterA', unit: 'mm' },
+      { name: 'C', label: 'endInclinedSegmentC', unit: 'mm' },
     ],
   },
   {
@@ -130,24 +132,19 @@ const inputConfig: { title: string; icon: React.FC<any>; fields: { name: keyof B
       { name: 'nu', label: 'Poisson ratio (nu)', unit: '' },
     ],
   },
-];
+] as const;
 
-const iBeamInputConfig: { title: string; icon: React.FC<any>; fields: { name: keyof BeamInputs; label: string; unit: string }[] }[] = [
+const getIBeamInputConfig = (t: (key: string, opts?: any) => string) => [
   {
     title: 'Section geometry',
     icon: Scale,
     fields: [
       // Standard I-beam parameters
-      // - b: flange width
-      // - t1: flange thickness (both flanges equal for rolled I)
-      // - t3: web thickness (stored as inputs.t3)
-      // UI note: For consistency with the app's spec and translations, the UI label intentionally shows
-      // "Web thickness t2" while the underlying data is kept in inputs.t3.
-      { name: 'b', label: 'Flange width b', unit: 'mm' },
-      { name: 't1', label: 'Flange thickness t1', unit: 'mm' },
-      { name: 't3', label: 'Web thickness t2', unit: 'mm' }, // UI label t2, data field t3 (intentional)
-      { name: 'h', label: 'Beam height H', unit: 'mm' },
-      { name: 'L', label: 'Beam span L', unit: 'cm' },
+      { name: 'b', label: 'calculator.flangeWidthB', unit: 'mm' },
+      { name: 't1', label: 'calculator.flangeThicknessT1', unit: 'mm' },
+      { name: 't3', label: 'calculator.webThicknessT2', unit: 'mm' }, // UI label t2, data field t3 (intentional)
+      { name: 'h', label: 'calculator.beamHeightH', unit: 'mm' },
+      { name: 'L', label: 'calculator.beamSpanL', unit: 'cm' },
     ],
   },
   {
@@ -162,7 +159,7 @@ const iBeamInputConfig: { title: string; icon: React.FC<any>; fields: { name: ke
       { name: 'nu', label: 'Poisson ratio (nu)', unit: '' },
     ],
   },
-];
+] as const;
 
 type BeamType = 'single-girder' | 'double-girder' | 'i-beam' | 'v-beam';
 
@@ -184,127 +181,127 @@ type BeamTab = {
   highlights?: string[];
 };
 
-const beamTabs: BeamTab[] = [
-  {
-    id: 'single-girder',
-    label: 'Single girder',
-    subLabel: 'Live module',
-    description: 'Design single girder crane beams with geometry, loading, and safety checks.',
-    status: 'available',
-    icon: Scale,
-    highlights: [
-      'Complete geometry and load inputs',
-      'Stress, deflection, and buckling verification',
-      'PDF reporting with diagrams',
-    ],
-  },
-  {
-    id: 'double-girder',
-    label: 'Double girder',
-    subLabel: 'Preview layout',
-    description: 'Preview of the upcoming twin-girder workflow with spacing and load sharing controls.',
-    status: 'preview',
-    icon: HardHat,
-    previewSections: [
-      {
-        title: 'Geometry & spacing',
-        icon: Scale,
-        description: 'Capture twin girder spacing, plate sizing, and cross tie arrangement.',
-        items: [
-          'Girder spacing (center to center)',
-          'Upper and lower flange plate thickness',
-          'Cross tie spacing and detailing',
-        ],
-      },
-      {
-        title: 'Load sharing & service',
-        icon: HardHat,
-        description: 'Define trolley arrangement and distribute crane loads between girders.',
-        items: [
-          'Wheel load per girder',
-          'Crab load distribution factor',
-          'Serviceability deflection limit',
-        ],
-      },
-      {
-        title: 'Bracing & stability',
-        icon: TrendingDown,
-        description: 'Plan diaphragms, lateral ties, and torsional restraint checks.',
-        items: [
-          'Web stiffener spacing',
-          'Top lateral bracing member',
-          'Torsional restraint class',
-        ],
-      },
-    ],
-    highlights: [
-      'Dedicated inputs for twin girders and rail alignment',
-      'Independent deflection limits per girder',
-      'Shared hoist load factors and diaphragm layout',
-    ],
-  },
-  {
-    id: 'i-beam',
-    label: 'Rolled I-beam',
-    subLabel: 'Live module',
-    description: 'Design rolled I-beam crane beams with standard section properties.',
-    status: 'available',
-    icon: BarChart,
-    highlights: [
-      'Standard rolled I-section geometry',
-      'Stress, deflection, and buckling verification',
-      'PDF reporting with diagrams',
-    ],
-  },
-  {
-    id: 'v-beam',
-    label: 'V-type beam',
-    subLabel: 'Preview layout',
-    description: 'Preview of asymmetric V-type girder inputs and stability criteria.',
-    status: 'preview',
-    icon: AreaChart,
-    previewSections: [
-      {
-        title: 'Geometry definition',
-        icon: AreaChart,
-        description: 'Set leg angle, thickness, and spacing for the V configuration.',
-        items: [
-          'Leg angle (degrees)',
-          'Chord or tie thickness',
-          'Panel length / spacing',
-        ],
-      },
-      {
-        title: 'Load paths',
-        icon: HardHat,
-        description: 'Distribute vertical and horizontal loads into the legs.',
-        items: [
-          'Vertical load split factor',
-          'Horizontal guide load',
-          'Dynamic amplification factors',
-        ],
-      },
-      {
-        title: 'Stability checks',
-        icon: HelpCircle,
-        description: 'Prepare lateral torsional and local buckling verifications.',
-        items: [
-          'Lateral restraint spacing',
-          'Local buckling reduction factor',
-          'Combined stress utilisation target',
-        ],
-      },
-    ],
-    highlights: [
-      'Asymmetric load path visualisation',
-      'Custom leg stiffness modelling',
-      'Stability checklist for lateral bracing',
-    ],
-  },
-];
+  const beamTabs: BeamTab[] = [
+    {
+      id: 'single-girder',
+      label: 'Single girder',
+      subLabel: 'Live module',
+      description: 'Design single girder crane beams with geometry, loading, and safety checks.',
+      status: 'available',
+      icon: Scale,
+      highlights: [
+        'Complete geometry and load inputs',
+        'Stress, deflection, and buckling verification',
+        'PDF reporting with diagrams',
+      ],
+    },
+    {
+      id: 'double-girder',
+      label: 'Double girder',
+      subLabel: 'Preview layout',
+      description: 'Preview of the upcoming twin-girder workflow with spacing and load sharing controls.',
+      status: 'preview',
+      icon: HardHat,
+      previewSections: [
+        {
+          title: 'Geometry & spacing',
+          icon: Scale,
+          description: 'Capture twin girder spacing, plate sizing, and cross tie arrangement.',
+          items: [
+            'Girder spacing (center to center)',
+            'Upper and lower flange plate thickness',
+            'Cross tie spacing and detailing',
+          ],
+        },
+        {
+          title: 'Load sharing & service',
+          icon: HardHat,
+          description: 'Define trolley arrangement and distribute crane loads between girders.',
+          items: [
+            'Wheel load per girder',
+            'Crab load distribution factor',
+            'Serviceability deflection limit',
+          ],
+        },
+        {
+          title: 'Bracing & stability',
+          icon: TrendingDown,
+          description: 'Plan diaphragms, lateral ties, and torsional restraint checks.',
+          items: [
+            'Web stiffener spacing',
+            'Top lateral bracing member',
+            'Torsional restraint class',
+          ],
+        },
+      ],
+      highlights: [
+        'Dedicated inputs for twin girders and rail alignment',
+        'Independent deflection limits per girder',
+        'Shared hoist load factors and diaphragm layout',
+      ],
+    },
+    {
+      id: 'i-beam',
+      label: 'Rolled I-beam',
+      subLabel: 'Live module',
+      description: 'Design rolled I-beam crane beams with standard section properties.',
+      status: 'available',
+      icon: BarChart,
+      highlights: [
+        'Standard rolled I-section geometry',
+        'Stress, deflection, and buckling verification',
+        'PDF reporting with diagrams',
+      ],
+    },
+    {
+      id: 'v-beam',
+      label: 'V-type beam',
+      subLabel: 'Preview layout',
+      description: 'Preview of asymmetric V-type girder inputs and stability criteria.',
+      status: 'preview',
+      icon: AreaChart,
+      previewSections: [
+        {
+          title: 'Geometry definition',
+          icon: AreaChart,
+          description: 'Set leg angle, thickness, and spacing for the V configuration.',
+          items: [
+            'Leg angle (degrees)',
+            'Chord or tie thickness',
+            'Panel length / spacing',
+          ],
+        },
+        {
+          title: 'Load paths',
+          icon: HardHat,
+          description: 'Distribute vertical and horizontal loads into the legs.',
+          items: [
+            'Vertical load split factor',
+            'Horizontal guide load',
+            'Dynamic amplification factors',
+          ],
+        },
+        {
+          title: 'Stability checks',
+          icon: HelpCircle,
+          description: 'Prepare lateral torsional and local buckling verifications.',
+          items: [
+            'Lateral restraint spacing',
+            'Local buckling reduction factor',
+            'Combined stress utilisation target',
+          ],
+        },
+      ],
+      highlights: [
+        'Asymmetric load path visualisation',
+        'Custom leg stiffness modelling',
+        'Stability checklist for lateral bracing',
+      ],
+    },
+  ];
 
 const BeamTypeTabs: React.FC<{ active: BeamType; onChange: (type: BeamType) => void }> = ({ active, onChange }) => {
-  const t = useT();
+  const { t } = useTranslation();
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
       <div className="flex flex-col sm:flex-row sm:divide-x sm:divide-gray-200 dark:sm:divide-gray-700">
@@ -332,12 +329,12 @@ const BeamTypeTabs: React.FC<{ active: BeamType; onChange: (type: BeamType) => v
                           isActive ? 'border-white/60 text-white/80' : 'border-blue-400 text-blue-600'
                         }`}
                       >
-                        Preview
+                        {t('Preview')}
                       </span>
                     )}
                   </div>
                   <p className={`text-xs sm:text-sm ${isActive ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
-                    {tab.subLabel}
+                    {t(tab.subLabel)}
                   </p>
                 </div>
               </div>
@@ -349,29 +346,34 @@ const BeamTypeTabs: React.FC<{ active: BeamType; onChange: (type: BeamType) => v
   );
 };
 
-const ComingSoonPanel: React.FC<{ tab: BeamTab }> = ({ tab }) => (
-  <div className="bg-white dark:bg-gray-900 border border-dashed border-blue-400/50 dark:border-blue-400/40 rounded-lg p-6 shadow-sm">
-    <div className="flex items-center gap-3 mb-4">
-      <tab.icon className="w-6 h-6 text-blue-500" />
-      <div>
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{tab.label} module</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{tab.subLabel}</p>
+const ComingSoonPanel: React.FC<{ tab: BeamTab }> = ({ tab }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="bg-white dark:bg-gray-900 border border-dashed border-blue-400/50 dark:border-blue-400/40 rounded-lg p-6 shadow-sm">
+      <div className="flex items-center gap-3 mb-4">
+        <tab.icon className="w-6 h-6 text-blue-500" />
+        <div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+            {t('calculator.moduleTitle', { module: t(tab.label) })}
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t(tab.subLabel)}</p>
+        </div>
+      </div>
+      <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">{t(tab.description)}</p>
+      {tab.highlights && tab.highlights.length > 0 && (
+        <ul className="list-disc list-inside space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-6">
+          {tab.highlights.map((item) => (
+            <li key={item}>{t(item)}</li>
+          ))}
+        </ul>
+      )}
+      <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/60 bg-blue-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-300">
+        <HelpCircle className="w-3 h-3" />
+        {t('calculator.designPhase')}
       </div>
     </div>
-    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">{tab.description}</p>
-    {tab.highlights && tab.highlights.length > 0 && (
-      <ul className="list-disc list-inside space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-6">
-        {tab.highlights.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ul>
-    )}
-    <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/60 bg-blue-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-300">
-      <HelpCircle className="w-3 h-3" />
-      Design phase
-    </div>
-  </div>
-);
+  );
+};
 
 const CollapsibleSection: React.FC<{ title: string | React.ReactNode; icon: React.FC<any>; children: React.ReactNode; defaultOpen?: boolean }> = ({ title, icon: Icon, children, defaultOpen = true }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -565,7 +567,7 @@ export const CraneBeamCalculator: React.FC = () => {
       }
     } catch (error) {
       console.error('Calculation Error:', error);
-      setRecommendation('An error occurred during calculation. Please try again.');
+      setRecommendation(t('calculator.error'));
       setIsCallingAI(false);
     } finally {
       const elapsed = Date.now() - loaderStart;
@@ -592,8 +594,7 @@ export const CraneBeamCalculator: React.FC = () => {
     setIsCallingAI(false);
   };
 
-  const t = useT();
-  const { lang } = useLanguage();
+  const { t } = useTranslation();
 
   const geometricBalanceItems = React.useMemo(() => {
     const items: { key: string; label: string; status: 'pass' | 'fail'; value: string }[] = [];
@@ -619,32 +620,32 @@ export const CraneBeamCalculator: React.FC = () => {
       const maxVal = maxRatio * ref;
       if (actual < minVal && actual > 0) {
         const pct = ((minVal - actual) / actual) * 100;
-        items.push({ key, label, status: 'fail', value: t('Increase by {pct}%').replace('{pct}', pct.toFixed(1)) });
+        items.push({ key, label, status: 'fail', value: t('increaseByPct', { pct: pct.toFixed(1) }) });
       } else if (actual > maxVal && actual > 0) {
         const pct = ((actual - maxVal) / actual) * 100;
-        items.push({ key, label, status: 'fail', value: t('Decrease by {pct}%').replace('{pct}', pct.toFixed(1)) });
+        items.push({ key, label, status: 'fail', value: t('decreaseByPct', { pct: pct.toFixed(1) }) });
       } else if (actual === 0) {
         // If not provided, mark as fail with increase suggestion to reach min
-        items.push({ key, label, status: 'fail', value: t('Increase by {pct}%').replace('{pct}', '100.0') });
+        items.push({ key, label, status: 'fail', value: t('increaseByPct', { pct: '100.0' }) });
       } else {
-        items.push({ key, label, status: 'pass', value: t('Meets criterion') });
+        items.push({ key, label, status: 'pass', value: t('meetsCriterion') });
       }
     };
 
     // Single girder specific geometric balance checks
     // 1) H = 1/18 .. 1/14 of L
-    assess('H', lang === 'vi' ? 'Chiều cao dầm H' : 'Beam height H', H_cm, L_cm, 1 / 18, 1 / 14);
+    assess('H', t('Beam height H'), H_cm, L_cm, 1 / 18, 1 / 14);
     // 2) b1 (bottom flange width) = 1/3 .. 1/2 of H
-    assess('b1', lang === 'vi' ? 'Chiều rộng cánh dưới b1' : 'Bottom flange width b1', b1_cm, H_cm, 1 / 3, 1 / 2);
+    assess('b1', t('calculator.bottomFlangeWidthB1Short'), b1_cm, H_cm, 1 / 3, 1 / 2);
     // 3) body width (web spacing) b3 (UI label maps to b1) = 1/50 .. 1/40 of L
-    assess('b3', lang === 'vi' ? 'Rộng thân b3' : 'Body width b3', body_cm, L_cm, 1 / 50, 1 / 40);
+    assess('b3', t('calculator.bodyWidthB3'), body_cm, L_cm, 1 / 50, 1 / 40);
     // 4) A = 1/7 .. 1/5 of L
-    assess('A', lang === 'vi' ? 'Tâm bánh xe dầm biên A' : 'End carriage wheel center distance A', A_cm, L_cm, 1 / 7, 1 / 5);
+    assess('A', t('endCarriageWheelCenterA'), A_cm, L_cm, 1 / 7, 1 / 5);
     // 5) C = 0.10 .. 0.15 of L
-    assess('C', lang === 'vi' ? 'Chiều dài đoạn nghiêng đầu dầm C' : 'End inclined segment length C', C_cm, L_cm, 0.10, 0.15);
+    assess('C', t('endInclinedSegmentC'), C_cm, L_cm, 0.10, 0.15);
 
     return items;
-  }, [inputs, results, t, beamType, lang]);
+  }, [inputs, results, t, beamType]);
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
@@ -653,7 +654,7 @@ export const CraneBeamCalculator: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <form onSubmit={handleSubmit} className="lg:col-span-1 space-y-6">
           {isPrimaryModule ? (
-            (beamType === 'i-beam' ? iBeamInputConfig : inputConfig).map(({ title, icon, fields }) => (
+            (beamType === 'i-beam' ? getIBeamInputConfig(t) : getInputConfig(t)).map(({ title, icon, fields }) => (
               <CollapsibleSection key={title} title={t(title)} icon={icon}>
                 {/* Material selection radio buttons for Loading & material section */}
                 {title === 'Loading & material' && (
@@ -711,21 +712,21 @@ export const CraneBeamCalculator: React.FC = () => {
             ))
           ) : activeTab.previewSections && activeTab.previewSections.length > 0 ? (
             activeTab.previewSections.map((section) => (
-              <CollapsibleSection key={section.title} title={section.title} icon={section.icon}>
+              <CollapsibleSection key={section.title} title={t(section.title)} icon={section.icon}>
                 {section.description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{section.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{t(section.description)}</p>
                 )}
                 <ul className="list-disc list-inside space-y-2 text-sm text-gray-600 dark:text-gray-300">
                   {section.items.map((item) => (
-                    <li key={item}>{item}</li>
+                    <li key={item}>{t(item)}</li>
                   ))}
                 </ul>
               </CollapsibleSection>
             ))
           ) : (
-              <CollapsibleSection title="Module preview" icon={HelpCircle}>
+              <CollapsibleSection title={t('calculator.modulePreview')} icon={HelpCircle}>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Detailed input groups for this module will be added soon.
+                  {t('calculator.modulePreviewDescription')}
                 </p>
               </CollapsibleSection>
           )}
@@ -738,7 +739,7 @@ export const CraneBeamCalculator: React.FC = () => {
               style={{ fontSize: 'clamp(0.75rem, 2.5vw, 1rem)' }}
             >
               <RotateCcw className="mr-2 h-5 w-5 flex-shrink-0" />
-              Reset
+              {t('calculator.reset')}
             </button>
             <button
               type="submit"
@@ -746,7 +747,11 @@ export const CraneBeamCalculator: React.FC = () => {
               className="calc-button w-1/3 flex justify-center items-center py-3 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontSize: 'clamp(0.75rem, 2.5vw, 1rem)' }}
             >
-              {isPrimaryModule ? (isLoading ? 'Calculating...' : 'Calculate') : 'In design'}
+              {isPrimaryModule
+                ? isLoading
+                  ? t('calculator.calculating')
+                  : t('calculator.calculate')
+                : t('calculator.inDesign')}
               {isPrimaryModule && !isLoading && <ChevronsRight className="ml-2 h-5 w-5 flex-shrink-0" />}
             </button>
             <PDFExportButton
@@ -759,7 +764,7 @@ export const CraneBeamCalculator: React.FC = () => {
           </div>
           {!isPrimaryModule && (
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Calculations will be enabled once the {activeTab.label.toLowerCase()} engine is ready.
+              {t('calculator.calculationsDisabled', { module: t(activeTab.label).toLowerCase() })}
             </p>
           )}
         </form>
@@ -770,16 +775,9 @@ export const CraneBeamCalculator: React.FC = () => {
               {isLoading && (
                 <div className="flex justify-center items-center h-96">
                   <HamsterLoader
-                    messageVi={
-                      isCallingAI
-                        ? 'Cảnh báo !! Tham số đầu vào không đủ an toàn. Đang tìm giải pháp tối ưu, xin vui lòng đợi trong giây lát...'
-                        : 'Đang thực hiện quy trình tính toán...'
-                    }
-                    messageEn={
-                      isCallingAI
-                        ? 'Warning! Input parameters may be unsafe. Searching for an optimal solution, please wait...'
-                        : 'Performing complex calculations...'
-                    }
+                    status={isCallingAI ? 'warning' : 'default'}
+                    messageKey="loader.default"
+                    warningMessageKey="loader.warning"
                   />
                 </div>
               )}
@@ -801,7 +799,7 @@ export const CraneBeamCalculator: React.FC = () => {
                     </div>
                   )}
 
-                  <CollapsibleSection title={t('Safety checks')} icon={HardHat}>
+                  <CollapsibleSection title={t('safetyChecks')} icon={HardHat}>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <CheckBadge
                         status={results.stress_check}
@@ -829,15 +827,8 @@ export const CraneBeamCalculator: React.FC = () => {
                           <div className="group relative">
                             <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
                             <div className="absolute left-0 top-6 w-80 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
-                              <div className="hidden">
-                                {lang === 'vi' ? 'Cân đối hình học' : 'Geometric Balance'}
-                              </div>
-                              <div>
-                                {lang === 'vi' 
-                                  ? 'Các phần tử trong cầu trục cần có kích thước tương quan hài hòa để đảm bảo tính thẩm mỹ và hoạt động an toàn, hiệu quả theo nguyên tắc kỹ thuật.'
-                                  : 'Crane elements must have harmoniously proportioned dimensions to ensure aesthetics and safe, efficient operation according to engineering principles.'
-                                }
-                              </div>
+                              <div className="hidden">{t('Geometric balance')}</div>
+                              <div>{t('calculator.geometricBalanceTooltip')}</div>
                               <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
                             </div>
                           </div>
@@ -860,23 +851,11 @@ export const CraneBeamCalculator: React.FC = () => {
                         <div className="group relative">
                           <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
                           <div className="absolute left-0 top-6 w-96 max-w-[22rem] p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
-                            <div className="font-medium mb-2">
-                              {lang === 'vi' ? 'Tài liệu tham khảo' : 'References'}
-                            </div>
-                            {lang === 'vi' ? (
-                              <ul className="list-disc list-inside space-y-1">
-                                <li>"Sức bền vật liệu" – Tập 1, Chương: Đặc trưng hình học của hình phẳng.</li>
-                                <li>"Tính toán máy trục" (Huỳnh Văn Hoàng, Đào Trọng Thường) – Chương: Kết cấu kim loại của các máy trục thông dụng.</li>
-                              </ul>
-                            ) : (
-                              <ul className="list-disc list-inside space-y-1">
-                                <li>"Strength of Materials" – Vol. 1, Chapter: Geometric properties of plane areas.</li>
-                                <li>"Crane Machinery Calculation" (Huynh Van Hoang, Dao Trong Thuong) – Chapter: Metal structures of common cranes.</li>
-                              </ul>
-                            )}
-                            <ul className="list-disc list-inside space-y-1 hidden">
-                              <li>"Sức bền vật liệu" – Tập 1, Chương: Đặc trưng hình học của hình phẳng.</li>
-                              <li>"Tính toán máy trục" (Huỳnh Văn Hoàng, Đào Trọng Thường) – Chương: Kết cấu kim loại của các máy trục thông dụng.</li>
+                            <div className="font-medium mb-2">{t('calculator.referencesTitle')}</div>
+                            <ul className="list-disc list-inside space-y-1">
+                              {(t('calculator.references', { returnObjects: true }) as string[]).map((item) => (
+                                <li key={item}>{item}</li>
+                              ))}
                             </ul>
                             <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
                           </div>

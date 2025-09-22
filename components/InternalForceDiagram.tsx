@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLanguage } from '../utils/i18n';
+import { useTranslation } from 'react-i18next';
 import type { DiagramData } from '../types';
 
 interface DiagramProps {
@@ -10,10 +10,9 @@ interface DiagramProps {
 }
 
 export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey, unit }) => {
-  const { lang } = useLanguage();
+  const { t } = useTranslation();
   if (!data || data.length === 0) {
-    const msg = lang === 'vi' ? 'Không có dữ liệu cho biểu đồ.' : 'No data available for the diagram.';
-    return <div className="text-sm text-gray-500">{msg}</div>;
+    return <div className="text-sm text-gray-500">{t('diagram.noData')}</div>;
   }
 
   const width = 500;

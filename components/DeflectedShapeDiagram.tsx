@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { BeamInputs, CalculationResults } from '../types';
 
 interface DiagramProps {
@@ -8,6 +9,7 @@ interface DiagramProps {
 }
 
 export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results }) => {
+    const { t } = useTranslation();
     const { L } = inputs;
     const { f, f_allow } = results;
 
@@ -36,8 +38,8 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
 
     return (
         <div id="deflection-diagram">
-            <h4 className="text-md font-semibold text-center mb-2 text-gray-700 dark:text-gray-300">Deflected Shape Diagram</h4>
-            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto text-gray-600 dark:text-gray-400" aria-label="Beam deflected shape diagram">
+            <h4 className="text-md font-semibold text-center mb-2 text-gray-700 dark:text-gray-300">{t('Deflected Shape Diagram')}</h4>
+            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto text-gray-600 dark:text-gray-400" aria-label={t('deflectionDiagram.ariaLabel')}>
                 {/* Allowable deflection area */}
                 <rect 
                     x={padding.left} 
@@ -46,12 +48,12 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
                     height={y_allowable - y_undeflected} 
                     className="fill-green-500/10" 
                 />
-                <line 
-                    x1={padding.left} y1={y_allowable} 
-                    x2={width-padding.right} y2={y_allowable} 
-                    className="stroke-green-500" strokeDasharray="2,2" strokeWidth="1" 
+                <line
+                    x1={padding.left} y1={y_allowable}
+                    x2={width-padding.right} y2={y_allowable}
+                    className="stroke-green-500" strokeDasharray="2,2" strokeWidth="1"
                 />
-                 <text x={width - padding.right + 5} y={y_allowable} alignmentBaseline="middle" fontSize="10" className="fill-green-500">[f] = {formatValue(f_allow)}</text>
+                 <text x={width - padding.right + 5} y={y_allowable} alignmentBaseline="middle" fontSize="10" className="fill-green-500">{t('deflectionDiagram.allowable', { value: formatValue(f_allow) })}</text>
 
                 {/* Undeflected beam */}
                 <line 
@@ -70,7 +72,7 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
                     className="stroke-current" strokeWidth="0.5"
                 />
                 <path d={`M ${width/2 - 5},${y_deflected - 5} L ${width/2},${y_deflected} L ${width/2 + 5},${y_deflected - 5}`} fill="none" className="stroke-current" strokeWidth="0.5" />
-                <text x={width/2 + 5} y={y_undeflected + (y_deflected - y_undeflected)/2} alignmentBaseline="middle" fontSize="10" className="fill-blue-600 dark:fill-blue-400">f = {formatValue(f)}</text>
+                <text x={width/2 + 5} y={y_undeflected + (y_deflected - y_undeflected)/2} alignmentBaseline="middle" fontSize="10" className="fill-blue-600 dark:fill-blue-400">{t('deflectionDiagram.actual', { value: formatValue(f) })}</text>
 
 
                 {/* Support triangles */}

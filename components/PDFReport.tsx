@@ -1,8 +1,8 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FileText, Download, Settings, User, Calendar, FolderOpen, Globe } from 'lucide-react';
-import type { BeamInputs, CalculationResults } from '../types';
+import type { BeamInputs, CalculationResults, Language } from '../types';
 import { generatePDFReport } from '../services/pdfService';
-import { Language } from '../utils/translations';
 
 interface PDFReportModalProps {
   isOpen: boolean;
@@ -12,14 +12,15 @@ interface PDFReportModalProps {
   aiRecommendation?: string;
 }
 
-export const PDFReportModal: React.FC<PDFReportModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  inputs, 
+export const PDFReportModal: React.FC<PDFReportModalProps> = ({
+  isOpen,
+  onClose,
+  inputs,
   results,
   aiRecommendation,
 }) => {
-  const [projectName, setProjectName] = useState('Crane Beam Calculation Project');
+  const { t, i18n } = useTranslation();
+  const [projectName, setProjectName] = useState(() => t('pdf.defaultProjectName'));
   const [engineer, setEngineer] = useState('');
   const [includeCharts, setIncludeCharts] = useState(true);
   const [includeAI, setIncludeAI] = useState(false);
@@ -30,29 +31,32 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
     setIsGenerating(true);
     try {
       console.log('Waiting for all elements to be fully rendered...');
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
       await expandAllDiagramSections();
-      
+
       console.log('Waiting after expanding sections...');
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const pdfT = i18n.getFixedT(language);
       await generatePDFReport(inputs, results, {
         projectName,
         engineer,
         includeCharts,
         language,
         aiRecommendation: includeAI && aiRecommendation ? aiRecommendation : undefined,
-        chartElements: includeCharts ? [
-          { id: 'moment-diagram', title: t('momentDiagram') },
-          { id: 'shear-diagram', title: t('shearDiagram') },
-          { id: 'stress-diagram', title: t('stressDiagram') },
-          { id: 'deflection-diagram', title: t('deflectionDiagram') }
-        ] : []
+        chartElements: includeCharts
+          ? [
+              { id: 'moment-diagram', title: pdfT('pdf.momentDiagram') },
+              { id: 'shear-diagram', title: pdfT('pdf.shearDiagram') },
+              { id: 'stress-diagram', title: pdfT('pdf.stressDiagram') },
+              { id: 'deflection-diagram', title: pdfT('pdf.deflectionDiagram') },
+            ]
+          : [],
       });
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('An error occurred while generating the PDF report. Please try again.');
+      alert(t('pdf.error'));
     } finally {
       setIsGenerating(false);
     }
@@ -64,67 +68,19 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
 
   if (!isOpen) return null;
 
-  const t = (key: string) => {
-    const translations: { [lang: string]: { [key: string]: string } } = {
-      en: {
-        generateReport: "Generate PDF Report",
-        projectName: "Project Name",
-        enterProjectName: "Enter project name...",
-        designEngineer: "Design Engineer",
-        enterEngineerName: "Enter engineer name...",
-        reportLanguage: "Report Language",
-        includeDiagrams: "Include analysis diagrams",
-        includeAI: "Include design improvement suggestions",
-        reportContents: "Report Contents",
-        contentProject: "Project and engineer information",
-        contentInputs: "Input parameters (geometry, loads, materials)",
-        contentResults: "Detailed calculation results",
-        contentChecks: "Safety checks (stress, deflection, stability)",
-        contentAssessment: "Overall assessment and conclusions",
-        contentDiagrams: "Analysis diagrams (forces, stress, deflection)",
-        contentAI: "Design improvement suggestions",
-        created: "Created",
-        cancel: "Cancel",
-        generating: "Generating...",
-        generate: "Generate PDF",
-        export: "Export PDF",
-        waitMessage: "Please wait for calculations to complete before generating the report.",
-        performMessage: "Please perform calculations before generating the report.",
-        momentDiagram: "Moment Diagram",
-        shearDiagram: "Shear Force Diagram",
-        stressDiagram: "Stress Distribution Diagram",
-        deflectionDiagram: "Deflection Diagram",
-      },
-      vi: {
-        generateReport: "Tạo Báo cáo PDF",
-        projectName: "Tên dự án",
-        enterProjectName: "Nhập tên dự án...",
-        designEngineer: "Kỹ sư thiết kế",
-        enterEngineerName: "Nhập tên kỹ sư...",
-        reportLanguage: "Ngôn ngữ Báo cáo",
-        includeDiagrams: "Bao gồm biểu đồ phân tích",
-        reportContents: "Nội dung Báo cáo",
-        contentProject: "Thông tin dự án và kỹ sư",
-        contentInputs: "Thông số đầu vào (hình học, tải trọng, vật liệu)",
-        contentResults: "Kết quả tính toán chi tiết",
-        contentChecks: "Kiểm tra an toàn (ứng suất, độ võng, ổn định)",
-        contentAssessment: "Đánh giá tổng thể và kết luận",
-        contentDiagrams: "Biểu đồ phân tích (lực, ứng suất, độ võng)",
-        created: "Ngày tạo",
-        cancel: "Hủy",
-        generating: "Đang tạo...",
-        generate: "Tạo PDF",
-        export: "Xuất PDF",
-        waitMessage: "Vui lòng đợi quá trình tính toán hoàn tất trước khi tạo báo cáo.",
-        performMessage: "Vui lòng thực hiện tính toán trước khi tạo báo cáo.",
-        momentDiagram: "Biểu đồ mômen uốn",
-        shearDiagram: "Biểu đồ lực cắt",
-        stressDiagram: "Biểu đồ phân bố ứng suất",
-        deflectionDiagram: "Biểu đồ độ võng",
-      },
-    };
-    return translations[language][key] || key;
-  };
+  const summaryItems = [
+    t('pdf.contentProject'),
+    t('pdf.contentInputs'),
+    t('pdf.contentResults'),
+    t('pdf.contentChecks'),
+    t('pdf.contentAssessment'),
+  ];
+  if (includeCharts) {
+    summaryItems.push(t('pdf.contentDiagrams'));
+  }
+  if (includeAI && aiRecommendation) {
+    summaryItems.push(t('pdf.contentAI'));
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -133,12 +89,9 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
               <FileText className="w-6 h-6 mr-2 text-blue-500" />
-              {t('generateReport')}
+              {t('pdf.generateReport')}
             </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -146,53 +99,49 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
           </div>
 
           <div className="space-y-4">
-            {/* Project Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 <FolderOpen className="w-4 h-4 inline mr-1" />
-                {t('projectName')}
+                {t('pdf.projectName')}
               </label>
               <input
                 type="text"
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
                 className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder={t('enterProjectName')}
+                placeholder={t('pdf.enterProjectName')}
               />
             </div>
 
-            {/* Engineer Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 <User className="w-4 h-4 inline mr-1" />
-                {t('designEngineer')}
+                {t('pdf.designEngineer')}
               </label>
               <input
                 type="text"
                 value={engineer}
                 onChange={(e) => setEngineer(e.target.value)}
                 className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder={t('enterEngineerName')}
+                placeholder={t('pdf.enterEngineerName')}
               />
             </div>
 
-            {/* Report Language */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 <Globe className="w-4 h-4 inline mr-1" />
-                {t('reportLanguage')}
+                {t('pdf.reportLanguage')}
               </label>
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value as Language)}
                 className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               >
-                <option value="en">English</option>
-                <option value="vi">Tiếng Việt</option>
+                <option value="en">{t('pdf.languageEnglish')}</option>
+                <option value="vi">{t('pdf.languageVietnamese')}</option>
               </select>
             </div>
 
-            {/* Include Charts Option */}
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -202,11 +151,10 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
                 className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
               <label htmlFor="includeCharts" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                {t('includeDiagrams')}
+                {t('pdf.includeDiagrams')}
               </label>
             </div>
 
-            {/* Include AI Recommendations Option */}
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -216,33 +164,25 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
                 className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
               <label htmlFor="includeAI" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                {language === 'vi' ? 'Thêm Đề xuất cải tiến thiết kế' : 'Include design improvement suggestions'}
+                {t('pdf.includeAI')}
               </label>
             </div>
 
-            {/* Report Preview Info */}
             <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
                 <Settings className="w-4 h-4 mr-1" />
-                {t('reportContents')}
+                {t('pdf.reportContents')}
               </h3>
               <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                <li>• {t('contentProject')}</li>
-                <li>• {t('contentInputs')}</li>
-                <li>• {t('contentResults')}</li>
-                <li>• {t('contentChecks')}</li>
-                <li>• {t('contentAssessment')}</li>
-                {includeCharts && <li>• {t('contentDiagrams')}</li>}
-                {includeAI && aiRecommendation && (
-                  <li>{language === 'vi' ? 'Đề xuất cải tiến thiết kế' : 'Design improvement suggestions'}</li>
-                )}
+                {summaryItems.map((item) => (
+                  <li key={item}>• {item}</li>
+                ))}
               </ul>
             </div>
 
-            {/* Date Info */}
             <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
               <Calendar className="w-4 h-4 mr-1" />
-              {t('created')}: {new Date().toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US')}
+              {t('pdf.created')}: {new Date().toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US')}
             </div>
           </div>
 
@@ -251,7 +191,7 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
               onClick={onClose}
               className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors"
             >
-              {t('cancel')}
+              {t('pdf.cancel')}
             </button>
             <button
               onClick={handleGeneratePDF}
@@ -264,12 +204,12 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  {t('generating')}
+                  {t('pdf.generating')}
                 </>
               ) : (
                 <>
                   <Download className="w-4 h-4 mr-2" />
-                  {t('generate')}
+                  {t('pdf.generate')}
                 </>
               )}
             </button>
@@ -288,21 +228,22 @@ interface PDFExportButtonProps {
   aiRecommendation?: string;
 }
 
-export const PDFExportButton: React.FC<PDFExportButtonProps> = ({ 
-  inputs, 
-  results, 
+export const PDFExportButton: React.FC<PDFExportButtonProps> = ({
+  inputs,
+  results,
   isLoading = false,
   className = '',
   aiRecommendation,
 }) => {
+  const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleClick = () => {
     if (!results || isLoading) {
       if (isLoading) {
-        alert('Please wait for calculations to complete before generating the report.');
+        alert(t('pdf.waitMessage'));
       } else {
-        alert('Please perform calculations before generating the report.');
+        alert(t('pdf.performMessage'));
       }
       return;
     }
@@ -319,7 +260,7 @@ export const PDFExportButton: React.FC<PDFExportButtonProps> = ({
         style={{ fontSize: 'clamp(0.75rem, 2.5vw, 1rem)' }}
       >
         <FileText className="w-4 h-4 mr-2 flex-shrink-0" />
-        Export
+        {t('pdf.export')}
       </button>
 
       {results && (

@@ -1,3 +1,5 @@
+export type Language = 'en' | 'vi';
+
 export type MaterialType = 'SS400' | 'CT3' | 'A36' | 'CUSTOM';
 
 export interface BeamInputs {
