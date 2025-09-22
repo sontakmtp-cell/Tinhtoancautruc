@@ -126,6 +126,8 @@ class PDFReportService {
       [this.t('designEngineer'), engineer || this.t('pdf.notAvailable')],
       [this.t('calculationDate'), date],
       [this.t('software'), this.t('softwareName')],
+      [this.t('pdf.appliedStandards'), this.t('pdf.tcvnStandards')],
+      [this.t('pdf.loadTestConditions'), this.t('pdf.tcvnTestConditions')],
     ];
 
     autoTable(this.pdf, {
