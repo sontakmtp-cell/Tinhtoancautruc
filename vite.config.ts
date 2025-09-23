@@ -4,13 +4,8 @@ import { defineConfig, loadEnv } from 'vite';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
 
-  // Derive correct base for GitHub Pages project sites
-  const repo = process.env.GITHUB_REPOSITORY?.split('/')?.[1] ?? '';
-  const isGhPagesBuild = Boolean(process.env.GITHUB_REPOSITORY);
-  const base = isGhPagesBuild && repo && !repo.endsWith('.github.io') ? `/${repo}/` : '/';
-
   return {
-    base,
+    base: '/', // Đặt base về '/' cho Vercel
     esbuild: {
       charset: 'utf8',
     },
@@ -22,6 +17,10 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, '.'),
       },
+    },
+    build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
     },
   };
 });

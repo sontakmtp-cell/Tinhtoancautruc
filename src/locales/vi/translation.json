@@ -84,7 +84,7 @@
   "Elastic modulus E": "Môđun đàn hồi E",
   "Poisson ratio (nu)": "Hệ số Poisson (nu)",
   "app": {
-    "title": "Studio thiết kế dầm cầu trục",
+    "title": "Crane Beam Design Studio",
     "toggleTheme": "Chuyển đổi giao diện tối",
     "footer": "Phát triển bởi chuyên gia React với Gemini API."
   },
