@@ -9,6 +9,6 @@
     }
   ],
   "env": {
-    "GEMINI_API_KEY": "@gemini_api_key"
+    "GEMINI_API_KEY": "${GEMINI_API_KEY}"
   }
 }

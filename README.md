@@ -40,9 +40,13 @@
    npm install
    ```
 
-2. **Thiết lập API key:**
-   - Tạo file `.env.local` 
-   - Thêm `GEMINI_API_KEY=your_api_key_here`
+2. **Thiết lập Environment Variables:**
+   - Copy file `.env.example` thành `.env`
+   - Cập nhật các giá trị trong `.env`:
+     ```
+     GEMINI_API_KEY=  # Lấy API key từ: https://makersuite.google.com/app/apikey
+     ```
+   - ⚠️ Lưu ý: KHÔNG commit file `.env` lên git
 
 3. **Chạy ứng dụng:**
    ```bash
