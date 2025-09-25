@@ -26,37 +26,7 @@ import { StressDistributionDiagram } from './StressDistributionDiagram';
 import { DeflectedShapeDiagram } from './DeflectedShapeDiagram';
 import { PDFExportButton } from './PDFReport';
 
-const BeamGeometryDiagram: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-    <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-      <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200 flex items-center">
-        {t('Cross-section reference')}
-      </h3>
-      <img
-        src="https://i.postimg.cc/43PbZZ5t/Untitled1.png"
-        alt={t('Example beam cross section')}
-        className="w-full h-auto object-contain rounded-md"
-      />
-    </div>
-  );
-};
-
-const IBeamGeometryDiagram: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-    <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-      <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200 flex items-center">
-        {t('Cross-section reference')}
-      </h3>
-      <img
-        src="https://i.postimg.cc/bwBM01ns/Untitled1.png"
-        alt={t('I-beam cross section')}
-        className="w-full h-auto object-contain rounded-md"
-      />
-    </div>
-  );
-};
+import { BeamCrossSection } from './BeamCrossSection';
 
 const MIN_LOADER_DURATION_MS = 4_000;
 
@@ -783,7 +753,11 @@ export const CraneBeamCalculator: React.FC = () => {
               )}
 
               {!isLoading && !results && (
-                beamType === 'i-beam' ? <IBeamGeometryDiagram /> : <BeamGeometryDiagram />
+                <BeamCrossSection 
+                  inputs={inputs} 
+                  activeInput={Object.keys(inputStrings).find(k => document.activeElement?.id === k)} 
+                  beamType={beamType as 'single-girder' | 'i-beam'} 
+                />
               )}
 
               {!isLoading && results && (
