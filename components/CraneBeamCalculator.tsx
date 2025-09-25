@@ -788,14 +788,16 @@ export const CraneBeamCalculator: React.FC = () => {
               )}
 
               {!isLoading && !results && (
-                <div id="cross-section-diagram">
-                  <BeamCrossSection
-                    inputs={inputs}
-                    activeInput={activeInputKey}
-                    beamType={beamType as 'single-girder' | 'i-beam'}
-                    stiffenerLayout={stiffenerLayout}
-                  />
-                </div>
+                <CollapsibleSection title={t('Cross-section reference')} icon={Scale}>
+                  <div id="cross-section-diagram">
+                    <BeamCrossSection
+                      inputs={inputs}
+                      activeInput={activeInputKey}
+                      beamType={beamType as 'single-girder' | 'i-beam'}
+                      stiffenerLayout={stiffenerLayout}
+                    />
+                  </div>
+                </CollapsibleSection>
               )}
 
               {!isLoading && results && (
@@ -873,7 +875,7 @@ export const CraneBeamCalculator: React.FC = () => {
                   >
                     <div className="space-y-4">
                       {results.stiffener.required ? (
-                        <p className="text-sm text-red-600 dark:text-red-400">{t('calculator.stiffenerRequiredMessage')}</p>
+                        <p className="text-sm text-gray-900 dark:text-white">{t('calculator.stiffenerRequiredMessage')}</p>
                       ) : (
                         <p className="text-sm text-yellow-600 dark:text-yellow-400">
                           {t('calculator.stiffenerOptionalMessage')}

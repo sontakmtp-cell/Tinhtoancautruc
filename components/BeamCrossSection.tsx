@@ -148,7 +148,7 @@ export const BeamCrossSection: React.FC<BeamCrossSectionProps> = ({ inputs, acti
 
   return (
     <div className="bg-white dark:bg-gray-800/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-      <div className="w-full h-[400px]">
+      <div className="w-full h-[500px]">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full">
           {/* Beam Shape */}
           <g className={strokeClass} strokeWidth="0.5">
