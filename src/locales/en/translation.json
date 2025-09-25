@@ -144,7 +144,7 @@
                        "stiffenerCount":  "Estimated stiffener count",
                        "stiffenerThickness":  "Stiffener thickness ts",
                        "stiffenerSpacing":  "Optimal spacing a",
-                       "stiffenerRequiredMessage":  "Intermediate web stiffeners are required for the current configuration.",
+                       "stiffenerRequiredMessage":  "Web stiffeners must be provided with minimum requirements as per calculation results. Additional stiffeners and larger sizes can be used in practice to increase rigidity.",
                        "unitPieces":  "pcs",
                        "stiffenerRecommendationTitle":  "Recommended stiffeners",
                        "stiffenerSpacingLegend":  "~{{value}} mm spacing",

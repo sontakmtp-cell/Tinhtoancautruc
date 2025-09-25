@@ -127,7 +127,7 @@
                        "stiffenerCount":  "Số lượng sườn ước tính",
                        "stiffenerThickness":  "Chiều dày sườn ts",
                        "stiffenerSpacing":  "Bước sườn tối ưu a",
-                       "stiffenerRequiredMessage":  "Cần bố trí sườn tăng cường cho cấu hình hiện tại.",
+                       "stiffenerRequiredMessage":  "Cần bố trí sườn tăng cường tối thiểu bằng với kết quả tính toán. Thực tế có thể tăng thêm số lượng và kích thước sườn để tăng độ cứng vững.",
                        "unitPieces":  "cái",
                        "stiffenerRecommendationTitle":  "Sườn tăng cường đề xuất",
                        "stiffenerSpacingLegend":  "~{{value}} mm giữa các sườn",
