@@ -152,14 +152,23 @@ export const BeamCrossSection: React.FC<BeamCrossSectionProps> = ({ inputs, acti
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full">
           {/* Beam Shape */}
           <g className={strokeClass} strokeWidth="0.5">
-            <rect {...parts['top-flange']} className={parts['top-flange'].highlight ? highlightFillClass : fillClass} />
-            <rect {...parts['bottom-flange']} className={parts['bottom-flange'].highlight ? highlightFillClass : fillClass} />
+            <rect {...(({ highlight, ...rest }) => rest)(parts['top-flange'])} className={parts['top-flange'].highlight ? highlightFillClass : fillClass} />
+            <rect {...(({ highlight, ...rest }) => rest)(parts['bottom-flange'])} className={parts['bottom-flange'].highlight ? highlightFillClass : fillClass} />
             {beamType === 'i-beam' ? (
-              <rect {...parts['web-i-beam']} className={parts['web-i-beam'].highlight ? highlightFillClass : fillClass} />
+              <rect
+                {...(({ highlight, ...rest }) => rest)(parts['web-i-beam'])}
+                className={parts['web-i-beam'].highlight ? highlightFillClass : fillClass}
+              />
             ) : (
               <>
-                <rect {...parts['web-left']} className={parts['web-left'].highlight ? highlightFillClass : fillClass} />
-                <rect {...parts['web-right']} className={parts['web-right'].highlight ? highlightFillClass : fillClass} />
+                <rect
+                  {...(({ highlight, ...rest }) => rest)(parts['web-left'])}
+                  className={parts['web-left'].highlight ? highlightFillClass : fillClass}
+                />
+                <rect
+                  {...(({ highlight, ...rest }) => rest)(parts['web-right'])}
+                  className={parts['web-right'].highlight ? highlightFillClass : fillClass}
+                />
               </>
             )}
           </g>
@@ -255,9 +264,6 @@ export const BeamCrossSection: React.FC<BeamCrossSectionProps> = ({ inputs, acti
                 strokeDasharray="4 2"
               />
               {stiffeners.positions.map((pos, idx) => {
-                if (pos <= 0 || pos >= stiffenerSpan) {
-                  return null;
-                }
                 const x = trackStartX + (pos / stiffenerSpan) * trackWidth;
                 return (
                   <g key={`stiffener-marker-${idx}`}>
@@ -284,11 +290,3 @@ export const BeamCrossSection: React.FC<BeamCrossSectionProps> = ({ inputs, acti
     </div>
   );
 };
-
-
-
-
-
-
-
-

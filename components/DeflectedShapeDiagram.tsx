@@ -1,7 +1,9 @@
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { BeamInputs, CalculationResults } from '../types';
+
+declare const Plotly: any;
 
 interface DiagramProps {
   inputs: BeamInputs;
@@ -9,82 +11,158 @@ interface DiagramProps {
 }
 
 export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results }) => {
-    const { t } = useTranslation();
-    const { L } = inputs;
-    const { f, f_allow } = results;
+  const { t } = useTranslation();
+  const chartRef = useRef<HTMLDivElement>(null);
+  const { L } = inputs;
+  const { f, f_allow } = results;
+  const [isDarkMode, setIsDarkMode] = useState(document.documentElement.classList.contains('dark'));
 
-    const width = 500;
-    const height = 150;
-    const padding = { top: 20, right: 20, bottom: 40, left: 20 };
+  // Listen for dark mode changes
+  useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          setIsDarkMode(document.documentElement.classList.contains('dark'));
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!chartRef.current || typeof Plotly === 'undefined') return;
+
+    const x = Array.from({ length: 101 }, (_, i) => (i / 100) * L);
+    const y_deflected = x.map(val => -f * Math.sin((Math.PI * val) / L));
+
+    const traces = [
+      // Undeflected
+      {
+        x: [0, L], y: [0, 0], mode: 'lines',
+        line: { color: isDarkMode ? '#6b7280' : '#9ca3af', width: 1.5, dash: 'dash' },
+        hoverinfo: 'none',
+      },
+      // Deflected
+      {
+        x: x, y: y_deflected, mode: 'lines',
+        line: { color: isDarkMode ? '#60a5fa' : '#3b82f6', width: 2.5 },
+        name: `${t('deflectionDiagram.actual', { value: f.toPrecision(3) })}`,
+      },
+      // Allowable
+      {
+        x: [0, L], y: [-f_allow, -f_allow], mode: 'lines',
+        line: { color: isDarkMode ? '#4ade80' : '#22c55e', width: 1.5, dash: 'dot' },
+        name: `${t('deflectionDiagram.allowable', { value: f_allow.toPrecision(3) })}`,
+      }
+    ];
+
+    const layout = {
+      title: {
+        text: t('deflectionDiagram.ariaLabel'),
+        font: { color: isDarkMode ? '#e5e7eb' : '#374151', size: 16 },
+      },
+      xaxis: {
+        title: `L = ${L.toFixed(0)} cm`,
+        showgrid: false, zeroline: false, showticklabels: false,
+        color: isDarkMode ? '#9ca3af' : '#4b5563',
+      },
+      yaxis: {
+        title: 'Deflection (cm)',
+        showgrid: false, zeroline: false, showticklabels: false,
+        range: [-f_allow * 1.5, f_allow * 0.5],
+        color: isDarkMode ? '#9ca3af' : '#4b5563',
+      },
+      showlegend: true,
+      legend: {
+        orientation: 'h',
+        yanchor: 'bottom', y: 1.02,
+        xanchor: 'right', x: 1,
+        font: { color: isDarkMode ? '#9ca3af' : '#4b5563' }
+      },
+      paper_bgcolor: 'transparent',
+      plot_bgcolor: 'transparent',
+      margin: { l: 40, r: 20, b: 50, t: 50, pad: 4 },
+      annotations: [
+        // Maximum deflection annotation
+        {
+          x: L/2,
+          y: -f,
+          text: `fmax = ${f.toPrecision(3)} cm`,
+          showarrow: true,
+          arrowhead: 2,
+          arrowsize: 1,
+          arrowwidth: 1.5,
+          ax: 0,
+          ay: -30,
+          font: { color: isDarkMode ? '#60a5fa' : '#3b82f6', size: 12 }
+        },
+        // Left support annotation
+        {
+          x: 0,
+          y: 0,
+          text: t('deflectionDiagram.support'),
+          showarrow: true,
+          arrowhead: 2,
+          arrowsize: 1,
+          arrowwidth: 1.5,
+          ax: 0,
+          ay: 30,
+          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 11 }
+        },
+        // Right support annotation
+        {
+          x: L,
+          y: 0,
+          text: t('deflectionDiagram.support'),
+          showarrow: true,
+          arrowhead: 2,
+          arrowsize: 1,
+          arrowwidth: 1.5,
+          ax: 0,
+          ay: 30,
+          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 11 }
+        },
+        // Allowable deflection annotation
+        {
+          x: L * 0.85,
+          y: -f_allow,
+          text: `[f] = ${f_allow.toPrecision(3)} cm`,
+          showarrow: true,
+          arrowhead: 2,
+          arrowsize: 1,
+          arrowwidth: 1.5,
+          ax: 0,
+          ay: -30,
+          font: { color: isDarkMode ? '#4ade80' : '#22c55e', size: 12 }
+        }
+      ],
+      shapes: [
+        // Support triangles
+        { type: 'path', path: `M 0,0 L -${L*0.02},-${f_allow*0.2} L ${L*0.02},-${f_allow*0.2} Z`, fillcolor: isDarkMode ? '#9ca3af' : '#4b5563', line: {width: 0} },
+        { type: 'path', path: `M ${L},0 L ${L-L*0.02},-${f_allow*0.2} L ${L+L*0.02},-${f_allow*0.2} Z`, fillcolor: isDarkMode ? '#9ca3af' : '#4b5563', line: {width: 0} }
+      ]
+    };
+
+    Plotly.newPlot(chartRef.current, traces, layout, { responsive: true, displayModeBar: false });
     
-    const contentWidth = width - padding.left - padding.right;
-    const contentHeight = height - padding.top - padding.bottom;
+    const handleResize = () => {
+      if (chartRef.current) {
+        Plotly.Plots.resize(chartRef.current);
+      }
+    };
 
-    // Use a larger scale for visualization, based on length L for proportion
-    const verticalScale = f_allow > 0 ? contentHeight / (f_allow * 2) : 1;
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
 
-    const y_undeflected = padding.top;
-    const y_deflected = y_undeflected + f * verticalScale;
-    const y_allowable = y_undeflected + f_allow * verticalScale;
-    
-    // A quadratic Bezier's peak is halfway to its control point's y-value.
-    // To make the curve peak at y_deflected, the control point must be twice as far.
-    const controlY = 2 * y_deflected - y_undeflected;
+  }, [inputs, results, isDarkMode, t]);
 
-    // A simple quadratic curve path for deflection shape
-    const deflectedPath = `M ${padding.left},${y_undeflected} Q ${padding.left + contentWidth / 2},${controlY} ${padding.left + contentWidth},${y_undeflected}`;
-
-    const formatValue = (val: number) => val.toPrecision(3);
-
-    return (
-        <div id="deflection-diagram">
-            <h4 className="text-md font-semibold text-center mb-2 text-gray-700 dark:text-gray-300">{t('Deflected Shape Diagram')}</h4>
-            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto text-gray-600 dark:text-gray-400" aria-label={t('deflectionDiagram.ariaLabel')}>
-                {/* Allowable deflection area */}
-                <rect 
-                    x={padding.left} 
-                    y={y_undeflected} 
-                    width={contentWidth} 
-                    height={y_allowable - y_undeflected} 
-                    className="fill-green-500/10" 
-                />
-                <line
-                    x1={padding.left} y1={y_allowable}
-                    x2={width-padding.right} y2={y_allowable}
-                    className="stroke-green-500" strokeDasharray="2,2" strokeWidth="1"
-                />
-                 <text x={width - padding.right + 5} y={y_allowable} alignmentBaseline="middle" fontSize="10" className="fill-green-500">{t('deflectionDiagram.allowable', { value: formatValue(f_allow) })}</text>
-
-                {/* Undeflected beam */}
-                <line 
-                    x1={padding.left} y1={y_undeflected} 
-                    x2={width-padding.right} y2={y_undeflected} 
-                    className="stroke-current" strokeDasharray="4,4" strokeWidth="1" 
-                />
-
-                {/* Deflected beam */}
-                <path d={deflectedPath} fill="none" className="stroke-blue-600 dark:stroke-blue-400" strokeWidth="2" />
-                
-                {/* Deflection annotation */}
-                <line 
-                    x1={width/2} y1={y_undeflected} 
-                    x2={width/2} y2={y_deflected} 
-                    className="stroke-current" strokeWidth="0.5"
-                />
-                <path d={`M ${width/2 - 5},${y_deflected - 5} L ${width/2},${y_deflected} L ${width/2 + 5},${y_deflected - 5}`} fill="none" className="stroke-current" strokeWidth="0.5" />
-                <text x={width/2 + 5} y={y_undeflected + (y_deflected - y_undeflected)/2} alignmentBaseline="middle" fontSize="10" className="fill-blue-600 dark:fill-blue-400">{t('deflectionDiagram.actual', { value: formatValue(f) })}</text>
-
-
-                {/* Support triangles */}
-                <path d={`M ${padding.left},${y_undeflected} l -7,10 l 14,0 z`} className="fill-current" />
-                <path d={`M ${width-padding.right},${y_undeflected} l -7,10 l 14,0 z`} className="fill-current" />
-
-                {/* Length annotation */}
-                <line x1={padding.left} y1={height - 25} x2={width - padding.right} y2={height - 25} className="stroke-current" strokeWidth="0.5" />
-                <line x1={padding.left} y1={height - 30} x2={padding.left} y2={height - 20} className="stroke-current" strokeWidth="0.5" />
-                <line x1={width - padding.right} y1={height - 30} x2={width - padding.right} y2={height - 20} className="stroke-current" strokeWidth="0.5" />
-                <text x={width/2} y={height - 10} textAnchor="middle" fontSize="10" className="fill-current">L = {L.toFixed(0)} cm</text>
-            </svg>
-        </div>
-    );
+  return (
+    <div id="deflection-diagram" ref={chartRef} className="w-full h-[250px]" />
+  );
 };

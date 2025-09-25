@@ -618,14 +618,32 @@ export const CraneBeamCalculator: React.FC = () => {
   }, [inputs, results, t, beamType]);
 
   const stiffenerLayout = React.useMemo(() => {
-    if (!results?.stiffener) {
+    if (!results?.stiffener || !results.stiffener.required || results.stiffener.count <= 0) {
       return undefined;
     }
+
+    const { optimalSpacing, count } = results.stiffener;
+    const span_cm = inputs.L; // Nhịp dầm, đơn vị cm
+    const spacing_cm = optimalSpacing / 10; // Bước sườn, đổi từ mm sang cm
+    const newPositions: number[] = [];
+
+    // Tính toán khoảng trống ở hai đầu dầm để căn giữa khối sườn
+    // Dựa trên công thức: (L - (số lượng sườn - 1) * bước sườn) / 2
+    // (count - 1) vì có `count` sườn sẽ tạo ra `count - 1` khoảng cách
+    const totalStiffenerBlockLength = (count - 1) * spacing_cm;
+    const firstStiffenerPos = (span_cm - totalStiffenerBlockLength) / 2;
+
+    // Tạo mảng vị trí các sườn
+    for (let i = 0; i < count; i++) {
+      const pos = firstStiffenerPos + i * spacing_cm;
+      newPositions.push(pos);
+    }
+
     return {
-      positions: results.stiffener.positions,
-      span: inputs.L,
-      spacing: results.stiffener.optimalSpacing,
-      count: results.stiffener.count,
+      positions: newPositions,
+      span: span_cm,
+      spacing: optimalSpacing,
+      count: newPositions.length,
       required: results.stiffener.required,
     };
   }, [results, inputs.L]);
@@ -837,7 +855,18 @@ export const CraneBeamCalculator: React.FC = () => {
                   )}
 
                   <CollapsibleSection
-                    title={t('calculator.stiffenerRecommendationTitle')}
+                    title={
+                      <div className="flex items-center gap-2">
+                        <span>{t('calculator.stiffenerRecommendationTitle')}</span>
+                        <div className="group relative">
+                          <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
+                          <div className="absolute left-0 top-6 w-96 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                            <img src="https://i.postimg.cc/Px7tKMZS/Untitled.png" alt="Stiffener illustration" className="w-full h-auto rounded" />
+                            <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
+                          </div>
+                        </div>
+                      </div>
+                    }
                     icon={TrendingDown}
                   >
                     <div className="space-y-4">
@@ -902,7 +931,7 @@ export const CraneBeamCalculator: React.FC = () => {
                           data={diagramData}
                           title={t('Internal Force Diagram (Shear Force)')}
                           yKey="shear"
-                          unit="kg"
+                          unit="kg"                          
                           stiffenerMarkers={stiffenerLayout && stiffenerLayout.required ? { positions: stiffenerLayout.positions, span: stiffenerLayout.span } : undefined}
                         />
                         <StressDistributionDiagram inputs={inputs} results={results} />
@@ -921,4 +950,3 @@ export const CraneBeamCalculator: React.FC = () => {
     </div>
   );
 };
-

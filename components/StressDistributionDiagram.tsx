@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { BeamInputs, CalculationResults } from '../types';
+
+declare const Plotly: any;
 
 interface DiagramProps {
   inputs: BeamInputs;
@@ -9,151 +11,140 @@ interface DiagramProps {
 
 export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, results }) => {
   const { t } = useTranslation();
+  const chartRef = useRef<HTMLDivElement>(null);
   const { h, b, t1, t2, t3, b1 } = inputs;
   const b3 = (inputs as any).b3 !== undefined ? ((inputs as any).b3 as number) : b; // fallback if missing
   const { Yc, sigma_top_compression, sigma_bottom_tension } = results;
   const Yc_mm = Yc * 10;
   const isIBeam = (results as any)?.calculationMode === 'i-beam';
 
-  const width = 500;
-  const height = 300;
-  const padding = { top: 20, right: 20, bottom: 20, left: 80 };
+  useEffect(() => {
+    if (!chartRef.current || typeof Plotly === 'undefined') return;
 
-  const beamScale = (height - padding.top - padding.bottom) / h;
-  const scaledH = h * beamScale;
-  const scaledBTop = (isIBeam ? b : b3) * beamScale; // I-beam: same flange width top/bottom = b
-  const scaledBBot = b * beamScale; // bottom flange width
-  const scaledT1 = t1 * beamScale; // top flange thickness
-  const scaledT2 = (isIBeam ? t1 : t2) * beamScale; // I-beam: bottom flange thickness equals t1
-  const scaledT3 = t3 * beamScale;
-  const scaledB1 = b1 * beamScale;
-  const scaledYc = Yc_mm * beamScale;
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    const traces = [];
+    const shapes = [];
 
-  const beamX = padding.left + 20;
-  const maxScaledB = Math.max(scaledBTop, scaledBBot);
-  const centerX = beamX + maxScaledB / 2; // draw around centerline
+    // --- Cross-section ---
+    const crossSectionColor = isDarkMode ? 'rgba(75, 85, 99, 0.7)' : 'rgba(209, 213, 219, 1)';
+    const crossSectionLineColor = isDarkMode ? 'rgba(107, 114, 128, 1)' : 'rgba(107, 114, 128, 1)';
+    const topFlangeWidth = isIBeam ? b : b3;
 
-  const maxStress = Math.max(sigma_top_compression, sigma_bottom_tension);
-  const stressScale = maxStress > 0 ? 120 / maxStress : 0;
-  const stressX = beamX + maxScaledB + 40;
+    // Top flange
+    shapes.push({ type: 'rect', x0: -topFlangeWidth / 2, y0: h - t2, x1: topFlangeWidth / 2, y1: h, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
+    // Bottom flange
+    shapes.push({ type: 'rect', x0: -b / 2, y0: 0, x1: b / 2, y1: t1, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
+    // Web(s)
+    if (isIBeam) {
+      shapes.push({ type: 'rect', x0: -t3 / 2, y0: t1, x1: t3 / 2, y1: h - t2, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
+    } else {
+      shapes.push({ type: 'rect', x0: -b1 / 2 - t3, y0: t1, x1: -b1 / 2, y1: h - t2, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
+      shapes.push({ type: 'rect', x0: b1 / 2, y0: t1, x1: b1 / 2 + t3, y1: h - t2, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
+    }
 
-  const formatValue = (val: number) => {
-    if (Math.abs(val) < 1) return val.toFixed(2);
-    return val.toFixed(0);
-  };
+    // --- Stress Diagram ---
+    const maxAbsStress = Math.max(sigma_top_compression, sigma_bottom_tension);
+    const stressOffset = Math.max(b, topFlangeWidth) / 2 + maxAbsStress * 0.2; // Offset to avoid overlap
+
+    // Compression
+    traces.push({
+      x: [stressOffset, stressOffset - sigma_top_compression, stressOffset],
+      y: [Yc_mm, h, h],
+      type: 'scatter', mode: 'lines',
+      fill: 'toself',
+      fillcolor: 'rgba(239, 68, 68, 0.2)',
+      line: { color: isDarkMode ? '#f87171' : '#ef4444', width: 1.5 },
+      hoverinfo: 'none',
+    });
+
+    // Tension
+    traces.push({
+      x: [stressOffset, stressOffset + sigma_bottom_tension, stressOffset],
+      y: [Yc_mm, 0, 0],
+      type: 'scatter', mode: 'lines',
+      fill: 'toself',
+      fillcolor: 'rgba(59, 130, 246, 0.2)',
+      line: { color: isDarkMode ? '#60a5fa' : '#3b82f6', width: 1.5 },
+      hoverinfo: 'none',
+    });
+
+    // Neutral Axis
+    shapes.push({
+      type: 'line', x0: -b / 2 - 20, y0: Yc_mm, x1: stressOffset + sigma_bottom_tension + 20, y1: Yc_mm,
+      line: { color: isDarkMode ? '#6b7280' : '#6b7280', width: 1, dash: 'dash' }
+    });
+
+    const layout = {
+      title: {
+        text: t('stressDiagram.ariaLabel'),
+        font: { color: isDarkMode ? '#e5e7eb' : '#374151', size: 16 },
+      },
+      xaxis: {
+        title: `${t('stressDiagram.unit')}`,
+        range: [-b, stressOffset + sigma_bottom_tension + 60],
+        showgrid: false,
+        zeroline: false,
+        showticklabels: false,
+        color: isDarkMode ? '#9ca3af' : '#4b5563',
+      },
+      yaxis: {
+        title: 'Height (mm)',
+        range: [-20, h + 20],
+        showgrid: false,
+        zeroline: false,
+        color: isDarkMode ? '#9ca3af' : '#4b5563',
+      },
+      showlegend: false,
+      paper_bgcolor: 'transparent',
+      plot_bgcolor: 'transparent',
+      margin: { l: 60, r: 20, b: 50, t: 50, pad: 4 },
+      shapes: shapes,
+      annotations: [
+        {
+          x: stressOffset - sigma_top_compression, y: h,
+          xref: 'x', yref: 'y',
+          text: `-${sigma_top_compression.toFixed(1)} (${t('stressDiagram.compression')})`,
+          showarrow: false, ax: -40, ay: 0, xanchor: 'right',
+          font: { color: isDarkMode ? '#f87171' : '#ef4444' }
+        },
+        {
+          x: stressOffset + sigma_bottom_tension, y: 0,
+          xref: 'x', yref: 'y',
+          text: `+${sigma_bottom_tension.toFixed(1)} (${t('stressDiagram.tension')})`,
+          showarrow: false, ax: 40, ay: 0, xanchor: 'left',
+          font: { color: isDarkMode ? '#60a5fa' : '#3b82f6' }
+        },
+        {
+          x: -b / 2 - 10, y: Yc_mm,
+          xref: 'x', yref: 'y',
+          text: `Yc=${Yc_mm.toFixed(1)}`,
+          showarrow: false, xanchor: 'right',
+          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
+        },
+        {
+          x: stressOffset, y: Yc_mm,
+          xref: 'x', yref: 'y',
+          text: 'N.A.',
+          showarrow: false, xanchor: 'center', yanchor: 'bottom',
+          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
+        }
+      ]
+    };
+
+    Plotly.newPlot(chartRef.current, traces, layout, { responsive: true, displayModeBar: false });
+
+    const handleResize = () => {
+      if (chartRef.current) {
+        Plotly.Plots.resize(chartRef.current);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+
+  }, [inputs, results, t]);
 
   return (
-    <div id="stress-diagram">
-      <h4 className="text-md font-semibold text-center mb-2 text-gray-700 dark:text-gray-300">{t('Stress Distribution Diagram')}</h4>
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        className="w-full h-auto text-gray-600 dark:text-gray-400"
-        aria-label={t('stressDiagram.ariaLabel')}
-      >
-        <g transform={`translate(0, ${padding.top})`}>
-          {/* Dimension Lines */}
-          <g className="stroke-current" strokeWidth="0.5">
-            {/* H dimension */}
-            <line x1={padding.left - 50} y1={0} x2={padding.left - 50} y2={scaledH} strokeDasharray="2,2" />
-            <line x1={padding.left - 55} y1={0} x2={padding.left - 45} y2={0} />
-            <line x1={padding.left - 55} y1={scaledH} x2={padding.left - 45} y2={scaledH} />
-            <text
-              x={padding.left - 60}
-              y={scaledH / 2}
-              textAnchor="end"
-              alignmentBaseline="middle"
-              fontSize="10"
-              className="fill-current"
-            >
-              H = {h} mm
-            </text>
-
-            {/* Yc dimension */}
-            <line x1={padding.left - 20} y1={scaledH - scaledYc} x2={padding.left - 20} y2={scaledH} strokeDasharray="2,2" />
-            <line x1={padding.left - 25} y1={scaledH - scaledYc} x2={padding.left - 15} y2={scaledH - scaledYc} />
-            <line x1={padding.left - 25} y1={scaledH} x2={padding.left - 15} y2={scaledH} />
-            <text
-              x={padding.left - 25}
-              y={scaledH - scaledYc / 2}
-              textAnchor="end"
-              alignmentBaseline="middle"
-              fontSize="10"
-              className="fill-current"
-            >
-              Yc = {Yc_mm.toFixed(1)} mm
-            </text>
-          </g>
-
-          {/* Beam Cross-section */}
-          <g className="fill-gray-200 dark:fill-gray-700 stroke-gray-500 dark:stroke-gray-400" strokeWidth="1">
-            {/* Top flange */}
-            <rect x={centerX - scaledBTop / 2} y={0} width={scaledBTop} height={scaledT1} />
-            {/* Bottom flange */}
-            <rect x={centerX - scaledBBot / 2} y={scaledH - scaledT2} width={scaledBBot} height={scaledT2} />
-            {/* Web(s) */}
-            {isIBeam ? (
-              // Rolled I-beam: single web centered on the section
-              <rect x={centerX - scaledT3 / 2} y={scaledT1} width={scaledT3} height={scaledH - scaledT1 - scaledT2} />
-            ) : (
-              // Built-up girder: two webs positioned from centerline using b1
-              <>
-                <rect x={centerX - scaledB1 / 2 - scaledT3} y={scaledT1} width={scaledT3} height={scaledH - scaledT1 - scaledT2} />
-                <rect x={centerX + scaledB1 / 2} y={scaledT1} width={scaledT3} height={scaledH - scaledT1 - scaledT2} />
-              </>
-            )}
-          </g>
-
-          {/* Neutral Axis */}
-          <line
-            x1={padding.left - 10}
-            y1={scaledH - scaledYc}
-            x2={stressX + 130}
-            y2={scaledH - scaledYc}
-            className="stroke-gray-500 dark:stroke-gray-400"
-            strokeDasharray="3,3"
-            strokeWidth="1"
-          />
-          <text
-            x={stressX + 135}
-            y={scaledH - scaledYc}
-            textAnchor="start"
-            alignmentBaseline="middle"
-            fontSize="10"
-            className="fill-current"
-          >
-            {t('Neutral Axis')}
-          </text>
-
-          {/* Stress Diagram */}
-          <g transform={`translate(${stressX}, 0)`}>
-            {/* Vertical line */}
-            <line x1="0" y1="0" x2="0" y2={scaledH} className="stroke-current" strokeWidth="0.5" />
-
-            {/* Compression Area */}
-            <polygon
-              points={`0,${scaledH - scaledYc} ${-sigma_top_compression * stressScale},0 0,0`}
-              className="fill-red-500/20 stroke-red-500"
-              strokeWidth="1"
-            />
-            <text x={-sigma_top_compression * stressScale - 5} y="10" textAnchor="end" fontSize="10" className="fill-red-500">
-              -{formatValue(sigma_top_compression)} ({t('stressDiagram.compression')})
-            </text>
-
-            {/* Tension Area */}
-            <polygon
-              points={`0,${scaledH - scaledYc} ${sigma_bottom_tension * stressScale},${scaledH} 0,${scaledH}`}
-              className="fill-blue-500/20 stroke-blue-500"
-              strokeWidth="1"
-            />
-            <text x={sigma_bottom_tension * stressScale + 5} y={scaledH - 5} textAnchor="start" fontSize="10" className="fill-blue-500">
-              +{formatValue(sigma_bottom_tension)} ({t('stressDiagram.tension')})
-            </text>
-
-            {/* Stress unit label */}
-            <text x="0" y="-5" textAnchor="middle" fontSize="10" className="fill-current">{t('stressDiagram.unit')}</text>
-          </g>
-        </g>
-      </svg>
-    </div>
+    <div id="stress-diagram" ref={chartRef} className="w-full h-[400px]" />
   );
 };

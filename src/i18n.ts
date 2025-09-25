@@ -70,8 +70,8 @@ i18n.addResources('vi', 'translation', {
   'Stress sigma_u': 'Ứng suất σ_u',
   'Deflection f': 'Độ võng f',
   'Analysis diagrams': 'Biểu đồ phân tích',
-  'Internal Force Diagram (Bending Moment)': 'Biểu đồ lực trong (Momen uốn)',
-  'Internal Force Diagram (Shear Force)': 'Biểu đồ lực trong (Lực cắt)'
+  'Internal Force Diagram (Bending Moment)': 'Biểu đồ nội lực (Momen uốn)',
+  'Internal Force Diagram (Shear Force)': 'Biểu đồ nội lực (Lực cắt)'
 });
 
 // Ensure interpolation-ready strings for percentage suggestions
@@ -112,7 +112,8 @@ i18n.addResources('en', 'translation', {
   'deflectionDiagram.ariaLabel': 'Beam deflection diagram',
   'deflectionDiagram.allowable': '[f] = {{value}}',
   'deflectionDiagram.actual': 'f = {{value}}',
-  'diagram.noData': 'No diagram data'
+  'diagram.noData': 'No diagram data',
+  'deflectionDiagram.support': 'Support'
 });
 
 i18n.addResources('vi', 'translation', {
@@ -126,5 +127,6 @@ i18n.addResources('vi', 'translation', {
   'deflectionDiagram.ariaLabel': 'Biểu đồ độ võng của dầm',
   'deflectionDiagram.allowable': '[f] = {{value}}',
   'deflectionDiagram.actual': 'f = {{value}}',
-  'diagram.noData': 'Không có dữ liệu biểu đồ'
+  'diagram.noData': 'Không có dữ liệu biểu đồ',
+  'deflectionDiagram.support': 'Gối đỡ'
 });

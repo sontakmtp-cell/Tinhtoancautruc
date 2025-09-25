@@ -80,7 +80,7 @@
     "Hoist load":  "Tải nâng",
     "Trolley weight":  "Trọng lượng xe con",
     "Allowable stress":  "Ứng suất cho phép",
-    "Yield stress":  "Ứng suất chảy",
+    "Yield stress":  "Giới hạn chảy",
     "Elastic modulus E":  "Môđun đàn hồi E",
     "Poisson ratio (nu)":  "Hệ số Poisson (nu)",
     "app":  {
@@ -111,11 +111,11 @@
                        "webSpacingB2":  "Khoảng cách bụng b2",
                        "webThicknessT3":  "Bề dày bụng t3",
                        "beamHeightH":  "Chiều cao dầm H",
-                       "spanLengthL":  "Chiều dài nhịp L",
+                       "spanLengthL":  "Khẩu độ dầm L",
                        "flangeWidthB":  "Chiều rộng cánh b",
                        "flangeThicknessT1":  "Bề dày cánh t1",
                        "webThicknessT2":  "Bề dày bụng t2",
-                       "beamSpanL":  "Nhịp dầm L",
+                       "beamSpanL":  "Khẩu độ dầm L",
                        "bodyWidthB3":  "Bề rộng thân b3",
                        "referencesTitle":  "Tài liệu tham khảo",
                        "references":  [
@@ -137,7 +137,8 @@
     "deflectionDiagram":  {
                               "ariaLabel":  "Biểu đồ độ võng của dầm",
                               "allowable":  "[f] = {{value}}",
-                              "actual":  "f = {{value}}"
+                              "actual":  "f = {{value}}",
+                              "support":  "Gối đỡ"
                           },
     "stressDiagram":  {
                           "ariaLabel":  "Biểu đồ phân bố ứng suất trên mặt cắt",
