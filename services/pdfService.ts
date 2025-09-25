@@ -613,6 +613,13 @@ class PDFReportService {
       }
       this.addStiffenerResults(results);
       this.addSafetyChecks(results);
+
+      // Ensure there is enough space for the overall assessment box.
+      if (this.currentY > this.pageHeight - MARGIN.bottom - 30) { // Assessment box is ~25mm high
+        this.pdf.addPage();
+        this.currentY = MARGIN.top;
+      }
+
       this.addOverallAssessment(results);
       if (options.aiRecommendation && options.aiRecommendation.trim().length > 0) {
         this.addAIRecommendations(options.aiRecommendation);
