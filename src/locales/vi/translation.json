@@ -68,7 +68,7 @@
     "Single girder":  "Dầm đơn",
     "Rolled I-beam":  "Dầm I cán",
     "Double girder":  "Dầm đôi",
-    "V-type beam":  "Dầm chữ V",
+    "V-type beam": "Dầm chữ V",
     "Section geometry":  "Hình học tiết diện",
     "Loading \u0026 material":  "Tải trọng \u0026 vật liệu",
     "Material":  "Vật liệu",
@@ -122,7 +122,7 @@
                                           "\"Sức bền vật liệu\" – Tập 1, Chương: Đặc trưng hình học của hình phẳng.",
                                           "\"Tính toán máy trục\" (Huỳnh Văn Hoàng, Đào Trọng Thường) – Chương: Kết cấu kim loại của các máy trục thông dụng."
                                       ],
-                       "stiffenerOptionalMessage":  "Tấm bụng đạt điều kiện mảnh; có thể bố trí sườn để tăng độ cứng khi cần.",
+                       "stiffenerOptionalMessage":  "Dầm đủ điều kiện bền, không cần bố trí sườn tăng cứng",
                        "stiffenerInertia":  "Mô men quán tính yêu cầu",
                        "stiffenerCount":  "Số lượng sườn ước tính",
                        "stiffenerThickness":  "Chiều dày sườn ts",

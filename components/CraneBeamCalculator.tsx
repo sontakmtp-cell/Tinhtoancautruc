@@ -788,12 +788,14 @@ export const CraneBeamCalculator: React.FC = () => {
               )}
 
               {!isLoading && !results && (
-                <BeamCrossSection
-                  inputs={inputs}
-                  activeInput={activeInputKey}
-                  beamType={beamType as 'single-girder' | 'i-beam'}
-                  stiffenerLayout={stiffenerLayout}
-                />
+                <div id="cross-section-diagram">
+                  <BeamCrossSection
+                    inputs={inputs}
+                    activeInput={activeInputKey}
+                    beamType={beamType as 'single-girder' | 'i-beam'}
+                    stiffenerLayout={stiffenerLayout}
+                  />
+                </div>
               )}
 
               {!isLoading && results && (
@@ -870,11 +872,13 @@ export const CraneBeamCalculator: React.FC = () => {
                     icon={TrendingDown}
                   >
                     <div className="space-y-4">
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        {results.stiffener.required
-                          ? t('calculator.stiffenerRequiredMessage')
-                          : t('calculator.stiffenerOptionalMessage')}
-                      </p>
+                      {results.stiffener.required ? (
+                        <p className="text-sm text-red-600 dark:text-red-400">{t('calculator.stiffenerRequiredMessage')}</p>
+                      ) : (
+                        <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                          {t('calculator.stiffenerOptionalMessage')}
+                        </p>
+                      )}
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <ResultItem label={t('calculator.stiffenerSpacing')} value={results.stiffener.optimalSpacing.toFixed(0)} unit="mm" />
                         <ResultItem label={t('calculator.stiffenerCount')} value={results.stiffener.count.toString()} unit={t('calculator.unitPieces')} />

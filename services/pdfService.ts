@@ -150,22 +150,22 @@ class PDFReportService {
     let geomData: (string | number)[][];
     if ((results as any).calculationMode === 'i-beam') {
       geomData = [
-        [this.t('beamSpan'), inputs.L, 'cm'],
-        [this.t('Flange width b'), inputs.b, 'mm'],
-        [this.t('Beam height H'), inputs.h, 'mm'],
-        [this.t('Flange thickness t1'), inputs.t1, 'mm'],
-        [this.t('Web thickness t2'), inputs.t3, 'mm'], // UI label uses t2; underlying field is inputs.t3 (web thickness)
+        [this.t('calculator.beamSpanL'), inputs.L, 'cm'],
+        [this.t('calculator.flangeWidthB'), inputs.b, 'mm'],
+        [this.t('calculator.beamHeightH'), inputs.h, 'mm'],
+        [this.t('calculator.flangeThicknessT1'), inputs.t1, 'mm'],
+        [this.t('calculator.webThicknessT2'), inputs.t3, 'mm'],
       ];
     } else {
       geomData = [
-        [this.t('beamSpan'), inputs.L, 'cm'],
-        [this.t('beamWidth'), inputs.b, 'mm'],
-        [this.t('calculator.topFlangeWidthB3'), (inputs as any).b3 ?? inputs.b, 'mm'],
-        [this.t('beamHeight'), inputs.h, 'mm'],
-        [this.t('calculator.bottomFlangeThicknessT2'), inputs.t2, 'mm'],
-        [this.t('calculator.topFlangeThicknessT1'), inputs.t1, 'mm'],
+        [this.t('calculator.spanLengthL'), inputs.L, 'cm'],
+        [this.t('calculator.bottomFlangeWidthB1Short'), inputs.b, 'mm'],
+        [this.t('calculator.topFlangeWidthB2'), (inputs as any).b3 ?? inputs.b, 'mm'],
+        [this.t('calculator.beamHeightH'), inputs.h, 'mm'],
+        [this.t('calculator.topFlangeThicknessT2'), inputs.t2, 'mm'],
+        [this.t('calculator.bottomFlangeThicknessT1'), inputs.t1, 'mm'],
         [this.t('calculator.webThicknessT3'), inputs.t3, 'mm'],
-        [this.t('calculator.bodyWidthB3'), inputs.b1, 'mm'],
+        [this.t('calculator.webSpacingB2'), inputs.b1, 'mm'],
         [this.t('endCarriageWheelCenterA'), inputs.A, 'mm'],
         [this.t('endInclinedSegmentC'), inputs.C, 'mm'],
       ];
@@ -173,13 +173,13 @@ class PDFReportService {
 
     const loadData = [
       [this.t('materialType'), (inputs as any).materialType ? String((inputs as any).materialType) : this.t('pdf.customMaterial') || 'Custom', ''],
-      [this.t('liftingLoad'), inputs.P_nang, 'kg'],
-      [this.t('equipmentLoad'), inputs.P_thietbi, 'kg'],
+      [this.t('Hoist load'), inputs.P_nang, 'kg'],
+      [this.t('Trolley weight'), inputs.P_thietbi, 'kg'],
       [this.t('distributedLoad'), results.q.toFixed(4), 'kg/cm'],
-      [this.t('allowableStress'), inputs.sigma_allow, 'kg/cm²'],
-      [this.t('yieldStrength'), inputs.sigma_yield, 'kg/cm²'],
-      [this.t('elasticModulus'), inputs.E.toExponential(2), 'kg/cm²'],
-      [this.t('poissonsRatio'), inputs.nu, ''],
+      [this.t('Allowable stress'), inputs.sigma_allow, 'kg/cm²'],
+      [this.t('Yield stress'), inputs.sigma_yield, 'kg/cm²'],
+      [this.t('Elastic modulus E'), inputs.E.toExponential(2), 'kg/cm²'],
+      [this.t('Poisson ratio (nu)'), inputs.nu, ''],
     ];
 
     autoTable(this.pdf, {
@@ -366,29 +366,43 @@ class PDFReportService {
   }
 
   private addStiffenerResults(results: CalculationResults) {
-    if (!results.stiffener || !results.stiffener.required) {
-      return; // Don't add the table if stiffeners are not required
-    }
-
     // Check for page space
     if (this.currentY > this.pageHeight - MARGIN.bottom - 60) {
       this.pdf.addPage();
       this.currentY = MARGIN.top;
     }
-
+  
     this.pdf.setFontSize(12);
     this.pdf.setFont('NotoSans', 'bold');
     this.pdf.text(this.t('calculator.stiffenerRecommendationTitle'), MARGIN.left, this.currentY);
     this.currentY += 6;
-
-    const stiffenerData = [
-      [this.t('calculator.stiffenerSpacing'), results.stiffener.optimalSpacing.toFixed(0), 'mm'],
-      [this.t('calculator.stiffenerCount'), results.stiffener.count, this.t('calculator.unitPieces')],
-      [this.t('calculator.stiffenerWidth'), results.stiffener.width.toFixed(0), 'mm'],
-      [this.t('calculator.stiffenerThickness'), results.stiffener.thickness.toFixed(0), 'mm'],
-      [this.t('calculator.stiffenerInertia'), results.stiffener.requiredInertia.toExponential(2), `mm${SUP4}`],
-    ];
-
+  
+    let stiffenerData: (string | number)[][];
+  
+    if (results.stiffener && results.stiffener.required) {
+      stiffenerData = [
+        [this.t('calculator.stiffenerSpacing'), results.stiffener.optimalSpacing.toFixed(0), 'mm'],
+        [this.t('calculator.stiffenerCount'), results.stiffener.count, this.t('calculator.unitPieces')],
+        [this.t('calculator.stiffenerWidth'), results.stiffener.width.toFixed(0), 'mm'],
+        [this.t('calculator.stiffenerThickness'), results.stiffener.thickness.toFixed(0), 'mm'],
+        [this.t('calculator.stiffenerInertia'), results.stiffener.requiredInertia.toExponential(2), `mm${SUP4}`],
+      ];
+    } else {
+      this.pdf.setFont('NotoSans', 'normal');
+      this.pdf.setFontSize(10);
+      this.pdf.setTextColor(150, 150, 150);
+      this.pdf.text(this.t('calculator.stiffenerOptionalMessage'), MARGIN.left, this.currentY);
+      this.currentY += 6;
+  
+      stiffenerData = [
+        [this.t('calculator.stiffenerSpacing'), 0, 'mm'],
+        [this.t('calculator.stiffenerCount'), 0, this.t('calculator.unitPieces')],
+        [this.t('calculator.stiffenerWidth'), 0, 'mm'],
+        [this.t('calculator.stiffenerThickness'), 0, 'mm'],
+        [this.t('calculator.stiffenerInertia'), 0, `mm${SUP4}`],
+      ];
+    }
+  
     autoTable(this.pdf, {
       head: [[this.t('check'), this.t('value'), this.t('unit')]],
       body: stiffenerData,

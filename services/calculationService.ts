@@ -181,24 +181,29 @@ export const calculateBeamProperties = (inputs: BeamInputs, mode: CalcMode = 'si
   const epsilon = sigma_yield_mpa > 0 ? Math.sqrt(235 / sigma_yield_mpa) : 0;
   const slendernessRatio = t_web_input_mm > 0 ? h_w_mm / t_web_input_mm : Number.POSITIVE_INFINITY;
   const slendernessLimit = 4.86 * epsilon;
-  const needsStiffeners = Number.isFinite(slendernessRatio) && slendernessRatio > slendernessLimit && h_w_mm > 0;
+  let needsStiffeners = Number.isFinite(slendernessRatio) && slendernessRatio > slendernessLimit && h_w_mm > 0;
 
   const gammaM1 = 1.1;
   const supportShear_kg = P / 2 + (q_auto * L) / 2;
   const supportShear_kN = supportShear_kg * KG_TO_KN;
+  const supportShear_N = supportShear_kN * 1000;
 
-  let optimalSpacing_mm = 0;
-  if (needsStiffeners && supportShear_kN > 0 && t_web_input_mm > 0 && sigma_yield_mpa > 0) {
-    optimalSpacing_mm = (h_w_mm * t_web_input_mm * sigma_yield_mpa) / (Math.sqrt(3) * gammaM1 * supportShear_kN);
-    optimalSpacing_mm *= 1000; // scale to millimetres
+  let optimalSpacing_mm = h_w_mm;
+  if (needsStiffeners && h_w_mm > 0 && t_web_input_mm > 0 && sigma_yield_mpa > 0 && supportShear_N > 0) {
+    const plasticShearCapacity_N = (h_w_mm * t_web_input_mm * sigma_yield_mpa) / (Math.sqrt(3) * gammaM1);
+    // EN 1993-1-5: plastic shear resistance of the unstiffened web panel
+    const utilisation = plasticShearCapacity_N / supportShear_N;
+    optimalSpacing_mm = utilisation * h_w_mm;
   }
   if (!Number.isFinite(optimalSpacing_mm) || optimalSpacing_mm <= 0) {
     optimalSpacing_mm = h_w_mm;
   }
   if (h_w_mm > 0) {
     const a_min = 0.5 * h_w_mm;
-    const a_max = 2 * h_w_mm;
-    optimalSpacing_mm = Math.max(a_min, Math.min(a_max, optimalSpacing_mm));
+    const a_limit_aspect = 3 * h_w_mm;
+    const a_limit_thickness = t_web_input_mm > 0 && epsilon > 0 ? 260 * epsilon * t_web_input_mm : Number.POSITIVE_INFINITY;
+    // EN 1993-1-5 clause 9.2: limit based on plate slenderness
+    optimalSpacing_mm = Math.max(a_min, Math.min(optimalSpacing_mm, a_limit_aspect, a_limit_thickness));
   }
   optimalSpacing_mm = Math.max(10, Math.round(optimalSpacing_mm / 10) * 10);
 
@@ -213,8 +218,14 @@ export const calculateBeamProperties = (inputs: BeamInputs, mode: CalcMode = 'si
   }
 
   const span_cm = L;
-  const optimalSpacing_cm = optimalSpacing_mm / 10;
   const span_mm = span_cm * 10;
+
+  if (needsStiffeners && optimalSpacing_mm >= span_mm) {
+    needsStiffeners = false;
+    optimalSpacing_mm = span_mm;
+  }
+
+  const optimalSpacing_cm = optimalSpacing_mm / 10;
   let stiffenerCount = 0;
   if (needsStiffeners && optimalSpacing_mm > 0 && span_mm > 0) {
     stiffenerCount = Math.ceil(span_mm / optimalSpacing_mm);
@@ -303,7 +314,6 @@ export const generateDiagramData = (inputs: BeamInputs, results: CalculationResu
 
   return data;
 };
-
 
 
 
