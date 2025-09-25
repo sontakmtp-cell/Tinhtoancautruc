@@ -4,13 +4,12 @@ type CalcMode = 'single-girder' | 'i-beam';
 
 export const calculateBeamProperties = (inputs: BeamInputs, mode: CalcMode = 'single-girder'): CalculationResults => {
   const {
-    b: b_bottom_mm,
-    h: h_mm,
-    t1: t_top_input_mm,     // UI: top flange thickness (I-beam tab shows "Flange thickness t1")
-    t2: t_bottom_input_mm,  // UI: bottom flange thickness in single-girder layout
-    t3: t_web_input_mm,     // UI: web thickness. In the I-beam tab, the visible label is "Web thickness t2"
-                            //      for consistency with the spec, while the data is stored in inputs.t3
-    b1: b_body_input_mm,    // UI field "b1" now labeled as body width b2
+    b: b_bottom_mm,      // Bottom flange width b1
+    h: h_mm,               // Beam height H
+    t1: t_bottom_input_mm, // Bottom flange thickness t1
+    t2: t_top_input_mm,    // Top flange thickness t2
+    t3: t_web_input_mm,    // Web thickness t3
+    b1: b_body_input_mm,   // Web spacing b2
     b3: b_top_mm,
     L,
     P_nang,

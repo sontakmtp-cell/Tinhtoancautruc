@@ -4,13 +4,13 @@ export type MaterialType = 'SS400' | 'CT3' | 'A36' | 'CUSTOM';
 
 export interface BeamInputs {
   // Geometric properties (mm)
-  b: number; // Bottom flange width (mm)
-  h: number; // Overall height
-  t1: number; // Top flange thickness
-  t2: number; // Bottom flange thickness
-  t3: number; // Web thickness
-  b1: number; // Gap between webs (clear distance, often noted b2)
-  b3: number; // Top flange width (mm)
+  b: number; // Bottom flange width b1 (mm)
+  h: number; // Beam height H (mm)
+  t1: number; // Bottom flange thickness t1 (mm)
+  t2: number; // Top flange thickness t2 (mm)
+  t3: number; // Web thickness t3 (mm)
+  b1: number; // Web spacing b2 (mm)
+  b3: number; // Top flange width b2 (mm)
 
   // Material and Load properties
   L: number; // Beam span (cm)
