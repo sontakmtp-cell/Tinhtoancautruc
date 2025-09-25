@@ -365,6 +365,42 @@ class PDFReportService {
     this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
   }
 
+  private addStiffenerResults(results: CalculationResults) {
+    if (!results.stiffener || !results.stiffener.required) {
+      return; // Don't add the table if stiffeners are not required
+    }
+
+    // Check for page space
+    if (this.currentY > this.pageHeight - MARGIN.bottom - 60) {
+      this.pdf.addPage();
+      this.currentY = MARGIN.top;
+    }
+
+    this.pdf.setFontSize(12);
+    this.pdf.setFont('NotoSans', 'bold');
+    this.pdf.text(this.t('calculator.stiffenerRecommendationTitle'), MARGIN.left, this.currentY);
+    this.currentY += 6;
+
+    const stiffenerData = [
+      [this.t('calculator.stiffenerSpacing'), results.stiffener.optimalSpacing.toFixed(0), 'mm'],
+      [this.t('calculator.stiffenerCount'), results.stiffener.count, this.t('calculator.unitPieces')],
+      [this.t('calculator.stiffenerWidth'), results.stiffener.width.toFixed(0), 'mm'],
+      [this.t('calculator.stiffenerThickness'), results.stiffener.thickness.toFixed(0), 'mm'],
+      [this.t('calculator.stiffenerInertia'), results.stiffener.requiredInertia.toExponential(2), `mm${SUP4}`],
+    ];
+
+    autoTable(this.pdf, {
+      head: [[this.t('check'), this.t('value'), this.t('unit')]],
+      body: stiffenerData,
+      startY: this.currentY,
+      theme: 'grid',
+      styles: { font: 'NotoSans' },
+      headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'NotoSans', fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: SECONDARY_COLOR },
+    });
+    this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
+  }
+
   private addOverallAssessment(results: CalculationResults) {
     this.pdf.setFontSize(12);
     this.pdf.setFont('NotoSans', 'bold');
@@ -547,6 +583,11 @@ class PDFReportService {
       this.addHeader(projectName);
       this.addProjectInfo(engineer, date);
       this.addInputs(inputs, results);
+
+      // Move results to the second page
+      this.pdf.addPage();
+      this.currentY = MARGIN.top;
+
       this.addResults(results);
       if ((results as any).calculationMode !== 'i-beam') {
         // Check for space before adding the geometric balance table
@@ -556,6 +597,7 @@ class PDFReportService {
         }
         this.addGeometricBalance(inputs);
       }
+      this.addStiffenerResults(results);
       this.addSafetyChecks(results);
       this.addOverallAssessment(results);
       if (options.aiRecommendation && options.aiRecommendation.trim().length > 0) {
@@ -588,6 +630,18 @@ class PDFReportService {
               this.currentY += 8;
             }
           }
+          // Force shear diagram to a new page if it's not already on one
+          if (chart.id === 'internal-force-diagram-shear') {
+            if (this.pdf.internal.pages.length < 3) {
+              this.pdf.addPage();
+              this.currentY = MARGIN.top;
+
+              this.pdf.setFontSize(14);
+              this.pdf.setFont('NotoSans', 'bold');
+              this.pdf.text(this.t('analysisDiagrams'), MARGIN.left, this.currentY);
+              this.currentY += 8;
+            }
+          }
           await this.captureElement(chart.id, chart.title);
         }
       }
@@ -613,4 +667,3 @@ export const generatePDFReport = async (
   const pdfService = new PDFReportService(options.language);
   await pdfService.generate(inputs, results, options);
 };
-

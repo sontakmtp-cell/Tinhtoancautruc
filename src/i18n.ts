@@ -100,6 +100,13 @@ i18n.addResources('vi', 'translation', {
   'pdf.customMaterial': 'Tùy chọn'
 });
 
+// PDF standards
+i18n.addResources('en', 'translation', {
+  'pdf.tcvnStandards': 'TCVN 5575-2024, TCVN 4244:2005, Eurocode 3 (EN 1993-1-5)',
+  'pdf.tcvnTestConditions': 'Load test according to TCVN 4244:2005, EN 13001'
+});
+
+
 // Diagram labels with proper encoding
 i18n.addResources('en', 'translation', {
   'Stress Distribution Diagram': 'Stress Distribution Diagram',

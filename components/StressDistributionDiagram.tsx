@@ -29,27 +29,45 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
     const crossSectionColor = isDarkMode ? 'rgba(75, 85, 99, 0.7)' : 'rgba(209, 213, 219, 1)';
     const crossSectionLineColor = isDarkMode ? 'rgba(107, 114, 128, 1)' : 'rgba(107, 114, 128, 1)';
     const topFlangeWidth = isIBeam ? b : b3;
+    
+    // --- Scaling Logic ---
+    const totalGeomWidth = Math.max(b, topFlangeWidth);
+    const totalGeomHeight = h;
+    const desiredHeight = 300; // Target display height for the cross-section
+    const scale = desiredHeight / totalGeomHeight;
+
+    const s = {
+      h: h * scale,
+      b: b * scale,
+      t1: t1 * scale,
+      t2: t2 * scale,
+      t3: t3 * scale,
+      b1: b1 * scale,
+      b3: (isIBeam ? b : b3) * scale,
+    };
+    const scaledTotalWidth = totalGeomWidth * scale;
+    const xOffset = -scaledTotalWidth / 2 - 40; // Offset to the left
 
     // Top flange
-    shapes.push({ type: 'rect', x0: -topFlangeWidth / 2, y0: h - t2, x1: topFlangeWidth / 2, y1: h, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
+    shapes.push({ type: 'rect', x0: xOffset - s.b3 / 2, y0: s.h - s.t2, x1: xOffset + s.b3 / 2, y1: s.h, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
     // Bottom flange
-    shapes.push({ type: 'rect', x0: -b / 2, y0: 0, x1: b / 2, y1: t1, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
+    shapes.push({ type: 'rect', x0: xOffset - s.b / 2, y0: 0, x1: xOffset + s.b / 2, y1: s.t1, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
     // Web(s)
     if (isIBeam) {
-      shapes.push({ type: 'rect', x0: -t3 / 2, y0: t1, x1: t3 / 2, y1: h - t2, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
+      shapes.push({ type: 'rect', x0: xOffset - s.t3 / 2, y0: s.t1, x1: xOffset + s.t3 / 2, y1: s.h - s.t2, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
     } else {
-      shapes.push({ type: 'rect', x0: -b1 / 2 - t3, y0: t1, x1: -b1 / 2, y1: h - t2, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
-      shapes.push({ type: 'rect', x0: b1 / 2, y0: t1, x1: b1 / 2 + t3, y1: h - t2, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
+      shapes.push({ type: 'rect', x0: xOffset - s.b1 / 2 - s.t3, y0: s.t1, x1: xOffset - s.b1 / 2, y1: s.h - s.t2, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
+      shapes.push({ type: 'rect', x0: xOffset + s.b1 / 2, y0: s.t1, x1: xOffset + s.b1 / 2 + s.t3, y1: s.h - s.t2, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
     }
 
     // --- Stress Diagram ---
     const maxAbsStress = Math.max(sigma_top_compression, sigma_bottom_tension);
-    const stressOffset = Math.max(b, topFlangeWidth) / 2 + maxAbsStress * 0.2; // Offset to avoid overlap
+    const stressOffset = 20; // Start stress diagram to the right of the cross-section
 
     // Compression
     traces.push({
       x: [stressOffset, stressOffset - sigma_top_compression, stressOffset],
-      y: [Yc_mm, h, h],
+      y: [Yc_mm * scale, s.h, s.h],
       type: 'scatter', mode: 'lines',
       fill: 'toself',
       fillcolor: 'rgba(239, 68, 68, 0.2)',
@@ -60,7 +78,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
     // Tension
     traces.push({
       x: [stressOffset, stressOffset + sigma_bottom_tension, stressOffset],
-      y: [Yc_mm, 0, 0],
+      y: [Yc_mm * scale, 0, 0],
       type: 'scatter', mode: 'lines',
       fill: 'toself',
       fillcolor: 'rgba(59, 130, 246, 0.2)',
@@ -70,7 +88,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
 
     // Neutral Axis
     shapes.push({
-      type: 'line', x0: -b / 2 - 20, y0: Yc_mm, x1: stressOffset + sigma_bottom_tension + 20, y1: Yc_mm,
+      type: 'line', x0: xOffset - scaledTotalWidth / 2 - 20, y0: Yc_mm * scale, x1: stressOffset + sigma_bottom_tension + 20, y1: Yc_mm * scale,
       line: { color: isDarkMode ? '#6b7280' : '#6b7280', width: 1, dash: 'dash' }
     });
 
@@ -81,7 +99,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
       },
       xaxis: {
         title: `${t('stressDiagram.unit')}`,
-        range: [-b, stressOffset + sigma_bottom_tension + 60],
+        range: [xOffset - scaledTotalWidth / 2 - 20, stressOffset + sigma_bottom_tension + 60],
         showgrid: false,
         zeroline: false,
         showticklabels: false,
@@ -89,7 +107,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
       },
       yaxis: {
         title: 'Height (mm)',
-        range: [-20, h + 20],
+        range: [-20, s.h + 20],
         showgrid: false,
         zeroline: false,
         color: isDarkMode ? '#9ca3af' : '#4b5563',
@@ -101,7 +119,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
       shapes: shapes,
       annotations: [
         {
-          x: stressOffset - sigma_top_compression, y: h,
+          x: stressOffset - sigma_top_compression, y: s.h,
           xref: 'x', yref: 'y',
           text: `-${sigma_top_compression.toFixed(1)} (${t('stressDiagram.compression')})`,
           showarrow: false, ax: -40, ay: 0, xanchor: 'right',
@@ -115,14 +133,14 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
           font: { color: isDarkMode ? '#60a5fa' : '#3b82f6' }
         },
         {
-          x: -b / 2 - 10, y: Yc_mm,
+          x: xOffset - scaledTotalWidth / 2 - 10, y: Yc_mm * scale,
           xref: 'x', yref: 'y',
           text: `Yc=${Yc_mm.toFixed(1)}`,
           showarrow: false, xanchor: 'right',
           font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
         },
         {
-          x: stressOffset, y: Yc_mm,
+          x: stressOffset, y: Yc_mm * scale,
           xref: 'x', yref: 'y',
           text: 'N.A.',
           showarrow: false, xanchor: 'center', yanchor: 'bottom',
