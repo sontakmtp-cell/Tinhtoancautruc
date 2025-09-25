@@ -7,9 +7,13 @@ interface DiagramProps {
   title: string;
   yKey: 'shear' | 'moment';
   unit: string;
+  stiffenerMarkers?: {
+    positions: number[];
+    span: number;
+  };
 }
 
-export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey, unit }) => {
+export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey, unit, stiffenerMarkers }) => {
   const { t } = useTranslation();
   if (!data || data.length === 0) {
     return <div className="text-sm text-gray-500">{t('diagram.noData')}</div>;
@@ -45,6 +49,12 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
     .join(' ');
 
   const zeroLineY = yScale(0);
+
+  const showMarkers = Boolean(
+    stiffenerMarkers &&
+    stiffenerMarkers.positions.length > 0 &&
+    stiffenerMarkers.span > 0
+  );
 
   const formatValue = (val: number) => {
     if (Math.abs(val) >= 1e6) return (val / 1e6).toPrecision(3) + 'M';
@@ -98,6 +108,30 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
         <text x={width - padding.right} y={height - padding.bottom + 15} textAnchor="middle" fontSize="10" fill="currentColor">
           L={xMax.toFixed(0)}
         </text>
+
+        {showMarkers && stiffenerMarkers && stiffenerMarkers.positions.map((pos, idx) => {
+          if (pos <= 0 || pos >= stiffenerMarkers.span) {
+            return null;
+          }
+          const x = xScale(pos);
+          return (
+            <g key={`stiffener-marker-${idx}`}>
+              <line
+                x1={x}
+                y1={padding.top}
+                x2={x}
+                y2={height - padding.bottom}
+                stroke="#ef4444"
+                strokeWidth="1"
+                strokeDasharray="4 2"
+              />
+              <polygon
+                points={`${x},${padding.top + 6} ${x - 4},${padding.top + 14} ${x + 4},${padding.top + 14}`}
+                fill="#ef4444"
+              />
+            </g>
+          );
+        })}
 
         {/* Unit label */}
         <text x="10" y="15" fontSize="10" fill="currentColor" className="font-semibold">

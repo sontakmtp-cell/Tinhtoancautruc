@@ -114,3 +114,6 @@
 - ✅ Thông tin chi tiết đầy đủ
 
 View your app in AI Studio: https://ai.studio/apps/drive/1VBNgzTkxjGHc-jsQ_yiUzfeIhoC3O_1a
+
+## Updates
+- Added stiffener recommendation module with spacing, quantity, thickness/width outputs and synchronized diagrams/visual overlays.

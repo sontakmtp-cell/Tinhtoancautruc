@@ -71,8 +71,34 @@ export interface CalculationResults extends GeometricProperties {
   stress_check: 'pass' | 'fail';
   deflection_check: 'pass' | 'fail';
   buckling_check: 'pass' | 'fail';
+
+  /** Calculation mode used for the run */
+  calculationMode: 'single-girder' | 'i-beam';
+
+  /** Web stiffener recommendation and layout */
+  stiffener: StiffenerRecommendation;
 }
 
+export interface StiffenerRecommendation {
+  /** Whether the web requires intermediate stiffeners based on slenderness */
+  required: boolean;
+  /** Effective web height hw in millimetres */
+  effectiveWebHeight: number;
+  /** Slenderness coefficient epsilon */
+  epsilon: number;
+  /** Recommended spacing between stiffeners (mm) */
+  optimalSpacing: number;
+  /** Estimated number of stiffeners along the span */
+  count: number;
+  /** Recommended stiffener plate width (mm) */
+  width: number;
+  /** Recommended stiffener plate thickness (mm) */
+  thickness: number;
+  /** Minimum required second moment of area (mm^4) */
+  requiredInertia: number;
+  /** Marker positions along the span (cm) for visualisation */
+  positions: number[];
+}
 export interface DiagramPoint {
   x: number;      // Position along the beam
   shear: number;  // Shear force value
@@ -80,4 +106,6 @@ export interface DiagramPoint {
 }
 
 export type DiagramData = DiagramPoint[];
+
+
 

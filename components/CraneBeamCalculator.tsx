@@ -617,6 +617,23 @@ export const CraneBeamCalculator: React.FC = () => {
     return items;
   }, [inputs, results, t, beamType]);
 
+  const stiffenerLayout = React.useMemo(() => {
+    if (!results?.stiffener) {
+      return undefined;
+    }
+    return {
+      positions: results.stiffener.positions,
+      span: inputs.L,
+      spacing: results.stiffener.optimalSpacing,
+      count: results.stiffener.count,
+      required: results.stiffener.required,
+    };
+  }, [results, inputs.L]);
+
+  const activeInputKey = !results && typeof document !== 'undefined'
+    ? (Object.keys(inputStrings) as (keyof BeamInputs)[]).find((key) => document.activeElement?.id === key)
+    : undefined;
+
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
       <BeamTypeTabs active={beamType} onChange={setBeamType} />
@@ -753,10 +770,11 @@ export const CraneBeamCalculator: React.FC = () => {
               )}
 
               {!isLoading && !results && (
-                <BeamCrossSection 
-                  inputs={inputs} 
-                  activeInput={Object.keys(inputStrings).find(k => document.activeElement?.id === k)} 
-                  beamType={beamType as 'single-girder' | 'i-beam'} 
+                <BeamCrossSection
+                  inputs={inputs}
+                  activeInput={activeInputKey}
+                  beamType={beamType as 'single-girder' | 'i-beam'}
+                  stiffenerLayout={stiffenerLayout}
                 />
               )}
 
@@ -818,6 +836,26 @@ export const CraneBeamCalculator: React.FC = () => {
                     </CollapsibleSection>
                   )}
 
+                  <CollapsibleSection
+                    title={t('calculator.stiffenerRecommendationTitle')}
+                    icon={TrendingDown}
+                  >
+                    <div className="space-y-4">
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        {results.stiffener.required
+                          ? t('calculator.stiffenerRequiredMessage')
+                          : t('calculator.stiffenerOptionalMessage')}
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <ResultItem label={t('calculator.stiffenerSpacing')} value={results.stiffener.optimalSpacing.toFixed(0)} unit="mm" />
+                        <ResultItem label={t('calculator.stiffenerCount')} value={results.stiffener.count.toString()} unit={t('calculator.unitPieces')} />
+                        <ResultItem label={t('calculator.stiffenerWidth')} value={results.stiffener.width.toFixed(0)} unit="mm" />
+                        <ResultItem label={t('calculator.stiffenerThickness')} value={results.stiffener.thickness.toFixed(0)} unit="mm" />
+                        <ResultItem label={t('calculator.stiffenerInertia')} value={results.stiffener.requiredInertia.toExponential(2)} unit="mm^4" />
+                      </div>
+                    </div>
+                  </CollapsibleSection>
+
                   <CollapsibleSection 
                     title={
                       <div className="flex items-center gap-2">
@@ -865,6 +903,7 @@ export const CraneBeamCalculator: React.FC = () => {
                           title={t('Internal Force Diagram (Shear Force)')}
                           yKey="shear"
                           unit="kg"
+                          stiffenerMarkers={stiffenerLayout && stiffenerLayout.required ? { positions: stiffenerLayout.positions, span: stiffenerLayout.span } : undefined}
                         />
                         <StressDistributionDiagram inputs={inputs} results={results} />
                         <DeflectedShapeDiagram inputs={inputs} results={results} />

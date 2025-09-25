@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface BeamCrossSectionProps {
@@ -13,6 +13,14 @@ interface BeamCrossSectionProps {
   };
   activeInput?: string;
   beamType: 'single-girder' | 'i-beam';
+  stiffenerLayout?: {
+    positions: number[];
+    span: number;
+    spacing: number;
+    count: number;
+    required: boolean;
+  };
+
 }
 
 const Dimension: React.FC<{ x1: number; y1: number; x2: number; y2: number; label: string; isHighlighted?: boolean; position?: 'left' | 'right' | 'top' | 'bottom'; onMouseEnter?: () => void; onMouseLeave?: () => void; }> = ({ x1, y1, x2, y2, label, isHighlighted, position = 'bottom', onMouseEnter, onMouseLeave }) => {
@@ -59,15 +67,32 @@ const Dimension: React.FC<{ x1: number; y1: number; x2: number; y2: number; labe
   );
 };
 
-export const BeamCrossSection: React.FC<BeamCrossSectionProps> = ({ inputs, activeInput, beamType }) => {
+export const BeamCrossSection: React.FC<BeamCrossSectionProps> = ({ inputs, activeInput, beamType, stiffenerLayout }) => {
   const [hoveredKey, setHoveredKey] = useState<keyof BeamCrossSectionProps['inputs'] | null>(null);
   const { t } = useTranslation();
   const { b, h, t1, t2, t3, b1, b3: b3_input } = inputs;
   const b3 = beamType === 'i-beam' ? b : b3_input;
+  const stiffeners = stiffenerLayout;
 
   const width = 400;
   const height = 400;
   const padding = 60;
+  const showStiffenerMarkers = Boolean(
+    stiffeners &&
+    stiffeners.required &&
+    stiffeners.positions.length > 0 &&
+    stiffeners.span > 0
+  );
+  const stiffenerSpan = stiffeners?.span ?? 0;
+  const trackStartX = padding;
+  const trackEndX = width - padding;
+  const trackWidth = trackEndX - trackStartX;
+  const trackY = height - padding * 0.35;
+  const markerColor = '#ef4444';
+  const stiffenerLabel = t('calculator.stiffenerMarkersLabel');
+  const spacingLabel = stiffeners && stiffeners.required && stiffeners.spacing > 0
+    ? t('calculator.stiffenerSpacingLegend', { value: Math.round(stiffeners.spacing).toLocaleString() })
+    : null;
 
   const totalWidth = Math.max(b, b3);
   const totalHeight = h;
@@ -123,9 +148,6 @@ export const BeamCrossSection: React.FC<BeamCrossSectionProps> = ({ inputs, acti
 
   return (
     <div className="bg-white dark:bg-gray-800/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-      <h3 className="text-md font-semibold mb-2 text-gray-800 dark:text-gray-200 flex items-center">
-        {t('Cross-section reference')}
-      </h3>
       <div className="w-full h-[400px]">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full">
           {/* Beam Shape */}
@@ -212,15 +234,61 @@ export const BeamCrossSection: React.FC<BeamCrossSectionProps> = ({ inputs, acti
               <Dimension
                 x1={centerX - s.b1 / 2} y1={topY + s.h / 2}
                 x2={centerX + s.b1 / 2} y2={topY + s.h / 2}
-                label={`b1 = ${b1}`}isHighlighted={isDimensionHighlighted('b1')}
+                label={`b1 = ${b1}`}
+                isHighlighted={isDimensionHighlighted('b1')}
                 position="bottom"
                 onMouseEnter={() => setHoveredKey('b1')}
                 onMouseLeave={() => setHoveredKey(null)}
               />
             </>
           )}
+
+          {showStiffenerMarkers && stiffeners && stiffenerSpan > 0 && trackWidth > 0 && (
+            <g>
+              <line
+                x1={trackStartX}
+                y1={trackY}
+                x2={trackEndX}
+                y2={trackY}
+                stroke="#94a3b8"
+                strokeWidth="0.8"
+                strokeDasharray="4 2"
+              />
+              {stiffeners.positions.map((pos, idx) => {
+                if (pos <= 0 || pos >= stiffenerSpan) {
+                  return null;
+                }
+                const x = trackStartX + (pos / stiffenerSpan) * trackWidth;
+                return (
+                  <g key={`stiffener-marker-${idx}`}>
+                    <line x1={x} y1={trackY - 12} x2={x} y2={trackY + 12} stroke={markerColor} strokeWidth="1.6" />
+                    <polygon
+                      points={`${x},${trackY - 16} ${x - 4},${trackY - 6} ${x + 4},${trackY - 6}`}
+                      fill={markerColor}
+                    />
+                  </g>
+                );
+              })}
+              <text x={trackStartX} y={trackY - 18} textAnchor="start" fontSize="10" fill="#64748b">
+                {stiffenerLabel}
+              </text>
+              {spacingLabel && (
+                <text x={trackStartX} y={trackY + 22} textAnchor="start" fontSize="10" fill="#94a3b8">
+                  {spacingLabel}
+                </text>
+              )}
+            </g>
+          )}
         </svg>
       </div>
     </div>
   );
 };
+
+
+
+
+
+
+
+

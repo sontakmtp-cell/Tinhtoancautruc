@@ -1,4 +1,7 @@
-import type { BeamInputs, CalculationResults, DiagramData, DiagramPoint } from '../types';
+﻿import type { BeamInputs, CalculationResults, DiagramData, DiagramPoint } from '../types';
+
+const KG_TO_KN = 9.80665 / 1000; // Convert kilogram-force to kilonewtons
+const KG_CM2_TO_MPA = 0.0980665; // Convert kg/cm^2 to MPa
 
 type CalcMode = 'single-girder' | 'i-beam';
 
@@ -172,6 +175,61 @@ export const calculateBeamProperties = (inputs: BeamInputs, mode: CalcMode = 'si
   // The constant 1.9 is an example value for stiffened elements (may need adjustment based on standards)
   const lambda_limit = 1.9 * Math.sqrt(E / sigma_yield); 
   const K_buckling = lambda_actual > 0 ? lambda_limit / lambda_actual : Infinity;
+  // --- 5. Web Stiffener Recommendation ---
+  const sigma_yield_mpa = sigma_yield * KG_CM2_TO_MPA;
+  const h_w_mm = Math.max(h_mm - t_top_input_mm - t_bottom_input_mm, 0);
+  const epsilon = sigma_yield_mpa > 0 ? Math.sqrt(235 / sigma_yield_mpa) : 0;
+  const slendernessRatio = t_web_input_mm > 0 ? h_w_mm / t_web_input_mm : Number.POSITIVE_INFINITY;
+  const slendernessLimit = 4.86 * epsilon;
+  const needsStiffeners = Number.isFinite(slendernessRatio) && slendernessRatio > slendernessLimit && h_w_mm > 0;
+
+  const gammaM1 = 1.1;
+  const supportShear_kg = P / 2 + (q_auto * L) / 2;
+  const supportShear_kN = supportShear_kg * KG_TO_KN;
+
+  let optimalSpacing_mm = 0;
+  if (needsStiffeners && supportShear_kN > 0 && t_web_input_mm > 0 && sigma_yield_mpa > 0) {
+    optimalSpacing_mm = (h_w_mm * t_web_input_mm * sigma_yield_mpa) / (Math.sqrt(3) * gammaM1 * supportShear_kN);
+    optimalSpacing_mm *= 1000; // scale to millimetres
+  }
+  if (!Number.isFinite(optimalSpacing_mm) || optimalSpacing_mm <= 0) {
+    optimalSpacing_mm = h_w_mm;
+  }
+  if (h_w_mm > 0) {
+    const a_min = 0.5 * h_w_mm;
+    const a_max = 2 * h_w_mm;
+    optimalSpacing_mm = Math.max(a_min, Math.min(a_max, optimalSpacing_mm));
+  }
+  optimalSpacing_mm = Math.max(10, Math.round(optimalSpacing_mm / 10) * 10);
+
+  let stiffenerWidth_mm = 0;
+  let stiffenerThickness_mm = 0;
+  let stiffenerInertia_mm4 = 0;
+  if (h_w_mm > 0 && t_web_input_mm > 0) {
+    stiffenerWidth_mm = Math.round(Math.max(0.1 * h_w_mm, 80) / 10) * 10;
+    const rawThickness = Math.max(0.6 * Math.sqrt(Math.max(sigma_yield_mpa, 1) / 235) * t_web_input_mm, 8);
+    stiffenerThickness_mm = Math.max(8, Math.round(rawThickness));
+    stiffenerInertia_mm4 = stiffenerWidth_mm * Math.pow(stiffenerThickness_mm, 3) / 12;
+  }
+
+  const span_cm = L;
+  const optimalSpacing_cm = optimalSpacing_mm / 10;
+  const span_mm = span_cm * 10;
+  let stiffenerCount = 0;
+  if (needsStiffeners && optimalSpacing_mm > 0 && span_mm > 0) {
+    stiffenerCount = Math.ceil(span_mm / optimalSpacing_mm);
+  }
+
+  const stiffenerPositions_cm: number[] = [];
+  if (needsStiffeners && optimalSpacing_cm > 0 && span_cm > 0) {
+    let marker = optimalSpacing_cm;
+    let guard = 0;
+    while (marker < span_cm && guard < 500) {
+      stiffenerPositions_cm.push(Number(marker.toFixed(2)));
+      marker += optimalSpacing_cm;
+      guard += 1;
+    }
+  }
 
   return {
     F, Yc, Xc, Jx, Jy, Wx, Wy,
@@ -185,6 +243,17 @@ export const calculateBeamProperties = (inputs: BeamInputs, mode: CalcMode = 'si
     deflection_check: n_f >= 1 ? 'pass' : 'fail',
     buckling_check: K_buckling >= 1 ? 'pass' : 'fail',
     calculationMode: mode,
+    stiffener: {
+      required: needsStiffeners,
+      effectiveWebHeight: h_w_mm,
+      epsilon,
+      optimalSpacing: optimalSpacing_mm,
+      count: needsStiffeners ? stiffenerCount : 0,
+      width: stiffenerWidth_mm,
+      thickness: stiffenerThickness_mm,
+      requiredInertia: stiffenerInertia_mm4,
+      positions: needsStiffeners ? stiffenerPositions_cm : [],
+    },
   };
 };
 
@@ -234,3 +303,7 @@ export const generateDiagramData = (inputs: BeamInputs, results: CalculationResu
 
   return data;
 };
+
+
+
+
