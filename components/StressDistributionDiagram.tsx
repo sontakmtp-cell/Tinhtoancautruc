@@ -30,6 +30,9 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
     const crossSectionLineColor = isDarkMode ? 'rgba(107, 114, 128, 1)' : 'rgba(107, 114, 128, 1)';
     const topFlangeWidth = isIBeam ? b : b3;
     
+    // Convert actual dimensions to display coordinates
+    const yToDisplay = (y: number) => y * scale;
+    
     // --- Scaling Logic ---
     const totalGeomWidth = Math.max(b, topFlangeWidth);
     const totalGeomHeight = h;
@@ -48,16 +51,27 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
     const scaledTotalWidth = totalGeomWidth * scale;
     const xOffset = -scaledTotalWidth / 2 - 40; // Offset to the left
 
+    // Y coordinates are relative to the bottom of the beam (y=0)
+    const y_bottom_flange_top = t1;
+    const y_top_flange_bottom = h - t2;
+
     // Top flange
-    shapes.push({ type: 'rect', x0: xOffset - s.b3 / 2, y0: s.h - s.t2, x1: xOffset + s.b3 / 2, y1: s.h, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
+    shapes.push({ type: 'rect', x0: xOffset - s.b3 / 2, y0: y_top_flange_bottom, x1: xOffset + s.b3 / 2, y1: h, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
     // Bottom flange
-    shapes.push({ type: 'rect', x0: xOffset - s.b / 2, y0: 0, x1: xOffset + s.b / 2, y1: s.t1, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
+    shapes.push({ type: 'rect', x0: xOffset - s.b / 2, y0: 0, x1: xOffset + s.b / 2, y1: y_bottom_flange_top, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
     // Web(s)
     if (isIBeam) {
-      shapes.push({ type: 'rect', x0: xOffset - s.t3 / 2, y0: s.t1, x1: xOffset + s.t3 / 2, y1: s.h - s.t2, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
+      const web_height = h - t1 - t2;
+      shapes.push({ type: 'rect', x0: xOffset - s.t3 / 2, y0: y_bottom_flange_top, x1: xOffset + s.t3 / 2, y1: y_top_flange_bottom, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
     } else {
-      shapes.push({ type: 'rect', x0: xOffset - s.b1 / 2 - s.t3, y0: s.t1, x1: xOffset - s.b1 / 2, y1: s.h - s.t2, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
-      shapes.push({ type: 'rect', x0: xOffset + s.b1 / 2, y0: s.t1, x1: xOffset + s.b1 / 2 + s.t3, y1: s.h - s.t2, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
+      // Left web
+      const web_left_x0 = xOffset - s.b1 / 2 - s.t3;
+      const web_left_x1 = xOffset - s.b1 / 2;
+      shapes.push({ type: 'rect', x0: web_left_x0, y0: y_bottom_flange_top, x1: web_left_x1, y1: y_top_flange_bottom, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
+      // Right web
+      const web_right_x0 = xOffset + s.b1 / 2;
+      const web_right_x1 = xOffset + s.b1 / 2 + s.t3;
+      shapes.push({ type: 'rect', x0: web_right_x0, y0: y_bottom_flange_top, x1: web_right_x1, y1: y_top_flange_bottom, fillcolor: crossSectionColor, line: { width: 1, color: crossSectionLineColor } });
     }
 
     // --- Stress Diagram ---
@@ -67,7 +81,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
     // Compression
     traces.push({
       x: [stressOffset, stressOffset - sigma_top_compression, stressOffset],
-      y: [Yc_mm * scale, s.h, s.h],
+      y: [Yc_mm, h, h],  // Use actual dimensions
       type: 'scatter', mode: 'lines',
       fill: 'toself',
       fillcolor: 'rgba(239, 68, 68, 0.2)',
@@ -78,7 +92,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
     // Tension
     traces.push({
       x: [stressOffset, stressOffset + sigma_bottom_tension, stressOffset],
-      y: [Yc_mm * scale, 0, 0],
+      y: [Yc_mm, 0, 0],  // Use actual dimensions
       type: 'scatter', mode: 'lines',
       fill: 'toself',
       fillcolor: 'rgba(59, 130, 246, 0.2)',
@@ -88,7 +102,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
 
     // Neutral Axis
     shapes.push({
-      type: 'line', x0: xOffset - scaledTotalWidth / 2 - 20, y0: Yc_mm * scale, x1: stressOffset + sigma_bottom_tension + 20, y1: Yc_mm * scale,
+      type: 'line', x0: xOffset - scaledTotalWidth / 2 - 20, y0: Yc_mm, x1: stressOffset + sigma_bottom_tension + 20, y1: Yc_mm,
       line: { color: isDarkMode ? '#6b7280' : '#6b7280', width: 1, dash: 'dash' }
     });
 
@@ -99,15 +113,15 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
       },
       xaxis: {
         title: `${t('stressDiagram.unit')}`,
-        range: [xOffset - scaledTotalWidth / 2 - 20, stressOffset + sigma_bottom_tension + 60],
+        range: [xOffset - scaledTotalWidth / 2 - 40, stressOffset + sigma_bottom_tension + 60],
         showgrid: false,
         zeroline: false,
         showticklabels: false,
         color: isDarkMode ? '#9ca3af' : '#4b5563',
       },
       yaxis: {
-        title: 'Height (mm)',
-        range: [-20, s.h + 20],
+        title: `${t('Height')} (mm)`,
+        range: [-20, h + 20],  // Use actual height instead of scaled height
         showgrid: false,
         zeroline: false,
         color: isDarkMode ? '#9ca3af' : '#4b5563',
@@ -118,24 +132,26 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
       margin: { l: 60, r: 20, b: 50, t: 50, pad: 4 },
       shapes: shapes,
       annotations: [
+        // Stress values
         {
           x: stressOffset - sigma_top_compression, y: s.h,
           xref: 'x', yref: 'y',
-          text: `-${sigma_top_compression.toFixed(1)} (${t('stressDiagram.compression')})`,
+          text: `-${sigma_top_compression.toFixed(1)} MPa (${t('stressDiagram.compression')})`,
           showarrow: false, ax: -40, ay: 0, xanchor: 'right',
           font: { color: isDarkMode ? '#f87171' : '#ef4444' }
         },
         {
           x: stressOffset + sigma_bottom_tension, y: 0,
           xref: 'x', yref: 'y',
-          text: `+${sigma_bottom_tension.toFixed(1)} (${t('stressDiagram.tension')})`,
+          text: `+${sigma_bottom_tension.toFixed(1)} MPa (${t('stressDiagram.tension')})`,
           showarrow: false, ax: 40, ay: 0, xanchor: 'left',
           font: { color: isDarkMode ? '#60a5fa' : '#3b82f6' }
         },
+        // Neutral axis
         {
           x: xOffset - scaledTotalWidth / 2 - 10, y: Yc_mm * scale,
           xref: 'x', yref: 'y',
-          text: `Yc=${Yc_mm.toFixed(1)}`,
+          text: `Yc=${(Yc * 10).toFixed(1)} mm`,
           showarrow: false, xanchor: 'right',
           font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
         },
@@ -145,7 +161,63 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
           text: 'N.A.',
           showarrow: false, xanchor: 'center', yanchor: 'bottom',
           font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
-        }
+        },
+        // Cross-section dimensions
+        {
+          x: xOffset, y: -10,
+          xref: 'x', yref: 'y',
+          text: `b = ${b} mm`,
+          showarrow: false,
+          yanchor: 'top',
+          xanchor: 'center',
+          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
+        },
+        {
+          x: xOffset - scaledTotalWidth / 2 - 30, y: h / 2,
+          xref: 'x', yref: 'y',
+          text: `h = ${h} mm`,
+          showarrow: false,
+          textangle: -90,
+          xanchor: 'center',
+          yanchor: 'middle',
+          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
+        },
+        // Flange and web thicknesses
+        {
+          x: xOffset + scaledTotalWidth / 2 + 10, y: h,
+          xref: 'x', yref: 'y',
+          text: `t2 = ${t2} mm`,
+          showarrow: false,
+          xanchor: 'left',
+          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
+        },
+        {
+          x: xOffset + scaledTotalWidth / 2 + 10, y: 0,
+          xref: 'x', yref: 'y',
+          text: `t1 = ${t1} mm`,
+          showarrow: false,
+          xanchor: 'left',
+          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
+        },
+        ...(isIBeam ? [{
+          x: xOffset + s.t3/2 + 5, y: h/2,
+          xref: 'x', yref: 'y',
+          text: `t3 = ${t3} mm`,
+          showarrow: false,
+          textangle: 90,
+          xanchor: 'center',
+          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
+        }] : [
+          {
+            x: xOffset + s.b1/2 + s.t3 + 5, y: h/2,
+            xref: 'x', yref: 'y',
+            text: `t3 = ${t3} mm`,
+            showarrow: false,
+            textangle: 90,
+            xanchor: 'center',
+            font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
+          }
+        ])
       ]
     };
 
