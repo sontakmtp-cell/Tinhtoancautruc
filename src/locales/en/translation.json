@@ -148,7 +148,7 @@
                        "unitPieces":  "pcs",
                        "stiffenerRecommendationTitle":  "Recommended stiffeners",
                        "stiffenerSpacingLegend":  "~{{value}} mm spacing",
-                       "safetyChecksTooltip":  "<p class='font-medium mb-2'>Explaining the safety factors (must be ≥ 1.0):</p><ul class='list-disc list-inside space-y-1'><li><b>K_sigma</b>: Stress safety factor, the ratio of allowable stress to calculated stress.</li><li><b>n_f</b>: Deflection safety factor, the ratio of allowable deflection to calculated deflection. Allowable deflection is typically [f] ≤ L/1000 for box girders and [f] ≤ L/800 for I-beams.</li><li><b>K_buckling</b>: Local buckling safety factor, the ratio of the limiting slenderness to the actual slenderness of the compression flange. Calculated according to EN 1993-1-1 (Table 5.2).</li></ul>",
+                       "safetyChecksTooltip":  "<p class='font-medium mb-2'>Explaining the safety factors (must be ≥ 1.0):</p><ul class='list-disc list-inside space-y-1'><li><b>K_sigma</b>: Stress safety factor, the ratio of allowable stress to calculated stress.</li><li><b>n_f</b>: Deflection safety factor, the ratio of allowable deflection to calculated deflection. Allowable deflection is typically [f] ≤ L/1000 for box girders and [f] ≤ L/800 for I-beams.</li><li><b>K_buckling</b>: Local buckling safety factor, the ratio of the limiting slenderness to the actual slenderness of the compression flange. Calculated according to EN 1993-1-5.</li></ul>",
                        "stiffenerMarkersLabel":  "Stiffener layout",
                        "stiffenerWidth":  "Stiffener width bs"
                    },

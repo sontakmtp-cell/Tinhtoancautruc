@@ -4,6 +4,7 @@ import html2canvas from 'html2canvas';
 import type { TFunction } from 'i18next';
 import i18n from '../src/i18n';
 import type { BeamInputs, CalculationResults, Language } from '../types';
+import { multiplyForDisplay } from '../utils/display';
 // Import from src to avoid MIME issues in Vite dev server
 // Load fonts from public assets at runtime to avoid module MIME issues in dev
 let fontCache: { regular?: string; bold?: string } = {};
@@ -383,11 +384,11 @@ class PDFReportService {
     if (results.stiffener && results.stiffener.required) {
       stiffenerData = [
         [this.t('calculator.stiffenerSpacing'), results.stiffener.optimalSpacing.toFixed(0), 'mm'],
-        [this.t('calculator.stiffenerCount'), results.stiffener.count, this.t('calculator.unitPieces')],
+        [this.t('calculator.stiffenerCount'), multiplyForDisplay(results.stiffener.count), this.t('calculator.unitPieces')],
         [this.t('calculator.stiffenerWidth'), results.stiffener.width.toFixed(0), 'mm'],
         [this.t('calculator.stiffenerThickness'), results.stiffener.thickness.toFixed(0), 'mm'],
         [this.t('calculator.stiffenerInertia'), results.stiffener.requiredInertia.toExponential(2), `mm${SUP4}`],
-        [this.t('stiffenerWeight'), results.stiffener.totalWeight.toFixed(1), 'kg'],
+        [this.t('stiffenerWeight'), multiplyForDisplay(results.stiffener.totalWeight).toFixed(1), 'kg'],
       ];
     } else {
       this.pdf.setFont('NotoSans', 'normal');

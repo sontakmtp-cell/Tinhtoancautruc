@@ -27,6 +27,7 @@ import { DeflectedShapeDiagram } from './DeflectedShapeDiagram';
 import { PDFExportButton } from './PDFReport';
 
 import { BeamCrossSection } from './BeamCrossSection';
+import { multiplyForDisplay } from '../utils/display';
 
 const MIN_LOADER_DURATION_MS = 4_000;
 
@@ -897,11 +898,11 @@ export const CraneBeamCalculator: React.FC = () => {
                       )}
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <ResultItem label={t('calculator.stiffenerSpacing')} value={results.stiffener.optimalSpacing.toFixed(0)} unit="mm" />
-                        <ResultItem label={t('calculator.stiffenerCount')} value={results.stiffener.count.toString()} unit={t('calculator.unitPieces')} />
+                        <ResultItem label={t('calculator.stiffenerCount')} value={multiplyForDisplay(results.stiffener.count).toString()} unit={t('calculator.unitPieces')} />
                         <ResultItem label={t('calculator.stiffenerWidth')} value={results.stiffener.width.toFixed(0)} unit="mm" />
                         <ResultItem label={t('calculator.stiffenerThickness')} value={results.stiffener.thickness.toFixed(0)} unit="mm" />
                         <ResultItem label={t('calculator.stiffenerInertia')} value={results.stiffener.requiredInertia.toExponential(2)} unit="mm^4" />
-                        <ResultItem label={t('stiffenerWeight')} value={results.stiffener.totalWeight.toFixed(1)} unit="kg" />
+                        <ResultItem label={t('stiffenerWeight')} value={multiplyForDisplay(results.stiffener.totalWeight).toFixed(1)} unit="kg" />
                       </div>
                     </div>
                   </CollapsibleSection>
