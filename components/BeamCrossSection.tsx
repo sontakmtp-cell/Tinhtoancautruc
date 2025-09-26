@@ -177,7 +177,7 @@ export const BeamCrossSection: React.FC<BeamCrossSectionProps> = ({ inputs, acti
           <Dimension
             x1={centerX - s.b3 / 2} y1={topY}
             x2={centerX + s.b3 / 2} y2={topY}
-            label={beamType === 'i-beam' ? `b = ${b}` : `b3 = ${b3_input}`}
+            label={beamType === 'i-beam' ? `b = ${b}` : `b2 = ${b3_input}`}
             isHighlighted={isDimensionHighlighted(beamType === 'i-beam' ? 'b' : 'b3')}
             position="top"
             onMouseEnter={() => setHoveredKey(beamType === 'i-beam' ? 'b' : 'b3')}
@@ -186,7 +186,7 @@ export const BeamCrossSection: React.FC<BeamCrossSectionProps> = ({ inputs, acti
           <Dimension
             x1={centerX - s.b / 2} y1={topY + s.h}
             x2={centerX + s.b / 2} y2={topY + s.h}
-            label={`b = ${b}`}
+            label={`b1 = ${b}`}
             isHighlighted={isDimensionHighlighted('b')}
             position="bottom"
             onMouseEnter={() => setHoveredKey('b')}
@@ -243,7 +243,7 @@ export const BeamCrossSection: React.FC<BeamCrossSectionProps> = ({ inputs, acti
               <Dimension
                 x1={centerX - s.b1 / 2} y1={topY + s.h / 2}
                 x2={centerX + s.b1 / 2} y2={topY + s.h / 2}
-                label={`b1 = ${b1}`}
+                label={`b3 = ${b1}`}
                 isHighlighted={isDimensionHighlighted('b1')}
                 position="bottom"
                 onMouseEnter={() => setHoveredKey('b1')}

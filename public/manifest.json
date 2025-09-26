@@ -1,0 +1,27 @@
+{
+  "name": "Crane Beam Design Studio",
+  "short_name": "CraneBeam",
+  "description": "Công cụ tính toán dầm cầu trục chuyên nghiệp - Tính toán nhanh chóng, chính xác các thông số kỹ thuật cho dầm cầu trục.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#1f2937",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

@@ -4,6 +4,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="application-name" content="CraneBeam" />
+    <meta name="apple-mobile-web-app-title" content="CraneBeam" />
+    <meta name="msapplication-starturl" content="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <title>Crane Beam Design Studio - Công cụ tính toán dầm cầu trục</title>
     <meta name="description" content="Công cụ tính toán dầm cầu trục chuyên nghiệp - Tính toán nhanh chóng, chính xác các thông số kỹ thuật cho dầm cầu trục. Hỗ trợ thiết kế kỹ thuật và phân tích cấu trúc." />
     <link rel="canonical" href="https://calculator.kythuatvang.com/" />
@@ -70,6 +77,10 @@
     </script>
     
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Link to Manifest for PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <!-- Theme color for browser UI -->
+    <meta name="theme-color" content="#1f2937" />
     <script src="https://cdn.plot.ly/plotly-2.33.0.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -103,5 +114,19 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
+    <script>
+      // Register Service Worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+              console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            })
+            .catch(error => {
+              console.log('ServiceWorker registration failed: ', error);
+            });
+        });
+      }
+    </script>
   </body>
 </html>
