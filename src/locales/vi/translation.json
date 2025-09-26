@@ -248,5 +248,7 @@
     "Stress check": "Kiểm tra ứng suất",
     "Deflection": "Kiểm tra độ võng",
     "Buckling": "Kiểm tra ổn định",
-    "Calculation summary": "Tóm tắt tính toán"
+    "Calculation summary": "Tóm tắt tính toán",
+    "stiffenerWeight": "Trọng lượng sườn tăng cường",
+    "selfWeight": "Trọng lượng bản thân dầm"
 }

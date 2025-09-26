@@ -895,12 +895,13 @@ export const CraneBeamCalculator: React.FC = () => {
                           {t('calculator.stiffenerOptionalMessage')}
                         </p>
                       )}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <ResultItem label={t('calculator.stiffenerSpacing')} value={results.stiffener.optimalSpacing.toFixed(0)} unit="mm" />
                         <ResultItem label={t('calculator.stiffenerCount')} value={results.stiffener.count.toString()} unit={t('calculator.unitPieces')} />
                         <ResultItem label={t('calculator.stiffenerWidth')} value={results.stiffener.width.toFixed(0)} unit="mm" />
                         <ResultItem label={t('calculator.stiffenerThickness')} value={results.stiffener.thickness.toFixed(0)} unit="mm" />
                         <ResultItem label={t('calculator.stiffenerInertia')} value={results.stiffener.requiredInertia.toExponential(2)} unit="mm^4" />
+                        <ResultItem label={t('stiffenerWeight')} value={results.stiffener.totalWeight.toFixed(1)} unit="kg" />
                       </div>
                     </div>
                   </CollapsibleSection>
@@ -935,6 +936,7 @@ export const CraneBeamCalculator: React.FC = () => {
                       <ResultItem label={t('Bending moment Mx')} value={results.M_x.toExponential(2)} unit="kg.cm" />
                       <ResultItem label={t('Stress sigma_u')} value={results.sigma_u.toFixed(2)} unit="kg/cm²" />
                       <ResultItem label={t('Deflection f')} value={results.f.toFixed(3)} unit="cm" />
+                      <ResultItem label={t('selfWeight')} value={results.beamSelfWeight.toFixed(1)} unit="kg" />
                     </div>
                   </CollapsibleSection>
 

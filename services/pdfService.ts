@@ -180,6 +180,7 @@ class PDFReportService {
       [this.t('Yield stress'), inputs.sigma_yield, 'kg/cm²'],
       [this.t('Elastic modulus E'), inputs.E.toExponential(2), 'kg/cm²'],
       [this.t('Poisson ratio (nu)'), inputs.nu, ''],
+      [this.t('selfWeight'), results.beamSelfWeight.toFixed(1), 'kg'],
     ];
 
     autoTable(this.pdf, {
@@ -386,6 +387,7 @@ class PDFReportService {
         [this.t('calculator.stiffenerWidth'), results.stiffener.width.toFixed(0), 'mm'],
         [this.t('calculator.stiffenerThickness'), results.stiffener.thickness.toFixed(0), 'mm'],
         [this.t('calculator.stiffenerInertia'), results.stiffener.requiredInertia.toExponential(2), `mm${SUP4}`],
+        [this.t('stiffenerWeight'), results.stiffener.totalWeight.toFixed(1), 'kg'],
       ];
     } else {
       this.pdf.setFont('NotoSans', 'normal');
@@ -400,6 +402,7 @@ class PDFReportService {
         [this.t('calculator.stiffenerWidth'), 0, 'mm'],
         [this.t('calculator.stiffenerThickness'), 0, 'mm'],
         [this.t('calculator.stiffenerInertia'), 0, `mm${SUP4}`],
+        [this.t('stiffenerWeight'), 0, 'kg'],
       ];
     }
   

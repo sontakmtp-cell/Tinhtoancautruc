@@ -1,4 +1,4 @@
-import type { BeamInputs, CalculationResults, DiagramData, DiagramPoint } from '../types';
+import type { BeamInputs, CalculationResults, DiagramData } from '../types';
 
 const KG_TO_KN = 9.80665 / 1000; // Chuyển đổi kilogram-lực sang kilonewton
 const KG_CM2_TO_MPA = 0.0980665; // Chuyển đổi kg/cm^2 sang MPa
@@ -123,6 +123,7 @@ export const calculateBeamProperties = (inputs: BeamInputs, mode: CalcMode = 'si
 
   // --- 2. Tính toán tải trọng và ứng suất ---
   const P = P_nang + P_thietbi;
+  // Tải trọng bản thân dầm (kg/cm)
   const q_auto = F * 7850 / 1_000_000;
   
   // Mô men cho dầm đơn giản
@@ -193,6 +194,7 @@ export const calculateBeamProperties = (inputs: BeamInputs, mode: CalcMode = 'si
   let stiffenerThickness_mm = 0;
   let stiffenerInertia_mm4 = 0;
   let stiffenerCount = 0;
+  let stiffenersTotalWeight_kg = 0;
   const stiffenerPositions_cm: number[] = [];
   const span_mm = L * 10;  // Chuyển đổi chiều dài từ cm sang mm
   
@@ -258,6 +260,7 @@ export const calculateBeamProperties = (inputs: BeamInputs, mode: CalcMode = 'si
           // Nếu khoảng cách gân lớn hơn chiều dài dầm, không cần gân
           needsStiffeners = false;
           stiffenerCount = 0;
+          stiffenersTotalWeight_kg = 0;
           optimalSpacing_mm = span_mm;
         } else {
           // Tính vị trí các gân (đơn vị cm)
@@ -269,16 +272,23 @@ export const calculateBeamProperties = (inputs: BeamInputs, mode: CalcMode = 'si
             currentPosition += spacing_cm;
             guard += 1;
           }
+          // Tính tổng trọng lượng sườn tăng cường
+          const singleStiffenerVolume_mm3 = h_w_mm * stiffenerWidth_mm * stiffenerThickness_mm;
+          const singleStiffenerWeight_kg = (singleStiffenerVolume_mm3 * 7850) / 1e9;
+          stiffenersTotalWeight_kg = stiffenerCount * singleStiffenerWeight_kg;
         }
       }
     }
   }
+
+  const beamSelfWeight_kg = q_auto * L;
 
   return {
     F, Yc, Xc, Jx, Jy, Wx, Wy,
     Jx_top: Ix_top, Jx_bottom: Ix_bottom, Jx_webs: Ix_webs_or_web,
     Jy_top: Iy_top, Jy_bottom: Iy_bottom, Jy_webs: Iy_webs_or_web,
     P, M_bt, M_vn, M_x, M_y,
+    beamSelfWeight: beamSelfWeight_kg,
     q: q_auto,
     sigma_u, sigma_top_compression, sigma_bottom_tension, f, f_allow,
     K_sigma, n_f, K_buckling,
@@ -296,6 +306,7 @@ export const calculateBeamProperties = (inputs: BeamInputs, mode: CalcMode = 'si
       thickness: stiffenerThickness_mm,
       requiredInertia: stiffenerInertia_mm4,
       positions: needsStiffeners ? stiffenerPositions_cm : [],
+      totalWeight: stiffenersTotalWeight_kg,
     },
   };
 };

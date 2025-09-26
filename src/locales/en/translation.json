@@ -257,5 +257,7 @@
     "Prepare lateral torsional and local buckling verifications.":  "Prepare lateral torsional and local buckling verifications.",
     "Lateral restraint spacing":  "Lateral restraint spacing",
     "Local buckling reduction factor":  "Local buckling reduction factor",
-    "Combined stress utilisation target":  "Combined stress utilisation target"
+    "Combined stress utilisation target":  "Combined stress utilisation target",
+    "stiffenerWeight": "Stiffener weight",
+    "selfWeight": "Self-weight of beam"
 }

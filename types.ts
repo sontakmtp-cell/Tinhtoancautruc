@@ -45,6 +45,7 @@ export interface CalculationResults extends GeometricProperties {
   M_vn: number; // Moment from point load (kg.cm)
   M_x: number; // Total moment about x-axis (kg.cm)
   M_y: number; // Total moment about y-axis (kg.cm)
+  beamSelfWeight: number; // Self-weight of the beam (kg)
   q: number;   // Auto-computed distributed load (kg/cm)
   
   // Inertia component breakdown (cm^4)
@@ -98,6 +99,8 @@ export interface StiffenerRecommendation {
   requiredInertia: number;
   /** Marker positions along the span (cm) for visualisation */
   positions: number[];
+  /** Total weight of all stiffeners (kg) */
+  totalWeight: number;
 }
 export interface DiagramPoint {
   x: number;      // Position along the beam
@@ -106,6 +109,3 @@ export interface DiagramPoint {
 }
 
 export type DiagramData = DiagramPoint[];
-
-
-
