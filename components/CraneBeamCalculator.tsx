@@ -607,8 +607,8 @@ export const CraneBeamCalculator: React.FC = () => {
     assess('H', t('Beam height H'), H_cm, L_cm, 1 / 18, 1 / 14);
     // 2) b1 (bottom flange width) = 1/3 .. 1/2 of H
     assess('b1', t('calculator.bottomFlangeWidthB1Short'), b1_cm, H_cm, 1 / 3, 1 / 2);
-    // 3) body width (web spacing) b3 (UI label maps to b1) = 1/50 .. 1/40 of L
-    assess('b3', t('calculator.bodyWidthB3'), body_cm, L_cm, 1 / 50, 1 / 40);
+    // 3) web spacing b2 (data field b1) = 1/50 .. 1/40 of L
+    assess('b1', t('calculator.webSpacingB2'), body_cm, L_cm, 1 / 50, 1 / 40);
     // 4) A = 1/7 .. 1/5 of L
     assess('A', t('endCarriageWheelCenterA'), A_cm, L_cm, 1 / 7, 1 / 5);
     // 5) C = 0.10 .. 0.15 of L
@@ -813,7 +813,21 @@ export const CraneBeamCalculator: React.FC = () => {
                     </div>
                   )}
 
-                  <CollapsibleSection title={t('safetyChecks')} icon={HardHat}>
+                  <CollapsibleSection 
+                    title={
+                      <div className="flex items-center gap-2">
+                        <span>{t('safetyChecks')}</span>
+                        <div className="group relative">
+                          <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
+                          <div className="absolute left-0 top-6 w-96 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                            <div className="prose prose-sm prose-invert" dangerouslySetInnerHTML={{ __html: t('calculator.safetyChecksTooltip') }} />
+                            <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
+                          </div>
+                        </div>
+                      </div>
+                    } 
+                    icon={HardHat}
+                  >
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <CheckBadge
                         status={results.stress_check}

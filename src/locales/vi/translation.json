@@ -46,9 +46,9 @@
     "status":  "Trạng thái",
     "stressCheck":  "Kiểm tra ứng suất (K_sigma)",
     "deflectionCheck":  "Kiểm tra độ võng (nf)",
-    "localBucklingCheck":  "Kiểm tra ổn định cục bộ (K_b)",
+    "localBucklingCheck":  "Kiểm tra ổn định cục bộ (K_buckling)",
     "overallAssessment":  "ĐÁNH GIÁ TỔNG THỂ",
-    "beamPass":  "DẦM ĐÁP ỨNG TẤT CẢ YÊU CẦU AN TOÀN",
+    "beamPass":  "DẦM ĐẠT YÊU CẦU AN TOÀN",
     "beamFail":  "DẦM KHÔNG ĐÁP ỨNG YÊU CẦU AN TOÀN",
     "passDescription":  "Tất cả các kiểm tra ĐẠT. Dầm được coi là an toàn cho các tải trọng và điều kiện đã cho.",
     "failDescription":  "Một hoặc nhiều kiểm tra KHÔNG ĐẠT. Cần điều chỉnh thiết kế dầm.",
@@ -101,7 +101,7 @@
                        "calculating":  "Đang tính toán...",
                        "calculate":  "Tính toán",
                        "inDesign":  "Đang thiết kế",
-                       "calculationsDisabled":  "Tính toán sẽ được bật khi bộ máy {{module}} sẵn sàng.",
+                       "calculationsDisabled":  "Tính toán sẽ được bật khi mô-đun {{module}} sẵn sàng.",
                        "error":  "Đã xảy ra lỗi trong quá trình tính toán. Vui lòng thử lại.",
                        "geometricBalanceTooltip":  "Các phần tử trong cầu trục cần có kích thước tương quan hài hòa để đảm bảo tính thẩm mỹ và vận hành an toàn, hiệu quả theo nguyên tắc kỹ thuật.",
                        "bottomFlangeWidthB1Short":  "Chiều rộng cánh dưới b1",
@@ -116,7 +116,7 @@
                        "flangeThicknessT1":  "Bề dày cánh t1",
                        "webThicknessT2":  "Bề dày bụng t2",
                        "beamSpanL":  "Khẩu độ dầm L",
-                       "bodyWidthB3":  "Bề rộng thân b3",
+                       "bodyWidthB3":  "Chiều rộng cánh trên b3",
                        "referencesTitle":  "Tài liệu tham khảo",
                        "references":  [
                                           "\"Sức bền vật liệu\" – Tập 1, Chương: Đặc trưng hình học của hình phẳng.",
@@ -132,7 +132,8 @@
                        "stiffenerRecommendationTitle":  "Sườn tăng cường đề xuất",
                        "stiffenerSpacingLegend":  "~{{value}} mm giữa các sườn",
                        "stiffenerMarkersLabel":  "Sơ đồ bố trí sườn",
-                       "stiffenerWidth":  "Bề rộng sườn bs"
+                       "stiffenerWidth":  "Bề rộng sườn bs",
+                       "safetyChecksTooltip":  "<p class='font-medium mb-2'>Giải thích các hệ số an toàn (phải ≥ 1.0):</p><ul class='list-disc list-inside space-y-1'><li><b>K_sigma</b>: Hệ số an toàn về ứng suất, là tỷ số giữa ứng suất cho phép và ứng suất tính toán.</li><li><b>n_f</b>: Hệ số an toàn về độ võng, là tỷ số giữa độ võng cho phép và độ võng tính toán. Độ võng cho phép theo TCVN 5575:2024 là [f] ≤ L/1000 đối với dầm hộp và [f] ≤ L/800 đối với dầm I.</li><li><b>K_buckling</b>: Hệ số an toàn về ổn định cục bộ, là tỷ số giữa độ mảnh giới hạn và độ mảnh thực tế của bản cánh chịu nén. Tính theo tiêu chuẩn EN 1993-1-1 (Bảng 5.2).</li></ul>"
                    },
     "deflectionDiagram":  {
                               "ariaLabel":  "Biểu đồ độ võng của dầm",
@@ -149,6 +150,9 @@
     "unit":  "Đơn vị",
     "pdf":  {
                 "notAvailable":  "Không có",
+                "stressCheck":  "Kiểm tra ứng suất",
+                "deflectionCheck":  "Kiểm tra độ võng",
+                "localBucklingCheck":  "Kiểm tra ổn định cục bộ",
                 "customMaterial":  "Tùy chọn",
                 "defaultProjectName":  "Dự án tính toán dầm cầu trục",
                 "generateReport":  "Tạo báo cáo PDF",
@@ -240,5 +244,9 @@
     "Prepare lateral torsional and local buckling verifications.":  "Chuẩn bị kiểm tra ổn định xoắn ngang và ổn định cục bộ.",
     "Lateral restraint spacing":  "Khoảng cách liên kết bên",
     "Local buckling reduction factor":  "Hệ số giảm ổn định cục bộ",
-    "Combined stress utilisation target":  "Mức sử dụng ứng suất tổng hợp mục tiêu"
+    "Combined stress utilisation target":  "Mức sử dụng ứng suất tổng hợp mục tiêu",
+    "Stress check": "Kiểm tra ứng suất",
+    "Deflection": "Kiểm tra độ võng",
+    "Buckling": "Kiểm tra ổn định",
+    "Calculation summary": "Tóm tắt tính toán"
 }
