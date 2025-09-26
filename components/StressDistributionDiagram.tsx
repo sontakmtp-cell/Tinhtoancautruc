@@ -21,6 +21,11 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
   useEffect(() => {
     if (!chartRef.current || typeof Plotly === 'undefined') return;
 
+    const isMobile = window.innerWidth < 768;
+    const mobileMargin = { l: 35, r: 10, b: 40, t: 40, pad: 2 };
+    const desktopMargin = { l: 60, r: 20, b: 50, t: 50, pad: 4 };
+    const mobileFontSize = 9;
+    const desktopFontSize = 10;
     const isDarkMode = document.documentElement.classList.contains('dark');
     const traces = [];
     const shapes = [];
@@ -49,7 +54,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
       b3: (isIBeam ? b : b3) * scale,
     };
     const scaledTotalWidth = totalGeomWidth * scale;
-    const xOffset = -scaledTotalWidth / 2 - 40; // Offset to the left
+    const xOffset = -scaledTotalWidth / 2 - (isMobile ? 20 : 40); // Offset to the left
 
     // Y coordinates are relative to the bottom of the beam (y=0)
     const y_bottom_flange_top = t1;
@@ -113,7 +118,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
       },
       xaxis: {
         title: `${t('stressDiagram.unit')}`,
-        range: [xOffset - scaledTotalWidth / 2 - 40, stressOffset + sigma_bottom_tension + 60],
+        range: [xOffset - scaledTotalWidth / 2 - (isMobile ? 25 : 40), stressOffset + sigma_bottom_tension + 60],
         showgrid: false,
         zeroline: false,
         showticklabels: false,
@@ -129,7 +134,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
       showlegend: false,
       paper_bgcolor: 'transparent',
       plot_bgcolor: 'transparent',
-      margin: { l: 60, r: 20, b: 50, t: 50, pad: 4 },
+      margin: isMobile ? mobileMargin : desktopMargin,
       shapes: shapes,
       annotations: [
         // Stress values
@@ -137,7 +142,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
           x: stressOffset - sigma_top_compression, y: s.h,
           xref: 'x', yref: 'y',
           text: `-${sigma_top_compression.toFixed(1)} MPa (${t('stressDiagram.compression')})`,
-          showarrow: false, ax: -40, ay: 0, xanchor: 'right',
+          showarrow: false, ax: isMobile ? -20 : -40, ay: 0, xanchor: 'right',
           font: { color: isDarkMode ? '#f87171' : '#ef4444' }
         },
         {
@@ -145,7 +150,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
           xref: 'x', yref: 'y',
           text: `+${sigma_bottom_tension.toFixed(1)} MPa (${t('stressDiagram.tension')})`,
           showarrow: false, ax: 40, ay: 0, xanchor: 'left',
-          font: { color: isDarkMode ? '#60a5fa' : '#3b82f6' }
+          font: { color: isDarkMode ? '#60a5fa' : '#3b82f6' },
         },
         // Neutral axis
         {
@@ -153,7 +158,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
           xref: 'x', yref: 'y',
           text: `Yc=${(Yc * 10).toFixed(1)} mm`,
           showarrow: false, xanchor: 'right',
-          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
+          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: desktopFontSize }
         },
         {
           x: stressOffset, y: Yc_mm * scale,
@@ -162,62 +167,64 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
           showarrow: false, xanchor: 'center', yanchor: 'bottom',
           font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
         },
-        // Cross-section dimensions
-        {
-          x: xOffset, y: -10,
-          xref: 'x', yref: 'y',
-          text: `b = ${b} mm`,
-          showarrow: false,
-          yanchor: 'top',
-          xanchor: 'center',
-          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
-        },
-        {
-          x: xOffset - scaledTotalWidth / 2 - 30, y: h / 2,
-          xref: 'x', yref: 'y',
-          text: `h = ${h} mm`,
-          showarrow: false,
-          textangle: -90,
-          xanchor: 'center',
-          yanchor: 'middle',
-          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
-        },
-        // Flange and web thicknesses
-        {
-          x: xOffset + scaledTotalWidth / 2 + 10, y: h,
-          xref: 'x', yref: 'y',
-          text: `t2 = ${t2} mm`,
-          showarrow: false,
-          xanchor: 'left',
-          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
-        },
-        {
-          x: xOffset + scaledTotalWidth / 2 + 10, y: 0,
-          xref: 'x', yref: 'y',
-          text: `t1 = ${t1} mm`,
-          showarrow: false,
-          xanchor: 'left',
-          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
-        },
-        ...(isIBeam ? [{
-          x: xOffset + s.t3/2 + 5, y: h/2,
-          xref: 'x', yref: 'y',
-          text: `t3 = ${t3} mm`,
-          showarrow: false,
-          textangle: 90,
-          xanchor: 'center',
-          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
-        }] : [
+        // Cross-section dimensions (show only on desktop)
+        ...(!isMobile ? [
           {
-            x: xOffset + s.b1/2 + s.t3 + 5, y: h/2,
+            x: xOffset, y: -10,
+            xref: 'x', yref: 'y',
+            text: `b = ${b} mm`,
+            showarrow: false,
+            yanchor: 'top',
+            xanchor: 'center',
+            font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: desktopFontSize }
+          },
+          {
+            x: xOffset - scaledTotalWidth / 2 - 30, y: h / 2,
+            xref: 'x', yref: 'y',
+            text: `h = ${h} mm`,
+            showarrow: false,
+            textangle: -90,
+            xanchor: 'center',
+            yanchor: 'middle',
+            font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: desktopFontSize }
+          },
+          // Flange and web thicknesses
+          {
+            x: xOffset + scaledTotalWidth / 2 + 10, y: h,
+            xref: 'x', yref: 'y',
+            text: `t2 = ${t2} mm`,
+            showarrow: false,
+            xanchor: 'left',
+            font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: desktopFontSize }
+          },
+          {
+            x: xOffset + scaledTotalWidth / 2 + 10, y: 0,
+            xref: 'x', yref: 'y',
+            text: `t1 = ${t1} mm`,
+            showarrow: false,
+            xanchor: 'left',
+            font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: desktopFontSize }
+          },
+          ...(isIBeam ? [{
+            x: xOffset + s.t3/2 + 5, y: h/2,
             xref: 'x', yref: 'y',
             text: `t3 = ${t3} mm`,
             showarrow: false,
             textangle: 90,
             xanchor: 'center',
-            font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 10 }
-          }
-        ])
+            font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: desktopFontSize }
+          }] : [
+            {
+              x: xOffset + s.b1/2 + s.t3 + 5, y: h/2,
+              xref: 'x', yref: 'y',
+              text: `t3 = ${t3} mm`,
+              showarrow: false,
+              textangle: 90,
+              xanchor: 'center',
+              font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: desktopFontSize }
+            }
+          ])
+        ] : [])
       ]
     };
 

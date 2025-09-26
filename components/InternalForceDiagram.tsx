@@ -22,6 +22,11 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
       return;
     }
 
+    const isMobile = window.innerWidth < 768;
+    const mobileMargin = { l: 40, r: 15, b: 40, t: 40, pad: 4 };
+    const desktopMargin = { l: 60, r: 20, b: 50, t: 50, pad: 4 };
+    const mobileFontSize = 10;
+    const desktopFontSize = 12;
     const isDarkMode = document.documentElement.classList.contains('dark');
     const xValues = data.map(d => d.x);
     const yValues = data.map(d => d[yKey]);
@@ -69,11 +74,11 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
             arrowhead: 2,
             arrowsize: 1,
             arrowwidth: 1.5,
-            ax: 0,
-            ay: 40,
+            ax: isMobile ? 0 : 0,
+            ay: isMobile ? -30 : -40,
             font: { 
               color: isDarkMode ? '#f87171' : '#ef4444',
-              size: 12 
+              size: isMobile ? mobileFontSize : desktopFontSize
             }
           });
         }
@@ -99,7 +104,7 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
         gridcolor: isDarkMode ? '#374151' : '#e5e7eb',
         zerolinecolor: isDarkMode ? '#4b5563' : '#d1d5db',
       },
-      margin: { l: 60, r: 20, b: 50, t: 50, pad: 4 },
+      margin: isMobile ? mobileMargin : desktopMargin,
       paper_bgcolor: 'transparent',
       plot_bgcolor: 'transparent',
       showlegend: false,
@@ -118,7 +123,7 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
 
-  }, [data, title, yKey, unit, stiffenerMarkers]);
+  }, [data, title, yKey, unit, stiffenerMarkers, t]);
 
   // Generate unique ID for PDF capture
   const diagramId = yKey === 'moment' ? 'moment-diagram' : 'shear-diagram';

@@ -38,6 +38,12 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
   useEffect(() => {
     if (!chartRef.current || typeof Plotly === 'undefined') return;
 
+    const isMobile = window.innerWidth < 768;
+    const mobileMargin = { l: 30, r: 15, b: 40, t: 40, pad: 2 };
+    const desktopMargin = { l: 40, r: 20, b: 50, t: 50, pad: 4 };
+    const mobileFontSize = 10;
+    const desktopFontSize = 12;
+
     const x = Array.from({ length: 101 }, (_, i) => (i / 100) * L);
     const y_deflected = x.map(val => -f * Math.sin((Math.PI * val) / L));
 
@@ -83,11 +89,11 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
         orientation: 'h',
         yanchor: 'bottom', y: 1.02,
         xanchor: 'right', x: 1,
-        font: { color: isDarkMode ? '#9ca3af' : '#4b5563' }
+        font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: isMobile ? mobileFontSize : desktopFontSize }
       },
       paper_bgcolor: 'transparent',
       plot_bgcolor: 'transparent',
-      margin: { l: 40, r: 20, b: 50, t: 50, pad: 4 },
+      margin: isMobile ? mobileMargin : desktopMargin,
       annotations: [
         // Maximum deflection annotation
         {
@@ -100,7 +106,7 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
           arrowwidth: 1.5,
           ax: 0,
           ay: -30,
-          font: { color: isDarkMode ? '#60a5fa' : '#3b82f6', size: 12 }
+          font: { color: isDarkMode ? '#60a5fa' : '#3b82f6', size: mobileFontSize }
         },
         // Left support annotation
         {
@@ -139,7 +145,7 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
           arrowwidth: 1.5,
           ax: 0,
           ay: -30,
-          font: { color: isDarkMode ? '#4ade80' : '#22c55e', size: 12 }
+          font: { color: isDarkMode ? '#4ade80' : '#22c55e', size: mobileFontSize }
         }
       ],
       shapes: [
