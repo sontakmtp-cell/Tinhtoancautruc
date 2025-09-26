@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FileText, Download, Settings, User, Calendar, FolderOpen, Globe } from 'lucide-react';
 import type { BeamInputs, CalculationResults, Language } from '../types';
-import { generatePDFReport } from '../services/pdfService';
+// Lazy-load heavy PDF generation code on demand to keep initial bundle small
 
 interface PDFReportModalProps {
   isOpen: boolean;
@@ -39,6 +39,8 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const pdfT = i18n.getFixedT(language);
+      // Dynamically import PDF generator (jspdf + html2canvas are large)
+      const { generatePDFReport } = await import('../services/pdfService');
       await generatePDFReport(inputs, results, {
         projectName,
         engineer,

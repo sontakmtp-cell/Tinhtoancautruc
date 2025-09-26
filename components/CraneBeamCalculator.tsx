@@ -18,7 +18,7 @@ import {
 import type { BeamInputs, CalculationResults, DiagramData, MaterialType } from '../types';
 import { MATERIAL_LIBRARY, MATERIAL_LABELS } from '../utils/materials';
 import { calculateBeamProperties, generateDiagramData } from '../services/calculationService';
-import { getDesignRecommendation } from '../services/geminiService';
+// Lazy-load AI client on demand to avoid pulling heavy SDK on first load
 import { useTranslation } from 'react-i18next';
 import { HamsterLoader } from './Loader';
 import { InternalForceDiagram } from './InternalForceDiagram';
@@ -533,6 +533,7 @@ export const CraneBeamCalculator: React.FC = () => {
 
       if (hasFailed) {
         setIsCallingAI(true);
+        const { getDesignRecommendation } = await import('../services/geminiService');
         const geminiRec = await getDesignRecommendation(inputs, calculatedResults);
         setRecommendation(geminiRec);
         setIsCallingAI(false);

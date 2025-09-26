@@ -8,8 +8,7 @@ const urlsToCache = [
   '/manifest.json',
   '/favicon.svg',
   '/icon-192x192.png',
-  '/icon-512x512.png',
-  '/preview.png'
+  '/icon-512x512.png'
 ];
 
 // Sự kiện 'install': Mở cache và thêm các file vào
