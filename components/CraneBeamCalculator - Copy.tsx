@@ -55,9 +55,9 @@ const defaultInputs: BeamInputs = {
 const defaultIBeamInputs: BeamInputs = {
   b: 150,      // Flange width b (mm) - typical for rolled I-beam
   h: 300,      // Total height H (mm)  
-  t1: 10,      // Bottom flange thickness (mm)
-  t2: 10,      // Top flange thickness (mm)
-  t3: 6,       // Web thickness tw (mm)
+  t1: 10,      // Flange thickness t (mm)
+  t2: 10,      // (same as t1 for compatibility)
+  t3: 6,       // Web thickness tw (mm) — UI label shows "Web thickness t2" to match spec/i18n
   b1: 350,     // (kept for compatibility)
   b3: 150,     // (same as b for compatibility)
   L: 600,      // Beam span L (cm)
@@ -112,9 +112,8 @@ const getIBeamInputConfig = (t: (key: string, opts?: any) => string) => [
     fields: [
       // Standard I-beam parameters
       { name: 'b', label: 'calculator.flangeWidthB', unit: 'mm' },
-      { name: 't1', label: 'calculator.bottomFlangeThicknessT1', unit: 'mm' },
-      { name: 't2', label: 'calculator.topFlangeThicknessT2', unit: 'mm' },
-      { name: 't3', label: 'calculator.webThicknessT3', unit: 'mm' }, // UI label t3, data field t3
+      { name: 't1', label: 'calculator.flangeThicknessT1', unit: 'mm' },
+      { name: 't3', label: 'calculator.webThicknessT2', unit: 'mm' }, // UI label t2, data field t3 (intentional)
       { name: 'h', label: 'calculator.beamHeightH', unit: 'mm' },
       { name: 'L', label: 'calculator.beamSpanL', unit: 'cm' },
     ],
@@ -660,21 +659,6 @@ export const CraneBeamCalculator: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <form onSubmit={handleSubmit} className="lg:col-span-1 space-y-6">
-          {/* Mobile-only Cross Section Diagram */}
-          {isPrimaryModule && !isLoading && !results && (
-            <div className="block lg:hidden">
-              <CollapsibleSection title={t('Cross-section reference')} icon={Scale}>
-                <div id="cross-section-diagram-mobile">
-                  <BeamCrossSection
-                    inputs={inputs}
-                    activeInput={activeInputKey}
-                    beamType={beamType as 'single-girder' | 'i-beam'}
-                    stiffenerLayout={stiffenerLayout}
-                  />
-                </div>
-              </CollapsibleSection>
-            </div>
-          )}
           {isPrimaryModule ? (
             (beamType === 'i-beam' ? getIBeamInputConfig(t) : getInputConfig(t)).map(({ title, icon, fields }) => (
               <CollapsibleSection key={title} title={t(title)} icon={icon}>
@@ -805,18 +789,16 @@ export const CraneBeamCalculator: React.FC = () => {
               )}
 
               {!isLoading && !results && (
-                <div className="hidden lg:block">
-                  <CollapsibleSection title={t('Cross-section reference')} icon={Scale}>
-                    <div id="cross-section-diagram">
-                      <BeamCrossSection
-                        inputs={inputs}
-                        activeInput={activeInputKey}
-                        beamType={beamType as 'single-girder' | 'i-beam'}
-                        stiffenerLayout={stiffenerLayout}
-                      />
-                    </div>
-                  </CollapsibleSection>
+                <CollapsibleSection title={t('Cross-section reference')} icon={Scale}>
+                  <div id="cross-section-diagram">
+                    <BeamCrossSection
+                      inputs={inputs}
+                      activeInput={activeInputKey}
+                      beamType={beamType as 'single-girder' | 'i-beam'}
+                      stiffenerLayout={stiffenerLayout}
+                    />
                   </div>
+                </CollapsibleSection>
               )}
 
               {!isLoading && results && (

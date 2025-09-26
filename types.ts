@@ -4,11 +4,11 @@ export type MaterialType = 'SS400' | 'CT3' | 'A36' | 'CUSTOM';
 
 export interface BeamInputs {
   // Geometric properties (mm)
-  b: number; // Bottom flange width b1 (mm)
+  b: number; // Bottom flange width b1 (mm) for single-girder; Flange width b for I-beam
   h: number; // Beam height H (mm)
-  t1: number; // Bottom flange thickness t1 (mm)
-  t2: number; // Top flange thickness t2 (mm)
-  t3: number; // Web thickness t3 (mm)
+  t1: number; // Bottom flange thickness t1 (mm) for single-girder; Flange thickness t for I-beam
+  t2: number; // Top flange thickness t2 (mm) for single-girder; (same as t1 for I-beam)
+  t3: number; // Web thickness t3 (mm) for single-girder; Web thickness tw for I-beam
   b1: number; // Web spacing b2 (mm)
   b3: number; // Top flange width b2 (mm)
 

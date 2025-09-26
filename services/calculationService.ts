@@ -55,8 +55,8 @@ export const calculateBeamProperties = (inputs: BeamInputs, mode: CalcMode = 'si
   if (mode === 'i-beam') {
     // Dầm I cán nóng tiêu chuẩn: tiết diện đối xứng với các cánh bằng nhau
     const b_flange = b_bottom; // chiều rộng cánh (như nhau cho cả trên và dưới)
-    const t_flange = t_top;    // chiều dày cánh (như nhau cho cả hai cánh)
-    const t_web_thickness = t_web; // chiều dày sườn dầm
+    const t_flange = t_bottom; // chiều dày cánh (như nhau cho cả hai cánh, t1=t2)
+    const t_web_thickness = t_web; // chiều dày sườn dầm (t3)
     
     // Tính diện tích các thành phần
     const A_top_flange = b_flange * t_flange;

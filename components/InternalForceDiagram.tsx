@@ -64,7 +64,7 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
           annotations.push({
             x: pos,
             y: Math.max(...yValues),
-            text: `Sườn ${index + 1}<br>x = ${pos} cm`,
+            text: `${t('calculator.stiffenerLabel')} ${index + 1}<br>x = ${pos} cm`,
             showarrow: true,
             arrowhead: 2,
             arrowsize: 1,
