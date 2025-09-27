@@ -611,7 +611,7 @@ export const CraneBeamCalculator: React.FC = () => {
     // 2) b1 (bottom flange width) = 1/3 .. 1/2 of H
     assess('b1', t('calculator.bottomFlangeWidthB1Short'), b1_cm, H_cm, 1 / 3, 1 / 2);
     // 3) web spacing b2 (data field b1) = 1/50 .. 1/40 of L
-    assess('b1', t('calculator.webSpacingB2'), body_cm, L_cm, 1 / 50, 1 / 40);
+    assess('web-spacing-b1', t('calculator.webSpacingB2'), body_cm, L_cm, 1 / 50, 1 / 40);
     // 4) A = 1/7 .. 1/5 of L
     assess('A', t('endCarriageWheelCenterA'), A_cm, L_cm, 1 / 7, 1 / 5);
     // 5) C = 0.10 .. 0.15 of L

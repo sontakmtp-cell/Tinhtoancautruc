@@ -170,9 +170,10 @@ export const calculateBeamProperties = (inputs: BeamInputs, mode: CalcMode = 'si
     // Giới hạn cho cánh ngoài chịu nén Loại 3 (Bảng 5.2, sheet 2)
     lambda_limit = 14 * epsilon;
   } else {
-    // Dầm tổ hợp: Kiểm tra bộ phận nén bên trong (bản cánh trên giữa hai sườn dầm)
+    // Dầm đơn tổ hợp: Kiểm tra bộ phận nén bên trong (bản cánh dưới giữa hai sườn dầm)
+    // Vì xe con được gắn vào cánh dưới, cần kiểm tra ổn định của cánh dưới
     representative_b = b_body; // c = chiều rộng lọt lòng giữa các sườn dầm
-    representative_t = t_top;  // t_f = chiều dày cánh
+    representative_t = t_bottom;  // t_f = chiều dày cánh dưới (t1)
     // Giới hạn cho bộ phận nén bên trong chịu uốn Loại 3 (Bảng 5.2, sheet 1)
     lambda_limit = 42 * epsilon;
   }
