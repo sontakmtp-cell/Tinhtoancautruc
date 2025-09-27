@@ -27,6 +27,7 @@ import { DeflectedShapeDiagram } from './DeflectedShapeDiagram';
 import { PDFExportButton } from './PDFReport';
 
 import { BeamCrossSection } from './BeamCrossSection';
+import { DoubleBeamCalculator } from './DoubleBeamCalculator';
 import { multiplyForDisplay } from '../utils/display';
 
 const MIN_LOADER_DURATION_MS = 4_000;
@@ -170,46 +171,14 @@ type BeamTab = {
     {
       id: 'double-girder',
       label: 'Double girder',
-      subLabel: 'Preview layout',
-      description: 'Preview of the upcoming twin-girder workflow with spacing and load sharing controls.',
-      status: 'preview',
+      subLabel: 'Live module',
+      description: 'Design double girder crane beams with geometry, loading, and safety checks.',
+      status: 'available',
       icon: HardHat,
-      previewSections: [
-        {
-          title: 'Geometry & spacing',
-          icon: Scale,
-          description: 'Capture twin girder spacing, plate sizing, and cross tie arrangement.',
-          items: [
-            'Girder spacing (center to center)',
-            'Upper and lower flange plate thickness',
-            'Cross tie spacing and detailing',
-          ],
-        },
-        {
-          title: 'Load sharing & service',
-          icon: HardHat,
-          description: 'Define trolley arrangement and distribute crane loads between girders.',
-          items: [
-            'Wheel load per girder',
-            'Crab load distribution factor',
-            'Serviceability deflection limit',
-          ],
-        },
-        {
-          title: 'Bracing & stability',
-          icon: TrendingDown,
-          description: 'Plan diaphragms, lateral ties, and torsional restraint checks.',
-          items: [
-            'Web stiffener spacing',
-            'Top lateral bracing member',
-            'Torsional restraint class',
-          ],
-        },
-      ],
       highlights: [
-        'Dedicated inputs for twin girders and rail alignment',
-        'Independent deflection limits per girder',
-        'Shared hoist load factors and diaphragm layout',
+        'Complete geometry and load inputs for double girders',
+        'Girder spacing and load distribution analysis',
+        'Stress, deflection, and buckling verification',
       ],
     },
     {
@@ -654,6 +623,16 @@ export const CraneBeamCalculator: React.FC = () => {
   const activeInputKey = !results && typeof document !== 'undefined'
     ? (Object.keys(inputStrings) as (keyof BeamInputs)[]).find((key) => document.activeElement?.id === key)
     : undefined;
+
+  // Render DoubleBeamCalculator if double-girder is selected
+  if (beamType === 'double-girder') {
+    return (
+      <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+        <BeamTypeTabs active={beamType} onChange={setBeamType} />
+        <DoubleBeamCalculator />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">

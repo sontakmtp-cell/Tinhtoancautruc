@@ -1,0 +1,744 @@
+import React, { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import {
+  Bot,
+  CheckCircle2,
+  XCircle,
+  ChevronDown,
+  ChevronUp,
+  BarChart,
+  AreaChart,
+  TrendingDown,
+  HelpCircle,
+  HardHat,
+  Scale,
+  ChevronsRight,
+  RotateCcw,
+  Copy
+} from 'lucide-react';
+import type { BeamInputs, CalculationResults, DiagramData, MaterialType } from '../types';
+import { MATERIAL_LIBRARY, MATERIAL_LABELS } from '../utils/materials';
+// Import các service tính toán - sẽ cần tùy chỉnh cho dầm đôi
+// import { calculateDoubleBeamProperties, generateDoubleBeamDiagramData } from '../services/calculationService';
+import { useTranslation } from 'react-i18next';
+import { HamsterLoader } from './Loader';
+import { InternalForceDiagram } from './InternalForceDiagram';
+import { StressDistributionDiagram } from './StressDistributionDiagram';
+import { DeflectedShapeDiagram } from './DeflectedShapeDiagram';
+import { PDFExportButton } from './PDFReport';
+import { BeamCrossSection } from './BeamCrossSection';
+import { multiplyForDisplay } from '../utils/display';
+
+const MIN_LOADER_DURATION_MS = 4_000;
+
+// Định nghĩa inputs mặc định cho dầm đôi
+interface DoubleBeamInputs extends BeamInputs {
+  // Khoảng cách giữa hai dầm (center to center)
+  girderSpacing: number;
+  // Chiều rộng ray cần trục
+  railWidth: number;
+  // Tải trọng phân bố do kết cấu ngang
+  transversalLoad: number;
+}
+
+const defaultDoubleBeamInputs: DoubleBeamInputs = {
+  b: 800,       // Bottom flange width
+  h: 1200,      // Total beam height
+  t1: 40,       // Bottom flange thickness
+  t2: 40,       // Top flange thickness
+  t3: 20,       // Web thickness
+  b1: 500,      // Web spacing
+  b3: 800,      // Top flange width (same as b for symmetry)
+  L: 1200,      // Beam span
+  A: 0,         // End carriage wheel center distance
+  C: 0,         // End inclined segment
+  P_nang: 50000,    // Hoist load (higher for double girder)
+  P_thietbi: 15000, // Trolley weight
+  sigma_allow: 1650,
+  sigma_yield: 2450,
+  E: 2.1e6,
+  nu: 0.3,
+  q: 30,        // Self weight factor
+  materialType: 'SS400',
+  // Double beam specific parameters
+  girderSpacing: 2500,    // Distance between girders (mm)
+  railWidth: 43,          // Rail width (mm)
+  transversalLoad: 50,    // Distributed load from cross structure (kg/m)
+};
+
+// Cấu hình input cho dầm đôi
+const getDoubleBeamInputConfig = (t: (key: string, opts?: any) => string) => [
+  {
+    title: 'Section geometry',
+    icon: Scale,
+    fields: [
+      // Double girder specific parameters
+      { name: 'girderSpacing', label: 'calculator.girderSpacing', unit: 'mm' },
+      { name: 'railWidth', label: 'calculator.railWidth', unit: 'mm' },
+      { name: 'L', label: 'calculator.spanLengthL', unit: 'cm' },
+      { name: 'A', label: 'endCarriageWheelCenterA', unit: 'mm' },
+      { name: 'C', label: 'endInclinedSegmentC', unit: 'mm' },
+      // Section geometry parameters
+      { name: 'b', label: 'calculator.bottomFlangeWidthB1Short', unit: 'mm' },
+      { name: 't1', label: 'calculator.bottomFlangeThicknessT1', unit: 'mm' },
+      { name: 'b3', label: 'calculator.topFlangeWidthB2', unit: 'mm' },
+      { name: 't2', label: 'calculator.topFlangeThicknessT2', unit: 'mm' },
+      { name: 'b1', label: 'calculator.webSpacingB2', unit: 'mm' },
+      { name: 't3', label: 'calculator.webThicknessT3', unit: 'mm' },
+      { name: 'h', label: 'calculator.beamHeightH', unit: 'mm' },
+    ],
+  },
+  {
+    title: 'Loading & material',
+    icon: HardHat,
+    fields: [
+      { name: 'P_nang', label: 'Hoist load', unit: 'kg' },
+      { name: 'P_thietbi', label: 'Trolley weight', unit: 'kg' },
+      { name: 'transversalLoad', label: 'calculator.transversalLoad', unit: 'kg/m' },
+      { name: 'sigma_allow', label: 'Allowable stress', unit: 'kg/cm²' },
+      { name: 'sigma_yield', label: 'Yield stress', unit: 'kg/cm²' },
+      { name: 'E', label: 'Elastic modulus E', unit: 'kg/cm²' },
+      { name: 'nu', label: 'Poisson ratio (nu)', unit: '' },
+    ],
+  },
+] as const;
+
+const CollapsibleSection: React.FC<{ 
+  title: string | React.ReactNode; 
+  icon: React.FC<any>; 
+  children: React.ReactNode; 
+  defaultOpen?: boolean 
+}> = ({ title, icon: Icon, children, defaultOpen = true }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  return (
+    <div className="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
+      <button
+        type="button"
+        aria-expanded={isOpen}
+        data-section-title={typeof title === 'string' ? title : 'Section'}
+        className="w-full flex justify-between items-center p-4"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center" style={{ textTransform: 'none' }}>
+          <Icon className="w-5 h-5 mr-3 text-blue-500" />
+          {title}
+        </h3>
+        {isOpen ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+      </button>
+      {isOpen && <div className="p-4 border-t border-gray-200 dark:border-gray-700">{children}</div>}
+    </div>
+  );
+};
+
+const ResultItem: React.FC<{ label: string; value: string; unit: string }> = ({ label, value, unit }) => (
+  <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-md">
+    <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+    <p className="text-lg font-semibold text-gray-900 dark:text-white">
+      {value} <span className="text-sm font-normal text-gray-600 dark:text-gray-300">{unit}</span>
+    </p>
+  </div>
+);
+
+const CheckBadge: React.FC<{ status: 'pass' | 'fail'; label: string; value: string }> = ({ status, label, value }) => {
+  const isPass = status === 'pass';
+  const bgColor = isPass ? 'bg-green-100 dark:bg-green-900/50' : 'bg-red-100 dark:bg-red-900/50';
+  const textColor = isPass ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300';
+  const Icon = isPass ? CheckCircle2 : XCircle;
+
+  return (
+    <div className={`p-3 rounded-md ${bgColor} ${textColor}`}>
+      <div className="flex items-center">
+        <Icon className="w-5 h-5 mr-2" />
+        <p className="text-sm font-medium">{label}</p>
+      </div>
+      <p className="text-lg font-bold mt-1">{value}</p>
+    </div>
+  );
+};
+
+export const DoubleBeamCalculator: React.FC = () => {
+  const [inputs, setInputs] = useState<DoubleBeamInputs>(defaultDoubleBeamInputs);
+  const [inputStrings, setInputStrings] = useState<Partial<Record<keyof DoubleBeamInputs, string>>>(() => {
+    const map: Partial<Record<keyof DoubleBeamInputs, string>> = {};
+    (Object.keys(defaultDoubleBeamInputs) as (keyof DoubleBeamInputs)[]).forEach((k) => {
+      map[k] = String((defaultDoubleBeamInputs as any)[k] ?? '');
+    });
+    return map;
+  });
+  const [materialType, setMaterialType] = useState<MaterialType>(defaultDoubleBeamInputs.materialType || 'SS400');
+  const [results, setResults] = useState<CalculationResults | null>(null);
+  const [diagramData, setDiagramData] = useState<DiagramData | null>(null);
+  const [recommendation, setRecommendation] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isCallingAI, setIsCallingAI] = useState<boolean>(false);
+
+  const { t } = useTranslation();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    // Keep raw string for better UX with decimals and partial typing
+    setInputStrings((prev) => ({ ...prev, [name]: value }));
+
+    // Normalize decimal separator to dot for parsing
+    const normalized = value.replace(',', '.');
+    const isIntermediate =
+      normalized === '' ||
+      normalized === '-' ||
+      normalized === '.' ||
+      normalized === '-.' ||
+      /\.$/.test(normalized);
+
+    if (!isIntermediate) {
+      const numValue = Number(normalized);
+      if (!Number.isNaN(numValue)) {
+        setInputs((prev) => ({ ...prev, [name]: numValue as any }));
+      }
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name } = e.target;
+    const raw = inputStrings[name as keyof DoubleBeamInputs] ?? '';
+    const normalized = String(raw).replace(',', '.');
+    const numValue = Number(normalized);
+    if (!Number.isNaN(numValue)) {
+      setInputs((prev) => ({ ...prev, [name]: numValue as any }));
+      setInputStrings((prev) => ({ ...prev, [name]: String(numValue) }));
+    }
+  };
+
+  const handleMaterialSelect = (type: MaterialType) => {
+    setMaterialType(type);
+    setInputs((prev) => {
+      if (type === 'CUSTOM') {
+        return { ...prev, materialType: type };
+      }
+      const mat = MATERIAL_LIBRARY[type];
+      return {
+        ...prev,
+        materialType: type,
+        sigma_allow: mat.sigma_allow,
+        sigma_yield: mat.sigma_yield,
+        E: mat.E,
+        nu: mat.nu,
+      };
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    setIsLoading(true);
+    setResults(null);
+    setDiagramData(null);
+    setRecommendation('');
+
+    const loaderStart = Date.now();
+
+    try {
+      // Tạm thời hiển thị thông báo rằng tính toán cho dầm đôi đang được phát triển
+      console.log('Double beam calculation inputs:', inputs);
+      
+      // TODO: Implement double beam calculation logic
+      // const calculatedResults = calculateDoubleBeamProperties(inputs);
+      // const newDiagramData = generateDoubleBeamDiagramData(inputs, calculatedResults);
+      
+      // Tạm thời tạo kết quả giả để test giao diện
+      const mockArea = inputs.b * inputs.t1 / 100 + inputs.b3 * inputs.t2 / 100 + inputs.h * inputs.t3 / 100;
+      const mockResults: CalculationResults = {
+        F: mockArea, // Approximate area
+        Yc: inputs.h / 2 / 10, // Neutral axis at center
+        Xc: inputs.b / 2 / 10, // Centroid from left
+        Jx: Math.pow(inputs.h, 3) * inputs.t3 / 12 / 10000, // Approximate moment of inertia
+        Jy: Math.pow(inputs.b, 3) * inputs.t1 / 12 / 10000,
+        Wx: Math.pow(inputs.h, 2) * inputs.t3 / 6 / 1000,
+        Wy: Math.pow(inputs.b, 2) * inputs.t1 / 6 / 1000,
+        P: inputs.P_nang + inputs.P_thietbi, // Total point load
+        M_bt: inputs.transversalLoad * Math.pow(inputs.L, 2) / 8, // Moment from distributed load
+        M_vn: inputs.P_nang * inputs.L / 4, // Moment from point load
+        M_x: inputs.P_nang * inputs.L * 25 / 2, // Total moment about x-axis
+        M_y: 0, // Mock value for y-axis moment
+        beamSelfWeight: mockArea * inputs.L * 0.785 / 100, // Approximate self weight
+        q: inputs.transversalLoad, // Distributed load
+        // Inertia component breakdown
+        Jx_top: Math.pow(inputs.h, 3) * inputs.t3 / 24 / 10000,
+        Jx_bottom: Math.pow(inputs.h, 3) * inputs.t3 / 24 / 10000,
+        Jx_webs: Math.pow(inputs.h, 3) * inputs.t3 / 12 / 10000,
+        Jy_top: Math.pow(inputs.b, 3) * inputs.t1 / 24 / 10000,
+        Jy_bottom: Math.pow(inputs.b, 3) * inputs.t1 / 24 / 10000,
+        Jy_webs: Math.pow(inputs.b, 3) * inputs.t1 / 12 / 10000,
+        sigma_u: 800, // Mock stress value
+        sigma_top_compression: 750, // Mock compression stress
+        sigma_bottom_tension: 850, // Mock tension stress
+        f: 0.5, // Mock deflection
+        f_allow: 1.0, // Mock allowable deflection
+        K_sigma: 0.75, // Safety factor for stress
+        n_f: 350, // Deflection safety factor
+        K_buckling: 0.8, // Buckling safety factor
+        stress_check: 'pass' as const,
+        deflection_check: 'pass' as const,
+        buckling_check: 'pass' as const,
+        calculationMode: 'single-girder' as const, // Using single-girder mode as base
+        stiffener: {
+          required: true,
+          effectiveWebHeight: inputs.h - inputs.t1 - inputs.t2,
+          epsilon: 1.2,
+          optimalSpacing: 800,
+          count: 3,
+          width: 100,
+          thickness: 12,
+          requiredInertia: 50000,
+          positions: [200, 600, 1000], // Mock positions in cm
+          totalWeight: 45.5
+        }
+      };
+
+      setResults(mockResults);
+      
+      // Mock diagram data
+      const mockDiagramData: DiagramData = Array.from({ length: 21 }, (_, i) => {
+        const x = (i / 20) * inputs.L;
+        return {
+          x,
+          moment: Math.sin((Math.PI * x) / inputs.L) * mockResults.M_x,
+          shear: Math.cos((Math.PI * x) / inputs.L) * inputs.P_nang / 2,
+          deflection: Math.sin((Math.PI * x) / inputs.L) * mockResults.f
+        };
+      });
+      
+      setDiagramData(mockDiagramData);
+      
+      // Mock recommendation for demonstration
+      setRecommendation('**Thông báo**: Tính toán dầm đôi hiện đang trong giai đoạn phát triển. Các kết quả hiển thị chỉ mang tính chất minh họa giao diện.');
+
+    } catch (error) {
+      console.error('Double Beam Calculation Error:', error);
+      setRecommendation('Đã xảy ra lỗi trong quá trình tính toán dầm đôi.');
+    } finally {
+      const elapsed = Date.now() - loaderStart;
+      if (elapsed < MIN_LOADER_DURATION_MS) {
+        await new Promise((resolve) => setTimeout(resolve, MIN_LOADER_DURATION_MS - elapsed));
+      }
+      setIsLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    setInputs(defaultDoubleBeamInputs);
+    const map: Partial<Record<keyof DoubleBeamInputs, string>> = {};
+    (Object.keys(defaultDoubleBeamInputs) as (keyof DoubleBeamInputs)[]).forEach((k) => {
+      map[k] = String((defaultDoubleBeamInputs as any)[k] ?? '');
+    });
+    setInputStrings(map);
+    setMaterialType(defaultDoubleBeamInputs.materialType || 'SS400');
+    setResults(null);
+    setDiagramData(null);
+    setRecommendation('');
+    setIsLoading(false);
+    setIsCallingAI(false);
+  };
+
+  // Tính toán cân bằng hình học cho dầm đôi
+  const geometricBalanceItems = React.useMemo(() => {
+    const items: { key: string; label: string; status: 'pass' | 'fail'; value: string }[] = [];
+    if (!results) return items;
+
+    const H_cm = inputs.h / 10;
+    const L_cm = inputs.L; // already in cm
+    const b1_cm = inputs.b / 10; // bottom flange width
+    const girderSpacing_cm = inputs.girderSpacing / 10;
+    const A_cm = inputs.A / 10;
+    const C_cm = inputs.C / 10;
+    
+    const assess = (
+      key: string,
+      label: string,
+      actual: number,
+      ref: number,
+      minRatio: number,
+      maxRatio: number
+    ) => {
+      const minVal = minRatio * ref;
+      const maxVal = maxRatio * ref;
+      if (actual < minVal && actual > 0) {
+        const pct = ((minVal - actual) / actual) * 100;
+        items.push({ key, label, status: 'fail', value: t('increaseByPct', { pct: pct.toFixed(1) }) });
+      } else if (actual > maxVal && actual > 0) {
+        const pct = ((actual - maxVal) / actual) * 100;
+        items.push({ key, label, status: 'fail', value: t('decreaseByPct', { pct: pct.toFixed(1) }) });
+      } else if (actual === 0) {
+        items.push({ key, label, status: 'fail', value: t('increaseByPct', { pct: '100.0' }) });
+      } else {
+        items.push({ key, label, status: 'pass', value: t('meetsCriterion') });
+      }
+    };
+
+    // Double girder specific geometric balance checks
+    // 1) H = 1/16 .. 1/12 of L (taller than single girder)
+    assess('H', t('Beam height H'), H_cm, L_cm, 1 / 16, 1 / 12);
+    // 2) Girder spacing = 1/6 .. 1/4 of L
+    assess('girderSpacing', t('calculator.girderSpacing'), girderSpacing_cm, L_cm, 1 / 6, 1 / 4);
+    // 3) b1 (bottom flange width) = 1/3 .. 1/2 of H
+    assess('b1', t('calculator.bottomFlangeWidthB1Short'), b1_cm, H_cm, 1 / 3, 1 / 2);
+    // 4) A = 1/8 .. 1/6 of L (smaller ratio for double girder)
+    assess('A', t('endCarriageWheelCenterA'), A_cm, L_cm, 1 / 8, 1 / 6);
+    // 5) C = 0.08 .. 0.12 of L (smaller ratio for double girder)
+    assess('C', t('endInclinedSegmentC'), C_cm, L_cm, 0.08, 0.12);
+
+    return items;
+  }, [inputs, results, t]);
+
+  const activeInputKey = !results && typeof document !== 'undefined'
+    ? (Object.keys(inputStrings) as (keyof DoubleBeamInputs)[]).find((key) => document.activeElement?.id === key)
+    : undefined;
+
+  // Mock stiffener layout for display
+  const stiffenerLayout = React.useMemo(() => {
+    if (!results?.stiffener || !results.stiffener.required || results.stiffener.count <= 0) {
+      return undefined;
+    }
+
+    const { optimalSpacing, count } = results.stiffener;
+    const span_cm = inputs.L;
+    const spacing_cm = optimalSpacing / 10;
+    const newPositions: number[] = [];
+
+    const totalStiffenerBlockLength = (count - 1) * spacing_cm;
+    const firstStiffenerPos = (span_cm - totalStiffenerBlockLength) / 2;
+
+    for (let i = 0; i < count; i++) {
+      const pos = firstStiffenerPos + i * spacing_cm;
+      newPositions.push(pos);
+    }
+
+    return {
+      positions: newPositions,
+      span: span_cm,
+      spacing: optimalSpacing,
+      count: newPositions.length,
+      required: results.stiffener.required,
+    };
+  }, [results, inputs.L]);
+
+  return (
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+      {/* Header */}
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6">
+        <div className="flex items-center gap-4">
+          <Copy className="w-8 h-8 text-blue-500" />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {t('Double Girder Crane Beam Calculator')}
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {t('Design and analyze double girder crane beams with geometry, loading, and safety checks')}
+            </p>
+          </div>
+          <div className="ml-auto">
+            <span className="inline-flex items-center gap-2 rounded-full border border-orange-400/60 bg-orange-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-orange-600 dark:text-orange-300">
+              <HelpCircle className="w-3 h-3" />
+              {t('Development Phase')}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <form onSubmit={handleSubmit} className="lg:col-span-1 space-y-6">
+          {/* Mobile-only Cross Section Diagram */}
+          {!isLoading && !results && (
+            <div className="block lg:hidden">
+              <CollapsibleSection title={t('Cross-section reference')} icon={Scale}>
+                <div id="cross-section-diagram-mobile">
+                  <BeamCrossSection
+                    inputs={inputs}
+                    activeInput={activeInputKey}
+                    beamType="single-girder"
+                    stiffenerLayout={stiffenerLayout}
+                  />
+                </div>
+              </CollapsibleSection>
+            </div>
+          )}
+
+          {/* Input Sections */}
+          {getDoubleBeamInputConfig(t).map(({ title, icon, fields }) => (
+            <CollapsibleSection key={title} title={t(title)} icon={icon}>
+              {/* Material selection radio buttons for Loading & material section */}
+              {title === 'Loading & material' && (
+                <div className="mb-4">
+                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('Material')}</div>
+                  <div className="radio-input">
+                    {(['SS400','CT3','A36','CUSTOM'] as MaterialType[]).map((mt) => (
+                      <label key={mt} className="label">
+                        <input
+                          type="radio"
+                          name="materialType"
+                          value={mt}
+                          checked={materialType === mt}
+                          onChange={() => handleMaterialSelect(mt)}
+                        />
+                        <span className="text">{MATERIAL_LABELS[mt]}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                {fields.map(({ name, label, unit }) => {
+                  const isMaterialField = ['sigma_allow','sigma_yield','E','nu'].includes(name as string);
+                  const disabled = isMaterialField && materialType !== 'CUSTOM';
+                  return (
+                    <div key={name} className="col-span-2 sm:col-span-1">
+                      <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        {t(label)}
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          id={name}
+                          name={name}
+                          value={inputStrings[name] ?? String(inputs[name] ?? '')}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          className={`input ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+                          step="any"
+                          inputMode="decimal"
+                          disabled={disabled}
+                        />
+                        <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-300 pointer-events-none">
+                          {unit}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CollapsibleSection>
+          ))}
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={handleReset}
+              className="calc-button w-1/3 flex justify-center items-center py-3 px-4"
+              style={{ fontSize: 'clamp(0.75rem, 2.5vw, 1rem)' }}
+            >
+              <RotateCcw className="mr-2 h-5 w-5 flex-shrink-0" />
+              {t('calculator.reset')}
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="calc-button w-1/3 flex justify-center items-center py-3 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ fontSize: 'clamp(0.75rem, 2.5vw, 1rem)' }}
+            >
+              {isLoading ? t('calculator.calculating') : t('calculator.calculate')}
+              {!isLoading && <ChevronsRight className="ml-2 h-5 w-5 flex-shrink-0" />}
+            </button>
+            <PDFExportButton
+              inputs={inputs}
+              results={results}
+              isLoading={isLoading}
+              aiRecommendation={recommendation}
+              className="w-1/3"
+            />
+          </div>
+        </form>
+
+        {/* Results Panel */}
+        <div className="lg:col-span-2 space-y-8">
+          {isLoading && (
+            <div className="flex justify-center items-center h-96">
+              <HamsterLoader
+                status={isCallingAI ? 'warning' : 'default'}
+                messageKey="loader.default"
+                warningMessageKey="loader.warning"
+              />
+            </div>
+          )}
+
+          {!isLoading && !results && (
+            <div className="hidden lg:block">
+              <CollapsibleSection title={t('Cross-section reference')} icon={Scale}>
+                <div id="cross-section-diagram">
+                  <BeamCrossSection
+                    inputs={inputs}
+                    activeInput={activeInputKey}
+                    beamType="single-girder"
+                    stiffenerLayout={stiffenerLayout}
+                  />
+                </div>
+              </CollapsibleSection>
+            </div>
+          )}
+
+          {!isLoading && results && (
+            <>
+              {recommendation && (
+                <div className="bg-orange-50 dark:bg-gray-800 border-l-4 border-orange-500 p-4 rounded-r-lg">
+                  <div className="flex items-start">
+                    <Bot className="h-8 w-8 text-orange-500 mr-4 flex-shrink-0" />
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <ReactMarkdown>{recommendation}</ReactMarkdown>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <CollapsibleSection 
+                title={
+                  <div className="flex items-center gap-2">
+                    <span>{t('safetyChecks')}</span>
+                    <div className="group relative">
+                      <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
+                      <div className="absolute left-0 top-6 w-96 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                        <div className="prose prose-sm prose-invert" dangerouslySetInnerHTML={{ __html: t('calculator.safetyChecksTooltip') }} />
+                        <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
+                      </div>
+                    </div>
+                  </div>
+                } 
+                icon={HardHat}
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <CheckBadge
+                    status={results.stress_check}
+                    label={t('Stress check')}
+                    value={`K_sigma = ${results.K_sigma.toFixed(2)}`}
+                  />
+                  <CheckBadge
+                    status={results.deflection_check}
+                    label={t('Deflection')}
+                    value={`n_f = ${results.n_f.toFixed(2)}`}
+                  />
+                  <CheckBadge
+                    status={results.buckling_check}
+                    label={t('Buckling')}
+                    value={`K_buckling = ${results.K_buckling.toFixed(2)}`}
+                  />
+                </div>
+              </CollapsibleSection>
+
+              <CollapsibleSection 
+                title={
+                  <div className="flex items-center gap-2">
+                    <span>{t('Geometric balance')}</span>
+                    <div className="group relative">
+                      <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
+                      <div className="absolute left-0 top-6 w-80 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                        <div>{t('calculator.geometricBalanceTooltip')}</div>
+                        <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
+                      </div>
+                    </div>
+                  </div>
+                } 
+                icon={Scale}
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {geometricBalanceItems.map((it) => (
+                    <CheckBadge key={it.key} status={it.status} label={it.label} value={it.value} />
+                  ))}
+                </div>
+              </CollapsibleSection>
+
+              <CollapsibleSection
+                title={
+                  <div className="flex items-center gap-2">
+                    <span>{t('calculator.stiffenerRecommendationTitle')}</span>
+                    <div className="group relative">
+                      <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
+                      <div className="absolute left-0 top-6 w-96 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                        <img src="https://i.postimg.cc/Px7tKMZS/Untitled.png" alt="Stiffener illustration" className="w-full h-auto rounded" />
+                        <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
+                      </div>
+                    </div>
+                  </div>
+                }
+                icon={TrendingDown}
+              >
+                <div className="space-y-4">
+                  {results.stiffener.required ? (
+                    <p className="text-sm text-gray-900 dark:text-white">{t('calculator.stiffenerRequiredMessage')}</p>
+                  ) : (
+                    <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                      {t('calculator.stiffenerOptionalMessage')}
+                    </p>
+                  )}
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <ResultItem label={t('calculator.stiffenerSpacing')} value={results.stiffener.optimalSpacing.toFixed(0)} unit="mm" />
+                    <ResultItem label={t('calculator.stiffenerCount')} value={multiplyForDisplay(results.stiffener.count).toString()} unit={t('calculator.unitPieces')} />
+                    <ResultItem label={t('calculator.stiffenerWidth')} value={results.stiffener.width.toFixed(0)} unit="mm" />
+                    <ResultItem label={t('calculator.stiffenerThickness')} value={results.stiffener.thickness.toFixed(0)} unit="mm" />
+                    <ResultItem label={t('calculator.stiffenerInertia')} value={results.stiffener.requiredInertia.toExponential(2)} unit="mm^4" />
+                    <ResultItem label={t('stiffenerWeight')} value={multiplyForDisplay(results.stiffener.totalWeight).toFixed(1)} unit="kg" />
+                  </div>
+                </div>
+              </CollapsibleSection>
+
+              <CollapsibleSection 
+                title={
+                  <div className="flex items-center gap-2">
+                    <span>{t('Calculation summary')}</span>
+                    <div className="group relative">
+                      <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
+                      <div className="absolute left-0 top-6 w-96 max-w-[22rem] p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                        <div className="font-medium mb-2">{t('calculator.referencesTitle')}</div>
+                        <ul className="list-disc list-inside space-y-1">
+                          {(t('calculator.references', { returnObjects: true }) as string[]).map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                        <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
+                      </div>
+                    </div>
+                  </div>
+                }
+                icon={BarChart}
+              >
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <ResultItem label={t('Area F')} value={results.F.toFixed(2)} unit="cm²" />
+                  <ResultItem label={t('Moment of inertia Jx')} value={results.Jx.toExponential(2)} unit="cm⁴" />
+                  <ResultItem label={t('Moment of inertia Jy')} value={results.Jy.toExponential(2)} unit="cm⁴" />
+                  <ResultItem label={t('Section modulus Wx')} value={results.Wx.toFixed(2)} unit="cm³" />
+                  <ResultItem label={t('Section modulus Wy')} value={results.Wy.toFixed(2)} unit="cm³" />
+                  <ResultItem label={t('Neutral axis Yc')} value={results.Yc.toFixed(2)} unit="cm" />
+                  <ResultItem label={t('Bending moment Mx')} value={results.M_x.toExponential(2)} unit="kg.cm" />
+                  <ResultItem label={t('Stress sigma_u')} value={results.sigma_u.toFixed(2)} unit="kg/cm²" />
+                  <ResultItem label={t('Deflection f')} value={results.f.toFixed(3)} unit="cm" />
+                  <ResultItem label={t('selfWeight')} value={results.beamSelfWeight.toFixed(1)} unit="kg" />
+                  <ResultItem label={t('calculator.girderSpacing')} value={(inputs.girderSpacing / 10).toFixed(1)} unit="cm" />
+                  <ResultItem label={t('calculator.transversalLoad')} value={inputs.transversalLoad.toFixed(1)} unit="kg/m" />
+                </div>
+              </CollapsibleSection>
+
+              {diagramData && (
+                <CollapsibleSection title={t('Analysis diagrams')} icon={AreaChart}>
+                  <div className="grid grid-cols-1 gap-8">
+                    <InternalForceDiagram
+                      data={diagramData}
+                      title={t('Internal Force Diagram (Bending Moment)')}
+                      yKey="moment"
+                      unit="kg.cm"
+                    />
+                    <InternalForceDiagram
+                      data={diagramData}
+                      title={t('Internal Force Diagram (Shear Force)')}
+                      yKey="shear"
+                      unit="kg"                          
+                      stiffenerMarkers={stiffenerLayout && stiffenerLayout.required ? { positions: stiffenerLayout.positions, span: stiffenerLayout.span } : undefined}
+                    />
+                    <StressDistributionDiagram inputs={inputs} results={results} />
+                    <DeflectedShapeDiagram inputs={inputs} results={results} />
+                  </div>
+                </CollapsibleSection>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};

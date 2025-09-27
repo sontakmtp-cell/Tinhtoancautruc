@@ -1,16 +1,16 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { BeamInputs, CalculationResults } from '../types';
 
 // Read API key injected by Vite define; may be undefined in production
 const API_KEY = (process.env.API_KEY as string | undefined) || undefined;
 
 // Lazily initialize the client to avoid crashing at module load
-let ai: GoogleGenAI | null = null;
-const getClient = (): GoogleGenAI | null => {
+let ai: GoogleGenerativeAI | null = null;
+const getClient = (): GoogleGenerativeAI | null => {
   if (!API_KEY) return null;
   if (!ai) {
     try {
-      ai = new GoogleGenAI({ apiKey: API_KEY });
+      ai = new GoogleGenerativeAI(API_KEY);
     } catch (err) {
       console.error("Failed to init GoogleGenAI client:", err);
       return null;
@@ -71,14 +71,12 @@ export const getDesignRecommendation = async (
     `;
 
   try {
-    const response = await (getClient() as GoogleGenAI).models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: userQuery,
-      config: {
-        systemInstruction: systemPrompt,
-      },
+    const model = (getClient() as GoogleGenerativeAI).getGenerativeModel({ 
+      model: "gemini-pro",
+      systemInstruction: systemPrompt,
     });
-    return response.text;
+    const response = await model.generateContent(userQuery);
+    return response.response.text();
   } catch (error) {
     console.error("Error calling Gemini API:", error);
     return "Da xay ra loi khi goi AI. Vui long thu lai.";

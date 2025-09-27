@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             pdf: ['jspdf', 'jspdf-autotable', 'html2canvas'],
-            ai: ['@google/genai'],
+            ai: ['@google/generative-ai'],
           },
         },
       },
