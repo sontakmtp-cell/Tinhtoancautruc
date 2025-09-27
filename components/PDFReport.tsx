@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FileText, Download, Settings, User, Calendar, FolderOpen, Globe } from 'lucide-react';
 import type { BeamInputs, CalculationResults, Language } from '../types';
@@ -26,6 +26,20 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
   const [includeAI, setIncludeAI] = useState(false);
   const [language, setLanguage] = useState<Language>('vi');
   const [isGenerating, setIsGenerating] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Ensure the modal is centered and visible on mobile when opened
+  useEffect(() => {
+    if (!isOpen) return;
+    // Scroll modal into view in case of any viewport quirks
+    modalRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    // Lock background scroll while modal is open
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isOpen]);
 
   const handleGeneratePDF = async () => {
     setIsGenerating(true);
@@ -85,8 +99,8 @@ export const PDFReportModal: React.FC<PDFReportModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-start sm:justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-[calc(100vw-2rem)] sm:max-w-md h-auto max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-start sm:justify-center z-50 p-0 sm:p-4">
+      <div ref={modalRef} className="ml-2 sm:ml-0 bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-[calc(100vw-2rem)] sm:max-w-md h-auto max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex items-center justify-between">
