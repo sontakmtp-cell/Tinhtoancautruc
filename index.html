@@ -15,6 +15,19 @@
     <meta name="description" content="Công cụ tính toán dầm cầu trục chuyên nghiệp - Tính toán nhanh chóng, chính xác các thông số kỹ thuật cho dầm cầu trục. Hỗ trợ thiết kế kỹ thuật và phân tích cấu trúc." />
     <link rel="canonical" href="https://calculator.kythuatvang.com/" />
     
+    <!-- Initialize theme before content loads to prevent flash -->
+    <script>
+      (function() {
+        const saved = localStorage.getItem('theme');
+        const isDark = saved ? saved === 'dark' : true;
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
+    
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://calculator.kythuatvang.com/" />
@@ -82,12 +95,6 @@
     <!-- Theme color for browser UI -->
     <meta name="theme-color" content="#1f2937" />
     <script src="https://cdn.plot.ly/plotly-2.33.0.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-      }
-    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap&subset=vietnamese,latin-ext" rel="stylesheet">
@@ -108,7 +115,7 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
+<!-- CSS is imported via index.tsx to help Tailwind v4 detect usage -->
 </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

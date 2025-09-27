@@ -12,13 +12,16 @@ const App: React.FC = () => {
   });
 
   useEffect(() => {
+    // Set theme based on state changes
+    const htmlElement = document.documentElement;
+    
     // Lưu theme preference vào localStorage
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
     
     if (isDark) {
-      document.documentElement.classList.add('dark');
+      htmlElement.classList.add('dark');
     } else {
-      document.documentElement.classList.remove('dark');
+      htmlElement.classList.remove('dark');
     }
   }, [isDark]);
 
@@ -83,4 +86,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-
