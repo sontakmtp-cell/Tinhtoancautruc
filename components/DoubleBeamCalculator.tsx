@@ -27,16 +27,17 @@ import { StressDistributionDiagram } from './StressDistributionDiagram';
 import { DeflectedShapeDiagram } from './DeflectedShapeDiagram';
 import { PDFExportButton } from './PDFReport';
 import { BeamCrossSection } from './BeamCrossSection';
+import { DoubleBeamCrossSection } from './DoubleBeamCrossSection';
 import { multiplyForDisplay } from '../utils/display';
 
 const MIN_LOADER_DURATION_MS = 4_000;
 
 // Định nghĩa inputs mặc định cho dầm đôi
 interface DoubleBeamInputs extends BeamInputs {
-  // Khoảng cách giữa hai dầm (center to center)
-  girderSpacing: number;
-  // Chiều rộng ray cần trục
-  railWidth: number;
+  // Khoảng cách tâm dầm Td (beam center to beam center)
+  Td: number;
+  // Khoảng cách tâm ray Tr (rail center to rail center)
+  Tr: number;
   // Tải trọng phân bố do kết cấu ngang
   transversalLoad: number;
 }
@@ -61,8 +62,8 @@ const defaultDoubleBeamInputs: DoubleBeamInputs = {
   q: 30,        // Self weight factor
   materialType: 'SS400',
   // Double beam specific parameters
-  girderSpacing: 2500,    // Distance between girders (mm)
-  railWidth: 43,          // Rail width (mm)
+  Td: 2500,               // Distance between beam centers (mm)
+  Tr: 2600,               // Distance between rail centers (mm)
   transversalLoad: 50,    // Distributed load from cross structure (kg/m)
 };
 
@@ -73,8 +74,8 @@ const getDoubleBeamInputConfig = (t: (key: string, opts?: any) => string) => [
     icon: Scale,
     fields: [
       // Double girder specific parameters
-      { name: 'girderSpacing', label: 'calculator.girderSpacing', unit: 'mm' },
-      { name: 'railWidth', label: 'calculator.railWidth', unit: 'mm' },
+      { name: 'Td', label: 'calculator.beamCenterDistance', unit: 'mm' },
+      { name: 'Tr', label: 'calculator.railCenterDistance', unit: 'mm' },
       { name: 'L', label: 'calculator.spanLengthL', unit: 'cm' },
       { name: 'A', label: 'endCarriageWheelCenterA', unit: 'mm' },
       { name: 'C', label: 'endInclinedSegmentC', unit: 'mm' },
@@ -346,7 +347,7 @@ export const DoubleBeamCalculator: React.FC = () => {
     const H_cm = inputs.h / 10;
     const L_cm = inputs.L; // already in cm
     const b1_cm = inputs.b / 10; // bottom flange width
-    const girderSpacing_cm = inputs.girderSpacing / 10;
+    const Td_cm = inputs.Td / 10;
     const A_cm = inputs.A / 10;
     const C_cm = inputs.C / 10;
     
@@ -376,8 +377,8 @@ export const DoubleBeamCalculator: React.FC = () => {
     // Double girder specific geometric balance checks
     // 1) H = 1/16 .. 1/12 of L (taller than single girder)
     assess('H', t('Beam height H'), H_cm, L_cm, 1 / 16, 1 / 12);
-    // 2) Girder spacing = 1/6 .. 1/4 of L
-    assess('girderSpacing', t('calculator.girderSpacing'), girderSpacing_cm, L_cm, 1 / 6, 1 / 4);
+    // 2) Beam center distance (Td) = 1/6 .. 1/4 of L
+    assess('Td', t('calculator.beamCenterDistance'), Td_cm, L_cm, 1 / 6, 1 / 4);
     // 3) b1 (bottom flange width) = 1/3 .. 1/2 of H
     assess('b1', t('calculator.bottomFlangeWidthB1Short'), b1_cm, H_cm, 1 / 3, 1 / 2);
     // 4) A = 1/8 .. 1/6 of L (smaller ratio for double girder)
@@ -391,6 +392,19 @@ export const DoubleBeamCalculator: React.FC = () => {
   const activeInputKey = !results && typeof document !== 'undefined'
     ? (Object.keys(inputStrings) as (keyof DoubleBeamInputs)[]).find((key) => document.activeElement?.id === key)
     : undefined;
+
+  // Map DoubleBeamInputs to DoubleBeamCrossSection inputs format
+  const doubleBeamCrossSectionInputs = React.useMemo(() => ({
+    b1: inputs.b,           // Bottom flange width
+    b2: inputs.b3,          // Top flange width  
+    H: inputs.h,            // Total height
+    t1: inputs.t1,          // Bottom flange thickness
+    t2: inputs.t2,          // Top flange thickness
+    b3: inputs.b1,          // Web spacing
+    t3: inputs.t3,          // Web thickness
+    Td: inputs.Td,                        // Distance between beam centers
+    Tr: inputs.Tr,                        // Distance between rail centers
+  }), [inputs]);
 
   // Mock stiffener layout for display
   const stiffenerLayout = React.useMemo(() => {
@@ -450,11 +464,9 @@ export const DoubleBeamCalculator: React.FC = () => {
             <div className="block lg:hidden">
               <CollapsibleSection title={t('Cross-section reference')} icon={Scale}>
                 <div id="cross-section-diagram-mobile">
-                  <BeamCrossSection
-                    inputs={inputs}
+                  <DoubleBeamCrossSection
+                    inputs={doubleBeamCrossSectionInputs}
                     activeInput={activeInputKey}
-                    beamType="single-girder"
-                    stiffenerLayout={stiffenerLayout}
                   />
                 </div>
               </CollapsibleSection>
@@ -564,11 +576,9 @@ export const DoubleBeamCalculator: React.FC = () => {
             <div className="hidden lg:block">
               <CollapsibleSection title={t('Cross-section reference')} icon={Scale}>
                 <div id="cross-section-diagram">
-                  <BeamCrossSection
-                    inputs={inputs}
+                  <DoubleBeamCrossSection
+                    inputs={doubleBeamCrossSectionInputs}
                     activeInput={activeInputKey}
-                    beamType="single-girder"
-                    stiffenerLayout={stiffenerLayout}
                   />
                 </div>
               </CollapsibleSection>
@@ -709,7 +719,7 @@ export const DoubleBeamCalculator: React.FC = () => {
                   <ResultItem label={t('Stress sigma_u')} value={results.sigma_u.toFixed(2)} unit="kg/cm²" />
                   <ResultItem label={t('Deflection f')} value={results.f.toFixed(3)} unit="cm" />
                   <ResultItem label={t('selfWeight')} value={results.beamSelfWeight.toFixed(1)} unit="kg" />
-                  <ResultItem label={t('calculator.girderSpacing')} value={(inputs.girderSpacing / 10).toFixed(1)} unit="cm" />
+                  <ResultItem label={t('calculator.beamCenterDistance')} value={(inputs.Td / 10).toFixed(1)} unit="cm" />
                   <ResultItem label={t('calculator.transversalLoad')} value={inputs.transversalLoad.toFixed(1)} unit="kg/m" />
                 </div>
               </CollapsibleSection>
