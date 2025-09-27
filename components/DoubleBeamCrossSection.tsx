@@ -120,9 +120,11 @@ export const DoubleBeamCrossSection: React.FC<DoubleBeamCrossSectionProps> = ({ 
   };
 
   // Calculate beam positions
-  const centerY = height / 2 + 60; // Lower the diagram to create space for dimension lines
-  const leftBeamCenterX = padding + s.b2 / 2;
-  const rightBeamCenterX = padding + s.Td + s.b2 / 2;
+  const centerY = height / 2 + 40; // Adjust vertical position for better centering
+  const totalScaledWidth = s.Td + s.b2;
+  const startX = (width - totalScaledWidth) / 2;
+  const leftBeamCenterX = startX + s.b2 / 2;
+  const rightBeamCenterX = startX + s.Td + s.b2 / 2;
   const beamTopY = centerY - s.H / 2;
 
   // Calculate rail positions based on Tr parameter
@@ -146,16 +148,33 @@ export const DoubleBeamCrossSection: React.FC<DoubleBeamCrossSectionProps> = ({ 
 
   const isDimensionHighlighted = (key: keyof typeof inputs) => activeInput === key || hoveredKey === key;
 
+  const dimensionToPartsMap: { [key in keyof typeof inputs]?: string[] } = {
+    b1: ['bottom-flange'],
+    b2: ['top-flange'],
+    H: ['top-flange', 'bottom-flange', 'web-left', 'web-right'],
+    t1: ['bottom-flange'],
+    t2: ['top-flange'],
+    b3: ['web-left', 'web-right'], // Web spacing
+    t3: ['web-left', 'web-right'], // Web thickness
+  };
+
+  const isPartHighlighted = (partName: string) => {
+    const activePartKeys = Object.keys(dimensionToPartsMap).filter(key => dimensionToPartsMap[key as keyof typeof inputs]?.includes(partName));
+    const isHovered = hoveredKey ? dimensionToPartsMap[hoveredKey]?.includes(partName) : false;
+    const isActive = activeInput ? activePartKeys.includes(activeInput) : false;
+    return isHovered || isActive;
+  };
+
   const fillClass = 'fill-blue-600/80 dark:fill-blue-500/80';
   const highlightFillClass = 'fill-green-500/80 dark:fill-green-400/80 animate-pulse';
   const strokeClass = 'stroke-gray-400 dark:stroke-gray-500';
 
   // Define beam parts for both beams
   const createBeamParts = (centerX: number) => ({
-    'top-flange': { x: centerX - s.b2 / 2, y: beamTopY, width: s.b2, height: s.t2 },
-    'bottom-flange': { x: centerX - s.b1 / 2, y: beamTopY + s.H - s.t1, width: s.b1, height: s.t1 },
-    'web-left': { x: centerX - s.b3 / 2 - s.t3, y: beamTopY + s.t2, width: s.t3, height: s.H - s.t1 - s.t2 },
-    'web-right': { x: centerX + s.b3 / 2, y: beamTopY + s.t2, width: s.t3, height: s.H - s.t1 - s.t2 },
+    'top-flange': { x: centerX - s.b2 / 2, y: beamTopY, width: s.b2, height: s.t2, highlight: isPartHighlighted('top-flange') },
+    'bottom-flange': { x: centerX - s.b1 / 2, y: beamTopY + s.H - s.t1, width: s.b1, height: s.t1, highlight: isPartHighlighted('bottom-flange') },
+    'web-left': { x: centerX - s.b3 / 2 - s.t3, y: beamTopY + s.t2, width: s.t3, height: s.H - s.t1 - s.t2, highlight: isPartHighlighted('web-left') },
+    'web-right': { x: centerX + s.b3 / 2, y: beamTopY + s.t2, width: s.t3, height: s.H - s.t1 - s.t2, highlight: isPartHighlighted('web-right') },
   });
 
   const leftBeamParts = createBeamParts(leftBeamCenterX);
@@ -166,19 +185,37 @@ export const DoubleBeamCrossSection: React.FC<DoubleBeamCrossSectionProps> = ({ 
       <div className="w-full h-[500px]">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full">
           {/* Left Beam */}
-          <g className={strokeClass} strokeWidth="0.5">
-            <rect {...leftBeamParts['top-flange']} className={fillClass} />
-            <rect {...leftBeamParts['bottom-flange']} className={fillClass} />
-            <rect {...leftBeamParts['web-left']} className={fillClass} />
-            <rect {...leftBeamParts['web-right']} className={fillClass} />
+          <g className={strokeClass} strokeWidth="0.5" >
+            <rect {...(({ highlight, ...rest }) => rest)(leftBeamParts['top-flange'])} className={leftBeamParts['top-flange'].highlight ? highlightFillClass : fillClass} />
+            <rect {...(({ highlight, ...rest }) => rest)(leftBeamParts['bottom-flange'])} className={leftBeamParts['bottom-flange'].highlight ? highlightFillClass : fillClass} />
+            <rect {...(({ highlight, ...rest }) => rest)(leftBeamParts['web-left'])} className={leftBeamParts['web-left'].highlight ? highlightFillClass : fillClass} />
+            <rect {...(({ highlight, ...rest }) => rest)(leftBeamParts['web-right'])} className={leftBeamParts['web-right'].highlight ? highlightFillClass : fillClass} />
           </g>
 
           {/* Right Beam */}
-          <g className={strokeClass} strokeWidth="0.5">
-            <rect {...rightBeamParts['top-flange']} className={fillClass} />
-            <rect {...rightBeamParts['bottom-flange']} className={fillClass} />
-            <rect {...rightBeamParts['web-left']} className={fillClass} />
-            <rect {...rightBeamParts['web-right']} className={fillClass} />
+          <g className={strokeClass} strokeWidth="0.5" >
+            <rect {...(({ highlight, ...rest }) => rest)(rightBeamParts['top-flange'])} className={rightBeamParts['top-flange'].highlight ? highlightFillClass : fillClass} />
+            <rect {...(({ highlight, ...rest }) => rest)(rightBeamParts['bottom-flange'])} className={rightBeamParts['bottom-flange'].highlight ? highlightFillClass : fillClass} />
+            <rect {...(({ highlight, ...rest }) => rest)(rightBeamParts['web-left'])} className={rightBeamParts['web-left'].highlight ? highlightFillClass : fillClass} />
+            <rect {...(({ highlight, ...rest }) => rest)(rightBeamParts['web-right'])} className={rightBeamParts['web-right'].highlight ? highlightFillClass : fillClass} />
+          </g>
+
+          {/* Centerlines for beams */}
+          <g stroke="#f87171" strokeWidth="0.75" strokeDasharray="4 2" opacity="0.8">
+            {/* Left beam centerline */}
+            <line
+              x1={leftBeamCenterX}
+              y1={beamTopY - 20}
+              x2={leftBeamCenterX}
+              y2={beamTopY + s.H + 20}
+            />
+            {/* Right beam centerline */}
+            <line
+              x1={rightBeamCenterX}
+              y1={beamTopY - 20}
+              x2={rightBeamCenterX}
+              y2={beamTopY + s.H + 20}
+            />
           </g>
 
           {/* Rails positioned based on Tr parameter */}
@@ -203,10 +240,10 @@ export const DoubleBeamCrossSection: React.FC<DoubleBeamCrossSectionProps> = ({ 
 
           {/* Dimensions for left beam */}
           <Dimension
-            x1={leftBeamCenterX - s.b2 / 2} 
-            y1={beamTopY}
-            x2={leftBeamCenterX + s.b2 / 2} 
-            y2={beamTopY}
+            x1={leftBeamCenterX - s.b2 / 2}
+            y1={beamTopY - sRailHeight - 15}
+            x2={leftBeamCenterX + s.b2 / 2}
+            y2={beamTopY - sRailHeight - 15}
             label={`b2 = ${b2}`}
             isHighlighted={isDimensionHighlighted('b2')}
             position="top"
@@ -228,10 +265,10 @@ export const DoubleBeamCrossSection: React.FC<DoubleBeamCrossSectionProps> = ({ 
 
           {/* Dimensions for right beam (b1 and b2) */}
           <Dimension
-            x1={rightBeamCenterX - s.b2 / 2} 
-            y1={beamTopY}
-            x2={rightBeamCenterX + s.b2 / 2} 
-            y2={beamTopY}
+            x1={rightBeamCenterX - s.b2 / 2}
+            y1={beamTopY - sRailHeight - 15}
+            x2={rightBeamCenterX + s.b2 / 2}
+            y2={beamTopY - sRailHeight - 15}
             label={`b2 = ${b2}`}
             isHighlighted={isDimensionHighlighted('b2')}
             position="top"
@@ -305,9 +342,9 @@ export const DoubleBeamCrossSection: React.FC<DoubleBeamCrossSectionProps> = ({ 
           {/* Distance between beam centers - Td */}
           <Dimension
             x1={leftBeamCenterX} 
-            y1={beamTopY - 20}
+            y1={beamTopY - sRailHeight - 50}
             x2={rightBeamCenterX} 
-            y2={beamTopY - 20}
+            y2={beamTopY - sRailHeight - 50}
             label={`Td = ${Td}`}
             isHighlighted={isDimensionHighlighted('Td')}
             position="top"
@@ -318,9 +355,9 @@ export const DoubleBeamCrossSection: React.FC<DoubleBeamCrossSectionProps> = ({ 
           {/* Distance between rail centers - Tr */}
           <Dimension
             x1={leftRailCenterX} 
-            y1={beamTopY - sRailHeight - 40}
+            y1={beamTopY - sRailHeight - 1}
             x2={rightRailCenterX} 
-            y2={beamTopY - sRailHeight - 40}
+            y2={beamTopY - sRailHeight - 1}
             label={`Tr = ${Tr}`}
             isHighlighted={isDimensionHighlighted('Tr')}
             position="top"

@@ -62,8 +62,8 @@ const defaultDoubleBeamInputs: DoubleBeamInputs = {
   q: 30,        // Self weight factor
   materialType: 'SS400',
   // Double beam specific parameters
-  Td: 2500,               // Distance between beam centers (mm)
-  Tr: 2600,               // Distance between rail centers (mm)
+  Td: 1500,               // Distance between beam centers (mm)
+  Tr: 1200,               // Distance between rail centers (mm)
   transversalLoad: 50,    // Distributed load from cross structure (kg/m)
 };
 
