@@ -1,4 +1,4 @@
-﻿{
+{
     "reportTitle":  "Báo cáo Phân tích Kết cấu Dầm Cẩu",
     "projectInformation":  "THÔNG TIN DỰ ÁN",
     "designEngineer":  "Kỹ sư thiết kế:",
@@ -96,7 +96,7 @@
                    "default":  "Đang thực hiện các phép tính phức tạp...",
                    "warning":  "Cảnh báo! Tham số đầu vào có thể không an toàn. Đang tìm giải pháp tối ưu, vui lòng đợi..."
                },
-    "calculator":  {
+    "calculator":  {"torsionGroup":  "Xoắn","tauTop":  "Ứng suất cắt xoắn (cánh trên)", "tauWeb":  "Ứng suất cắt xoắn (sườn)", "tauBottom":  "Ứng suất cắt xoắn (cánh dưới)","torsionWarning":  "Lệch tim ray (Tr ≠ Td). Đã tính xoắn.", "torsionTitle": "Mô men xoắn T", "torsionCheck": "Kiểm tra xoắn", "angleOfTwist": "Góc xoay", "railDifferential": "Chênh cao tim ray",
                        "moduleTitle":  "Mô-đun {{module}}",
                        "designPhase":  "Giai đoạn thiết kế",
                        "modulePreview":  "Xem trước mô-đun",
@@ -156,7 +156,7 @@
                           "unit":  "σ (kg/cm²)"
                       },
     "unit":  "Đơn vị",
-    "pdf":  {
+    "pdf":  {"torsionResults":  "Kết quả xoắn", "torsionCheck":  "Kiểm tra xoắn", "angleOfTwist":  "Góc xoay", "railDifferential":  "Chênh cao tim ray",
                 "notAvailable":  "Không có",
                 "stressCheck":  "Kiểm tra ứng suất",
                 "deflectionCheck":  "Kiểm tra độ võng",

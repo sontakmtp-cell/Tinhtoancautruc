@@ -1,4 +1,4 @@
-﻿{
+{
     "reportTitle":  "Crane Beam Structural Analysis Report",
     "projectInformation":  "PROJECT INFORMATION",
     "designEngineer":  "Design Engineer:",
@@ -113,7 +113,7 @@
                    "default":  "Performing complex calculations...",
                    "warning":  "Warning! Input parameters may be unsafe. Searching for an optimal solution, please wait..."
                },
-    "calculator":  {
+    "calculator":  {"torsionGroup":  "Torsion","tauTop":  "Torsional shear (top flange)", "tauWeb":  "Torsional shear (web)", "tauBottom":  "Torsional shear (bottom flange)","torsionWarning":  "Rails are misaligned (Tr ≠ Td). Torsion effects included.", "torsionTitle": "Torsional moment T", "torsionCheck": "Torsion check", "angleOfTwist": "Angle of twist", "railDifferential": "Rail level differential",
                        "moduleTitle":  "{{module}} module",
                        "designPhase":  "Design phase",
                        "modulePreview":  "Module preview",
@@ -172,7 +172,7 @@
                           "unit":  "σ (kg/cm²)"
                       },
     "unit":  "Unit",
-    "pdf":  {
+    "pdf":  {"torsionResults":  "Torsion results", "torsionCheck":  "Torsion check", "angleOfTwist":  "Angle of twist", "railDifferential":  "Rail level differential",
                 "notAvailable":  "N/A",
                 "customMaterial":  "Custom",
                 "defaultProjectName":  "Crane Beam Calculation Project",

@@ -1,113 +1,119 @@
-Mục Tiêu
+Dưới đây là kế hoạch chi tiết (kèm TODO cụ thể) để nâng cấp mô-đun Dầm đôi, tập trung bổ sung tính xoắn khi Tr ≠ Td. Kế hoạch ưu tiên tính toán đúng, tích hợp mượt với code hiện tại, và có thể triển khai từng bước.
 
-Tính toán dầm đôi thực tế: hình học, tải, nội lực, ứng suất, võng, gân cứng; không dùng mock.
-Sơ đồ nội lực/võng chạy từ dữ liệu tính thật.
-Kết quả nhất quán, đơn vị đúng, có i18n.
-Giả Định Kỹ Thuật (bản 1)
+1) Phạm Vi + Công Thức
 
-Hai dầm giống nhau, liên kết ngang đủ cứng ⇒ tải chia đều lên hai dầm (mỗi dầm nhận 50% tải tập trung và phân bố).
-Bỏ qua xoắn do lệch tâm Tr ≠ Td ở bản 1; sẽ nâng cấp ở bản 2.
-Sử dụng lại công thức/logic single-girder hiện có để tính “mỗi dầm”, rồi tổng hợp “hệ dầm đôi”.
-Kế Hoạch Tổng Quan
+Mục tiêu
+Thêm xoắn do lệch tâm giữa tim ray và tim dầm: Tr ≠ Td.
+Tính ứng suất cắt do xoắn, góc xoay, và ảnh hưởng đến kiểm tra bền.
+Mô hình và công thức
+Lệch tâm mỗi bên: e = (Tr − Td)/2 (đơn vị cm, mm tùy nội bộ; chuẩn hóa trước khi tính).
+Lực đặt lên ray mỗi bên: dùng phản lực dọc gối R_side hoặc phân bố tải theo per-beam đã có; mô-men xoắn trên mỗi dầm: T = R_side × e.
+Với tiết diện kín thành mỏng (dầm hộp hàn 2 sườn, 2 cánh), dùng Bredt–Batho:
+Diện tích kín theo đường trung bình: A_m ≈ (b1 + t3) × (h − t1 − t2) (mm²).
+Tổng chu vi “l_i/t_i”: Σ(l/t) ≈ (b3/t2) + (b/t1) + 2×((h − t1 − t2)/t3).
+Hằng số xoắn St Venant: J_t ≈ 4 A_m² / Σ(l/t) (mm⁴).
+Lưu lượng cắt do xoắn: q = T / (2 A_m) (N/mm); Ứng suất cắt: τ_t,i = q / t_i (MPa quy đổi hoặc kg/cm² theo hệ hiện tại).
+Góc xoay: θ' = T / (G J_t) (rad/cm), G = E/(2(1+ν)).
+Kiểm tra kết hợp: có 2 lựa chọn
+Đơn giản: kiểm tra τ_t ≤ τ_allow (ví dụ 0.6 σ_allow) và báo cáo riêng.
+Nâng cao: quy về Von Mises: σ_vm = sqrt(σ_bend² + 3 τ_total²) ≤ σ_allow. Ở bản 1, giữ đơn giản, chỉ ảnh hưởng badge “Buckling”/“Stress check” nếu vượt ngưỡng cắt.
+TODO
+Chốt hệ đơn vị nội bộ: hiện service đang dùng cm và kg/cm; đảm bảo T quy về kg.cm, A_m sang cm², J_t sang cm⁴, q/τ về kg/cm² hoặc chuyển sang MPa nhất quán với hiển thị.
+2) Mở Rộng Kiểu Dữ Liệu
 
-Confirm requirements and data model (in progress)
-Extend types for double girder
-Implement calculation service
-Wire UI to service
-Add diagram generation
-Validate units and inputs
-Update i18n strings
-QA with sample cases
-Polish UX and export
-TODO Theo File
+File: tinh toan cau truc/types.ts
+TODO
+Mở rộng CalculationResults:
+T_torsion?: number // mô-men xoắn cực đại (kg.cm)
+theta?: number // góc xoay cực đại (rad hoặc mrad)
+tau_t_top?: number, tau_t_bottom?: number, tau_t_web?: number // ứng suất cắt do xoắn theo tấm (kg/cm²)
+torsion_check?: 'pass' | 'fail'
+Tùy chọn: thêm railDifferential?: number // chênh cao giữa 2 tim ray do xoay: Δz ≈ θ × (Tr/2).
+3) Tính Toán Trong Service
 
-tinh toan cau truc/types.ts
+File: tinh toan cau truc/services/calculationService.ts
+TODO
+Thêm helper chuẩn hóa đơn vị: mm↔cm, kg/m↔kg/cm, giữ đồng nhất với module hiện tại.
+Tính thông số dầm hộp theo đường trung bình:
+A_m_mm2 = (b1 + t3) * (h - t1 - t2); sum_l_over_t = (b3/t2) + (b/t1) + 2 * ((h - t1 - t2)/t3).
+Jt_mm4 = 4*A_m_mm2*A_m_mm2 / sum_l_over_t.
+Quy đổi về cm nếu phần còn lại dùng cm.
+Tính lệch tâm: e_cm = (Tr - Td) / 20 (mm → cm, rồi chia 2).
+Xác định lực R_side cho mỗi dầm:
+Dùng phản lực hiện tại trong generateDiagramData (R = P/2 + qL/2) cho per-beam.
+T = R_side * e_cm (kg × cm).
+Tính τ và θ:
+q = T / (2 * A_m); tau_top = q / t2, tau_bottom = q / t1, tau_web = q / t3.
+G = E / (2 * (1 + nu)) (cùng đơn vị với E hiện tại).
+theta = T / (G * Jt).
+railDifferential ≈ theta * (Tr/20) (Tr mm → cm).
+Kiểm tra:
+tau_allow = 0.6 * sigma_allow (hoặc cấu hình).
+torsion_check = tau_max <= tau_allow ? 'pass' : 'fail'.
+Tổng hợp kết quả:
+Với double-girder: giữ kiểm tra bền/độ võng theo per-beam như hiện; thêm các trường xoắn vào object trả về.
+Không thay đổi Jx/Jy đã tính; đây bổ sung thêm “stress due to torsion” riêng.
+Phần nâng cao sau (đặt TODO):
+Phân bố T theo nội lực dọc dầm (biểu đồ theo x), thay vì giá trị đại diện tại giữa nhịp.
+Tính tương tác Von Mises nếu cần.
+4) Cập Nhật UI
 
-Thêm 'double-girder' vào CalculationResults['calculationMode'].
-Tạo DoubleBeamInputs chia sẻ (mở rộng BeamInputs): Td, Tr, transversalLoad.
-Đảm bảo chú thích đơn vị: Td, Tr (mm); transversalLoad (kg/m) hoặc đổi về kg/cm trong service.
-tinh toan cau truc/services/calculationService.ts
+File: tinh toan cau truc/components/DoubleBeamCalculator.tsx
+TODO
+Khi Tr ≠ Td, hiển thị badge cảnh báo “Có xoắn do lệch tim ray (Tr ≠ Td)”.
+Thêm mục “Torsion” trong “Calculation summary”:
+T_torsion, theta (mrad), τ_top/τ_web/τ_bottom.
+railDifferential (mm) cho người dùng dễ hình dung.
+Thêm badge kiểm tra: torsion_check bên cạnh Stress/Deflection/Buckling.
+5) Biểu Đồ
 
-Tạo hàm calculateDoubleBeamProperties(inputs: DoubleBeamInputs): CalculationResults.
-B1: Chuẩn hóa đơn vị (mm→cm; kg/m → kg/cm).
-B2: Tạo “per-beam inputs” bằng cách chia tải đều:
-P_nang_each = P_nang/2, P_thietbi_each = P_thietbi/2.
-q_each = q + transversalLoad_cm/2 (nếu q đang là tự trọng quy đổi, cộng thêm phần phân bố ngang).
-B3: Gọi calculateBeamProperties(perBeam, 'single-girder') để lấy kết quả mỗi dầm.
-B4: Tổng hợp hệ dầm đôi:
-Diện tích: F_total = 2 * F_beam.
-Trục x (uốn đứng): Jx_total = 2 * Jx_beam, Wx_total ≈ 2 * Wx_beam.
-Trục y (uốn ngang): Jy_total = 2 * (Jy_beam + A_beam * (Td_cm/2)^2).
-M_x_total = 2 * M_x_beam; P_total = 2 * P_each = P_nang + P_thietbi.
-Ứng suất/độ võng đánh giá theo mỗi dầm (vì dầm hoạt động song song): lấy từ per-beam.
-Gân cứng: lấy recommendation từ per-beam; tổng khối lượng gân: x2.
-calculationMode = 'double-girder'.
-Tạo generateDoubleBeamDiagramData(inputs: DoubleBeamInputs, results: CalculationResults): DiagramData
-Dùng cùng công thức như generateDiagramData nhưng dựa trên tải tổng/moment tổng, hoặc đơn giản là nhân đôi từ per-beam nếu tải chia đều.
-tinh toan cau truc/components/DoubleBeamCalculator.tsx:243
+File: tinh toan cau truc/components/DeflectedShapeDiagram.tsx và InternalForceDiagram.tsx
+TODO
+Giữ nguyên biểu đồ lực uốn/cắt hiện có.
+Optional (để sau): thêm trục phụ hiển thị “góc xoay dọc nhịp” (đơn giản: đường thẳng ở giá trị θ_max) hoặc box “Torsion summary” phía trên biểu đồ.
+6) Xuất PDF
 
-Bỏ mock; import thật:
-import { calculateDoubleBeamProperties, generateDoubleBeamDiagramData } from '../services/calculationService'
-Trong handleSubmit:
-Gọi calculateDoubleBeamProperties(inputs) → setResults.
-Gọi generateDoubleBeamDiagramData(inputs, results) → setDiagramData.
-Xóa toàn bộ mockResults/mockDiagramData/mock recommendation.
-Kiểm tra ánh xạ vào DoubleBeamCrossSection (đã có memo doubleBeamCrossSectionInputs) và stiffenerLayout dùng results.stiffener.
-tinh toan cau truc/components/InternalForceDiagram.tsx, StressDistributionDiagram.tsx, DeflectedShapeDiagram.tsx
+File: tinh toan cau truc/services/pdfService.ts
+TODO
+Thêm hàng trong Inputs: Tr, Td, highlight “Mode: Double girder” (đã thêm).
+Thêm mục “Torsion results”:
+T, θ, τ_top/τ_web/τ_bottom, rail differential, torsion check.
+i18n: thêm key pdf.torsionResults, pdf.torsionCheck, pdf.angleOfTwist, pdf.railDifferential.
+7) i18n
 
-Xác thực props đang dùng DiagramData và CalculationResults không phụ thuộc chế độ cũ. Nếu có nhãn, thêm “double-girder” khi hiển thị.
-tinh toan cau truc/components/PDFReport.tsx
+Files:
+tinh toan cau truc/src/locales/en/translation.json
+tinh toan cau truc/src/locales/vi/translation.json
+tinh toan cau truc/src/i18n.ts (fallback runtime)
+TODO
+Thêm các key:
+calculator.torsionWarning, calculator.torsionTitle, calculator.torsionCheck, calculator.angleOfTwist, calculator.railDifferential.
+Bản EN + VI tương ứng.
+8) Validation + Đơn Vị
 
-Hiển thị calculationMode: 'double-girder'.
-Bổ sung thông tin Td, Tr, transversalLoad trong phần input và kết quả.
-tinh toan cau truc/src/locales/en/translation.json, tinh toan cau truc/src/locales/vi/translation.json
+TODO
+Đảm bảo tất cả đại lượng xoắn dùng cùng hệ đơn vị như phần uốn/cắt hiện tại (kg, cm).
+Normal hóa E, G theo kg/cm²; nếu hiện đang hiển thị MPa, chuyển đổi tương thích.
+Nếu A_m hoặc J_t không khả dụng (kích thước bất thường), đặt cờ cảnh báo và không làm fail toàn bộ.
 
-Thêm:
-calculator.beamCenterDistance: Khoảng cách tâm dầm (Td)
-calculator.railCenterDistance: Khoảng cách tâm ray (Tr)
-calculator.transversalLoad: Tải phân bố ngang
-Bất kỳ nhãn mới cho cảnh báo/xác nhận dầm đôi.
-tinh toan cau truc/components/CraneBeamCalculator.tsx:632
+Phân Rã TODO Theo File
 
-Chỉ kiểm tra luồng render đã ổn khi chọn dầm đôi; không cần đổi.
-Luồng Dữ Liệu
-
-UI nhập DoubleBeamInputs → gọi calculateDoubleBeamProperties → lưu results → gọi generateDoubleBeamDiagramData → sơ đồ nội lực/độ võng.
-Cross-section hiển thị từ inputs (không phụ thuộc results), gân hiển thị từ results.stiffener.
-Chi Tiết Thuật Toán (bản 1)
-
-Chuẩn hóa đơn vị:
-mm → cm, kg/m → kg/cm (transversalLoad_cm = transversalLoad / 100).
-Chia tải trên mỗi dầm:
-P_each = 0.5*(P_nang + P_thietbi)
-q_each = q (tự trọng từ inputs) + transversalLoad_cm/2
-Gọi calculateBeamProperties(perBeam, 'single-girder') ⇒ lấy:
-F_beam, Jx_beam, Jy_beam, Wx_beam, Wy_beam, ... và stiffener_beam.
-Hợp nhất hệ:
-F = 2*F_beam; Jx = 2*Jx_beam; Jy = 2*(Jy_beam + F_beam*(Td_cm/2)^2);
-Wx ≈ 2*Wx_beam; Wy ≈ 2*Wy_beam (hoặc tính lại từ J/W nếu cần chính xác)
-M_x = 2*M_x_beam; P = P_nang + P_thietbi; q = 2*q_each? (hiển thị q hệ thống có thể giữ theo mỗi dầm để tránh hiểu nhầm; đề xuất hiển thị “q mỗi dầm”)
-Ứng suất/độ võng dùng kết quả mỗi dầm để kiểm tra điều kiện (vì là phần tử chịu lực chính).
-stiffener.totalWeight = 2 * perBeam.totalWeight; positions: tái sử dụng pattern theo nhịp.
-Nâng cấp bản 2 (sau): xét lệch Tr/Td → mô men xoắn, phân bố bánh xe không đều, tổ hợp vị trí xe con.
-Kiểm Tra/Validation
-
-Đơn vị nhất quán:
-Đầu vào mm, cm, kg/m → service đổi đúng như single-girder.
-Kiểm tra nhanh:
-Khi Td tăng, Jy tăng đáng kể (do 2A(Td/2)^2).
-Khi Tr thay đổi (bản 1 không tác động nội lực), không đổi kết quả; cảnh báo “chưa xét xoắn do lệch tâm”.
-M_x_total ≈ 2 × M_x_beam từ single-girder với tải đã chia.
-Không còn log “mock” và banner “Development Phase” có thể giữ hoặc đổi “Beta”.
-Tiêu Chí Hoàn Thành
-
-Nhấn “Tính toán” tạo results thực (không mock).
-Sơ đồ cắt/uốn/độ võng cập nhật theo inputs.
-Thay đổi Td làm đổi Jy/Wy, không làm đổi Jx/Wx.
-Kết quả không NaN/∞; validation cảnh báo nhập sai.
-PDF chứa mode “double-girder” và các tham số đặc thù (Td/Tr/transversalLoad).
-Rủi Ro/Cần Quyết Định
-
-Định nghĩa “q” hiển thị: theo mỗi dầm hay tổng? (Đề xuất: mỗi dầm, rõ ràng cho kiểm tra ứng suất).
-Bản 1 bỏ qua xoắn do Tr ≠ Td; cần roadmap cho bản 2.
-Nếu có yêu cầu mô phỏng tải bánh xe (vị trí rời rạc), cần bổ sung sơ đồ theo tổ hợp vị trí.
+types.ts
+ Add torsion fields to CalculationResults.
+services/calculationService.ts
+ Helper normalize units for torsion.
+ Compute A_m, J_t for box girder (from inputs).
+ Compute T from e = (Tr − Td)/2 and reactions; τ, θ, railDifferential.
+ Add torsion_check and merge into double-girder results.
+components/DoubleBeamCalculator.tsx
+ Warning banner when Tr ≠ Td.
+ Show torsion results in “Calculation summary”.
+ Add torsion check badge.
+components/DeflectedShapeDiagram.tsx
+ Optional: annotate θ, or add small torsion summary card above.
+services/pdfService.ts
+ New “Torsion results” section with fields.
+src/locales/en/translation.json and src/locales/vi/translation.json
+ Add all new keys (UI + PDF).
+src/i18n.ts
+ Add runtime fallbacks for new keys to avoid dev MIME/encoding issues.

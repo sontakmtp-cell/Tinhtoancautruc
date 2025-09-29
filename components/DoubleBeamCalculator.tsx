@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
   Bot,
@@ -270,7 +270,7 @@ export const DoubleBeamCalculator: React.FC = () => {
     const H_cm = inputs.h / 10;
     const L_cm = inputs.L; // already in cm
     const b1_cm = inputs.b / 10; // bottom flange width
-    const Td_cm = inputs.Td / 10;
+    const b3_cm = inputs.b1 / 10; // web spacing (khoảng cách bụng)
     const A_cm = inputs.A / 10;
     const C_cm = inputs.C / 10;
     
@@ -300,8 +300,8 @@ export const DoubleBeamCalculator: React.FC = () => {
     // Double girder specific geometric balance checks
     // 1) H = 1/16 .. 1/12 of L (taller than single girder)
     assess('H', t('Beam height H'), H_cm, L_cm, 1 / 16, 1 / 12);
-    // 2) Beam center distance (Td) = 1/6 .. 1/4 of L
-    assess('Td', t('calculator.beamCenterDistance'), Td_cm, L_cm, 1 / 6, 1 / 4);
+    // 2) Web spacing (b3) = 1/50 .. 1/40 of L (khoảng cách bụng)
+    assess('b3', t('calculator.webSpacingB2'), b3_cm, L_cm, 1 / 50, 1 / 40);
     // 3) b1 (bottom flange width) = 1/3 .. 1/2 of H
     assess('b1', t('calculator.bottomFlangeWidthB1Short'), b1_cm, H_cm, 1 / 3, 1 / 2);
     // 4) A = 1/8 .. 1/6 of L (smaller ratio for double girder)
@@ -505,6 +505,14 @@ export const DoubleBeamCalculator: React.FC = () => {
 
           {!isLoading && results && (
             <>
+              {(inputs.Tr !== inputs.Td) && (
+                <div className="bg-yellow-50 dark:bg-gray-800 border-l-4 border-yellow-500 p-4 rounded-r-lg mb-4">
+                  <div className="flex items-start">
+                    <RotateCcw className="h-6 w-6 text-yellow-600 mr-3 flex-shrink-0" />
+                    <div className="text-sm text-gray-800 dark:text-gray-200">{t('calculator.torsionWarning')} (Tr = {inputs.Tr} mm, Td = {inputs.Td} mm)</div>
+                  </div>
+                </div>
+              )}
               {recommendation && (
                 <div className="bg-orange-50 dark:bg-gray-800 border-l-4 border-orange-500 p-4 rounded-r-lg">
                   <div className="flex items-start">
@@ -547,6 +555,13 @@ export const DoubleBeamCalculator: React.FC = () => {
                     label={t('Buckling')}
                     value={`K_buckling = ${results.K_buckling.toFixed(2)}`}
                   />
+                  {typeof results.torsion_check !== 'undefined' && (
+                    <CheckBadge
+                      status={results.torsion_check!}
+                      label={t('calculator.torsionCheck')}
+                      value={results.torsion_check === 'pass' ? t('pass') : t('fail')}
+                    />
+                  )}
                 </div>
               </CollapsibleSection>
 
@@ -641,6 +656,19 @@ export const DoubleBeamCalculator: React.FC = () => {
                   <ResultItem label={t('calculator.transversalLoad')} value={inputs.transversalLoad.toFixed(1)} unit="kg/m" />
                 </div>
               </CollapsibleSection>
+
+              {typeof results.T_torsion !== 'undefined' && (
+                <CollapsibleSection title={t('calculator.torsionGroup')} icon={RotateCcw}>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <ResultItem label={t('calculator.torsionTitle')} value={Number(results.T_torsion || 0).toFixed(2)} unit="kg.cm" />
+                    <ResultItem label={t('calculator.angleOfTwist')} value={(Number(results.theta||0)*1000).toFixed(2)} unit="mrad" />
+                    <ResultItem label={t('calculator.tauTop')} value={Number(results.tau_t_top||0).toFixed(2)} unit="kg/cm^2" />
+                    <ResultItem label={t('calculator.tauWeb')} value={Number(results.tau_t_web||0).toFixed(2)} unit="kg/cm^2" />
+                    <ResultItem label={t('calculator.tauBottom')} value={Number(results.tau_t_bottom||0).toFixed(2)} unit="kg/cm^2" />
+                    <ResultItem label={t('calculator.railDifferential')} value={Number(results.railDifferential||0).toFixed(2)} unit="mm" />
+                  </div>
+                </CollapsibleSection>
+              )}
 
               {diagramData && (
                 <CollapsibleSection title={t('Analysis diagrams')} icon={AreaChart}>

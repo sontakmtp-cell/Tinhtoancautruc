@@ -1,4 +1,4 @@
-export type Language = 'en' | 'vi';
+﻿export type Language = 'en' | 'vi';
 
 export type MaterialType = 'SS400' | 'CT3' | 'A36' | 'CUSTOM';
 
@@ -78,6 +78,21 @@ export interface CalculationResults extends GeometricProperties {
 
   /** Web stiffener recommendation and layout */
   stiffener: StiffenerRecommendation;
+  // --- Torsion due to rail misalignment (double-girder additions) ---
+  /** Extreme torsional moment per side (kg.cm) */
+  T_torsion?: number;
+  /** Angle of twist (rad) */
+  theta?: number;
+  /** Shear stress from torsion at top flange (kg/cm^2) */
+  tau_t_top?: number;
+  /** Shear stress from torsion at web (kg/cm^2) */
+  tau_t_web?: number;
+  /** Shear stress from torsion at bottom flange (kg/cm^2) */
+  tau_t_bottom?: number;
+  /** Torsion safety check */
+  torsion_check?: 'pass' | 'fail';
+  /** Rail level difference due to twist (mm) */
+  railDifferential?: number;
 }
 
 export interface StiffenerRecommendation {

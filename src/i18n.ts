@@ -141,3 +141,45 @@ i18n.addResources('vi', 'translation', {
 i18n.addResources('en', 'translation', { 'pdf.mode': 'Calculation mode' });
 i18n.addResources('vi', 'translation', { 'pdf.mode': 'Che do' });
 
+
+i18n.addResources('en','translation',{
+  'calculator.torsionWarning': 'Rails are misaligned (Tr 3 Td). Torsion effects included.',
+  'calculator.torsionTitle': 'Torsional moment T',
+  'calculator.torsionCheck': 'Torsion check',
+  'calculator.angleOfTwist': 'Angle of twist',
+  'calculator.railDifferential': 'Rail level differential',
+  'pdf.torsionResults': 'Torsion results',
+  'pdf.torsionCheck': 'Torsion check',
+  'pdf.angleOfTwist': 'Angle of twist',
+  'pdf.railDifferential': 'Rail level differential'
+});
+
+i18n.addResources('vi','translation',{
+  'calculator.torsionWarning': 'Lệch tim ray (Tr 3 Td). Đã tính xoắn.',
+  'calculator.torsionTitle': 'Mô men xoắn T',
+  'calculator.torsionCheck': 'Kiểm tra xoắn',
+  'calculator.angleOfTwist': 'Góc xoay',
+  'calculator.railDifferential': 'Chênh cao tim ray',
+  'pdf.torsionResults': 'Kết quả xoắn',
+  'pdf.torsionCheck': 'Kiểm tra xoắn',
+  'pdf.angleOfTwist': 'Góc xoay',
+  'pdf.railDifferential': 'Chênh cao tim ray'
+});
+i18n.addResources('en','translation',{
+  'calculator.tauTop': 'Torsional shear (top flange)',
+  'calculator.tauWeb': 'Torsional shear (web)',
+  'calculator.tauBottom': 'Torsional shear (bottom flange)'
+});
+
+i18n.addResources('vi','translation',{
+  'calculator.tauTop': 'Ứng suất cắt xoắn (cánh trên)',
+  'calculator.tauWeb': 'Ứng suất cắt xoắn (sườn)',
+  'calculator.tauBottom': 'Ứng suất cắt xoắn (cánh dưới)'
+});
+i18n.addResources('en','translation',{
+  'calculator.torsionGroup': 'Torsion'
+});
+
+i18n.addResources('vi','translation',{
+  'calculator.torsionGroup': 'Xoắn'
+});
