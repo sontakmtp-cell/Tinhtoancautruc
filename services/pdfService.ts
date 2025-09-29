@@ -170,6 +170,13 @@ class PDFReportService {
         [this.t('endCarriageWheelCenterA'), inputs.A, 'mm'],
         [this.t('endInclinedSegmentC'), inputs.C, 'mm'],
       ];
+      // For double-girder, include spacing info
+      if ((results as any).calculationMode === 'double-girder') {
+        const dbl = inputs as any;
+        geomData.unshift([this.t('pdf.mode'), this.t('Double girder'), '']);
+        geomData.push([this.t('calculator.beamCenterDistance'), dbl.Td ?? 0, 'mm']);
+        geomData.push([this.t('calculator.railCenterDistance'), dbl.Tr ?? 0, 'mm']);
+      }
     }
 
     const loadData = [
@@ -183,6 +190,11 @@ class PDFReportService {
       [this.t('Poisson ratio (nu)'), inputs.nu, ''],
       [this.t('selfWeight'), results.beamSelfWeight.toFixed(1), 'kg'],
     ];
+    // Add transversal load row for double-girder input
+    if ((results as any).calculationMode === 'double-girder') {
+      const dbl = inputs as any;
+      loadData.splice(3, 0, [this.t('calculator.transversalLoad'), (dbl.transversalLoad ?? 0), 'kg/m']);
+    }
 
     autoTable(this.pdf, {
       head: [[this.t('geometricParameters'), this.t('value'), this.t('unit')]],

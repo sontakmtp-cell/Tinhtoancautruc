@@ -137,3 +137,7 @@ i18n.addResources('vi', 'translation', {
   'diagram.noData': 'Không có dữ liệu biểu đồ',
   'deflectionDiagram.support': 'Gối đỡ'
 });
+
+i18n.addResources('en', 'translation', { 'pdf.mode': 'Calculation mode' });
+i18n.addResources('vi', 'translation', { 'pdf.mode': 'Che do' });
+

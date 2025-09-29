@@ -74,7 +74,7 @@ export interface CalculationResults extends GeometricProperties {
   buckling_check: 'pass' | 'fail';
 
   /** Calculation mode used for the run */
-  calculationMode: 'single-girder' | 'i-beam';
+  calculationMode: 'single-girder' | 'i-beam' | 'double-girder';
 
   /** Web stiffener recommendation and layout */
   stiffener: StiffenerRecommendation;
@@ -109,3 +109,13 @@ export interface DiagramPoint {
 }
 
 export type DiagramData = DiagramPoint[];
+
+// Extended inputs for double-girder mode
+export interface DoubleBeamInputs extends BeamInputs {
+  /** Beam center-to-center distance (mm) */
+  Td: number;
+  /** Rail center-to-center distance (mm) */
+  Tr: number;
+  /** Transversal load from cross members (kg/m) */
+  transversalLoad: number;
+}

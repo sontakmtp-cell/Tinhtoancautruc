@@ -16,8 +16,9 @@ import {
   RotateCcw,
   Copy
 } from 'lucide-react';
-import type { BeamInputs, CalculationResults, DiagramData, MaterialType } from '../types';
+import type { BeamInputs, CalculationResults, DiagramData, MaterialType, DoubleBeamInputs } from '../types';
 import { MATERIAL_LIBRARY, MATERIAL_LABELS } from '../utils/materials';
+import { calculateDoubleBeamProperties, generateDoubleBeamDiagramData } from '../services/calculationService';
 // Import các service tính toán - sẽ cần tùy chỉnh cho dầm đôi
 // import { calculateDoubleBeamProperties, generateDoubleBeamDiagramData } from '../services/calculationService';
 import { useTranslation } from 'react-i18next';
@@ -33,14 +34,6 @@ import { multiplyForDisplay } from '../utils/display';
 const MIN_LOADER_DURATION_MS = 4_000;
 
 // Định nghĩa inputs mặc định cho dầm đôi
-interface DoubleBeamInputs extends BeamInputs {
-  // Khoảng cách tâm dầm Td (beam center to beam center)
-  Td: number;
-  // Khoảng cách tâm ray Tr (rail center to rail center)
-  Tr: number;
-  // Tải trọng phân bố do kết cấu ngang
-  transversalLoad: number;
-}
 
 const defaultDoubleBeamInputs: DoubleBeamInputs = {
   b: 800,       // Bottom flange width
@@ -237,84 +230,14 @@ export const DoubleBeamCalculator: React.FC = () => {
     const loaderStart = Date.now();
 
     try {
-      // Tạm thời hiển thị thông báo rằng tính toán cho dầm đôi đang được phát triển
-      console.log('Double beam calculation inputs:', inputs);
-      
-      // TODO: Implement double beam calculation logic
-      // const calculatedResults = calculateDoubleBeamProperties(inputs);
-      // const newDiagramData = generateDoubleBeamDiagramData(inputs, calculatedResults);
-      
-      // Tạm thời tạo kết quả giả để test giao diện
-      const mockArea = inputs.b * inputs.t1 / 100 + inputs.b3 * inputs.t2 / 100 + inputs.h * inputs.t3 / 100;
-      const mockResults: CalculationResults = {
-        F: mockArea, // Approximate area
-        Yc: inputs.h / 2 / 10, // Neutral axis at center
-        Xc: inputs.b / 2 / 10, // Centroid from left
-        Jx: Math.pow(inputs.h, 3) * inputs.t3 / 12 / 10000, // Approximate moment of inertia
-        Jy: Math.pow(inputs.b, 3) * inputs.t1 / 12 / 10000,
-        Wx: Math.pow(inputs.h, 2) * inputs.t3 / 6 / 1000,
-        Wy: Math.pow(inputs.b, 2) * inputs.t1 / 6 / 1000,
-        P: inputs.P_nang + inputs.P_thietbi, // Total point load
-        M_bt: inputs.transversalLoad * Math.pow(inputs.L, 2) / 8, // Moment from distributed load
-        M_vn: inputs.P_nang * inputs.L / 4, // Moment from point load
-        M_x: inputs.P_nang * inputs.L * 25 / 2, // Total moment about x-axis
-        M_y: 0, // Mock value for y-axis moment
-        beamSelfWeight: mockArea * inputs.L * 0.785 / 100, // Approximate self weight
-        q: inputs.transversalLoad, // Distributed load
-        // Inertia component breakdown
-        Jx_top: Math.pow(inputs.h, 3) * inputs.t3 / 24 / 10000,
-        Jx_bottom: Math.pow(inputs.h, 3) * inputs.t3 / 24 / 10000,
-        Jx_webs: Math.pow(inputs.h, 3) * inputs.t3 / 12 / 10000,
-        Jy_top: Math.pow(inputs.b, 3) * inputs.t1 / 24 / 10000,
-        Jy_bottom: Math.pow(inputs.b, 3) * inputs.t1 / 24 / 10000,
-        Jy_webs: Math.pow(inputs.b, 3) * inputs.t1 / 12 / 10000,
-        sigma_u: 800, // Mock stress value
-        sigma_top_compression: 750, // Mock compression stress
-        sigma_bottom_tension: 850, // Mock tension stress
-        f: 0.5, // Mock deflection
-        f_allow: 1.0, // Mock allowable deflection
-        K_sigma: 0.75, // Safety factor for stress
-        n_f: 350, // Deflection safety factor
-        K_buckling: 0.8, // Buckling safety factor
-        stress_check: 'pass' as const,
-        deflection_check: 'pass' as const,
-        buckling_check: 'pass' as const,
-        calculationMode: 'single-girder' as const, // Using single-girder mode as base
-        stiffener: {
-          required: true,
-          effectiveWebHeight: inputs.h - inputs.t1 - inputs.t2,
-          epsilon: 1.2,
-          optimalSpacing: 800,
-          count: 3,
-          width: 100,
-          thickness: 12,
-          requiredInertia: 50000,
-          positions: [200, 600, 1000], // Mock positions in cm
-          totalWeight: 45.5
-        }
-      };
-
-      setResults(mockResults);
-      
-      // Mock diagram data
-      const mockDiagramData: DiagramData = Array.from({ length: 21 }, (_, i) => {
-        const x = (i / 20) * inputs.L;
-        return {
-          x,
-          moment: Math.sin((Math.PI * x) / inputs.L) * mockResults.M_x,
-          shear: Math.cos((Math.PI * x) / inputs.L) * inputs.P_nang / 2,
-          deflection: Math.sin((Math.PI * x) / inputs.L) * mockResults.f
-        };
-      });
-      
-      setDiagramData(mockDiagramData);
-      
-      // Mock recommendation for demonstration
-      setRecommendation('**Thông báo**: Tính toán dầm đôi hiện đang trong giai đoạn phát triển. Các kết quả hiển thị chỉ mang tính chất minh họa giao diện.');
-
+      const calculatedResults = calculateDoubleBeamProperties(inputs);
+      const newDiagramData = generateDoubleBeamDiagramData(inputs, calculatedResults);
+      setResults(calculatedResults);
+      setDiagramData(newDiagramData as unknown as DiagramData);
+      setRecommendation('');
     } catch (error) {
       console.error('Double Beam Calculation Error:', error);
-      setRecommendation('Đã xảy ra lỗi trong quá trình tính toán dầm đôi.');
+      setRecommendation('');
     } finally {
       const elapsed = Date.now() - loaderStart;
       if (elapsed < MIN_LOADER_DURATION_MS) {
@@ -448,12 +371,7 @@ export const DoubleBeamCalculator: React.FC = () => {
               {t('Design and analyze double girder crane beams with geometry, loading, and safety checks')}
             </p>
           </div>
-          <div className="ml-auto">
-            <span className="inline-flex items-center gap-2 rounded-full border border-orange-400/60 bg-orange-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-orange-600 dark:text-orange-300">
-              <HelpCircle className="w-3 h-3" />
-              {t('Development Phase')}
-            </span>
-          </div>
+          <div className="ml-auto"></div>
         </div>
       </div>
 

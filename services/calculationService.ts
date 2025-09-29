@@ -1,4 +1,4 @@
-import type { BeamInputs, CalculationResults, DiagramData } from '../types';
+import type { BeamInputs, CalculationResults, DiagramData, DoubleBeamInputs } from '../types';
 
 const KG_TO_KN = 9.80665 / 1000; // Chuyển đổi kilogram-lực sang kilonewton
 const KG_CM2_TO_MPA = 0.0980665; // Chuyển đổi kg/cm^2 sang MPa
@@ -353,4 +353,106 @@ export const generateDiagramData = (inputs: BeamInputs, results: CalculationResu
   }
 
   return data;
+};
+
+// --- Double-girder helpers ---
+export const calculateDoubleBeamProperties = (inputs: DoubleBeamInputs): CalculationResults => {
+  // 1) Normalize transversal load (kg/m -> kg/cm)
+  const transversalLoad_cm = (inputs.transversalLoad || 0) / 100;
+
+  // 2) Create per-beam inputs by splitting point loads equally
+  const perBeam: BeamInputs = {
+    ...inputs,
+    P_nang: (inputs.P_nang || 0) / 2,
+    P_thietbi: (inputs.P_thietbi || 0) / 2,
+    // q in inputs is already kg/cm; add half of transversal load (kg/cm)
+    q: (inputs.q || 0) + transversalLoad_cm / 2,
+  };
+
+  // 3) Run single-girder calculation for one beam
+  const perBeamResults = calculateBeamProperties(perBeam, 'single-girder');
+
+  // 4) Combine to double-girder overall properties
+  const Td_cm = (inputs.Td || 0) / 10; // mm -> cm
+
+  const F_total = 2 * perBeamResults.F;
+  const Jx_total = 2 * perBeamResults.Jx;
+  const Wx_total = 2 * perBeamResults.Wx;
+
+  // Parallel axis theorem about y-axis (lateral) for two beams spaced Td
+  const Jy_total = 2 * (perBeamResults.Jy + perBeamResults.F * Math.pow(Td_cm / 2, 2));
+  const Wy_total = Jy_total / (Math.max(perBeamResults.Yc, 1e-9)); // approximate based on centroidal distance
+
+  const Mx_total = 2 * perBeamResults.M_x;
+  const My_total = 2 * perBeamResults.M_y;
+  const P_total = (inputs.P_nang || 0) + (inputs.P_thietbi || 0);
+
+  // Keep performance checks per-beam (each girder works in parallel)
+  // Stiffener: take per-beam recommendation; double total weight. Keep count per girder.
+  const stiffener = {
+    ...perBeamResults.stiffener,
+    totalWeight: perBeamResults.stiffener.totalWeight * 2,
+  };
+
+  return {
+    // Geometry
+    F: F_total,
+    Yc: perBeamResults.Yc,
+    Xc: perBeamResults.Xc,
+    Jx: Jx_total,
+    Jy: Jy_total,
+    Wx: Wx_total,
+    Wy: Wy_total,
+
+    // Inertia breakdown (approximate doubling for reporting)
+    Jx_top: perBeamResults.Jx_top * 2,
+    Jx_bottom: perBeamResults.Jx_bottom * 2,
+    Jx_webs: perBeamResults.Jx_webs * 2,
+    Jy_top: perBeamResults.Jy_top * 2,
+    Jy_bottom: perBeamResults.Jy_bottom * 2,
+    Jy_webs: perBeamResults.Jy_webs * 2,
+
+    // Loads and moments
+    P: P_total,
+    M_bt: perBeamResults.M_bt * 2,
+    M_vn: perBeamResults.M_vn * 2,
+    M_x: Mx_total,
+    M_y: My_total,
+    beamSelfWeight: perBeamResults.beamSelfWeight * 2,
+    // Use per-beam distributed load for clarity
+    q: perBeamResults.q,
+
+    // Stresses and deflection (per-beam)
+    sigma_u: perBeamResults.sigma_u,
+    sigma_top_compression: perBeamResults.sigma_top_compression,
+    sigma_bottom_tension: perBeamResults.sigma_bottom_tension,
+    f: perBeamResults.f,
+    f_allow: perBeamResults.f_allow,
+
+    // Safety factors (per-beam)
+    K_sigma: perBeamResults.K_sigma,
+    n_f: perBeamResults.n_f,
+    K_buckling: perBeamResults.K_buckling,
+    stress_check: perBeamResults.stress_check,
+    deflection_check: perBeamResults.deflection_check,
+    buckling_check: perBeamResults.buckling_check,
+
+    calculationMode: 'double-girder',
+    stiffener,
+  };
+};
+
+export const generateDoubleBeamDiagramData = (inputs: DoubleBeamInputs, _results: CalculationResults): DiagramData => {
+  // Build per-beam inputs and results similar to above to reuse existing generator
+  const transversalLoad_cm = (inputs.transversalLoad || 0) / 100;
+  const perBeam: BeamInputs = {
+    ...inputs,
+    P_nang: (inputs.P_nang || 0) / 2,
+    P_thietbi: (inputs.P_thietbi || 0) / 2,
+    q: (inputs.q || 0) + transversalLoad_cm / 2,
+  };
+  const perBeamResults = calculateBeamProperties(perBeam, 'single-girder');
+  const perData = generateDiagramData(perBeam, perBeamResults);
+  // For the full system, shear and moment are doubled (two identical girders in parallel)
+  return perData.map(p => ({ x: p.x, shear: p.shear * 2, moment: p.moment * 2 }));
 };
