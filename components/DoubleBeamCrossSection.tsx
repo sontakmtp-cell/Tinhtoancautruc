@@ -29,7 +29,7 @@ const Dimension: React.FC<{
 }> = ({ x1, y1, x2, y2, label, isHighlighted, position = 'bottom', onMouseEnter, onMouseLeave }) => {
   const offset = 10;
   const tickSize = 3;
-  const textColor = isHighlighted ? '#22c55e' : '#3b82f6';
+  const textColor = isHighlighted ? '#22c55e' : '#94a3b8';
 
   let line1, line2, textPos;
 
@@ -276,6 +276,45 @@ export const DoubleBeamCrossSection: React.FC<DoubleBeamCrossSectionProps> = ({ 
             onMouseLeave={() => setHoveredKey(null)}
           />
 
+          <Dimension
+            x1={rightBeamCenterX - s.b1 / 2}
+            y1={beamTopY + s.H}
+            x2={rightBeamCenterX + s.b1 / 2}
+            y2={beamTopY + s.H}
+            label={`b1 = ${b1}`}
+            isHighlighted={isDimensionHighlighted('b1')}
+            isDimmed={hoveredKey !== null && hoveredKey !== 'b1'}
+            position="bottom"
+            onMouseEnter={() => setHoveredKey('b1')}
+            onMouseLeave={() => setHoveredKey(null)}
+          />
+
+          <Dimension
+            x1={rightBeamCenterX - s.b3 / 2}
+            y1={beamTopY + s.t2 + s.H / 4}
+            x2={rightBeamCenterX + s.b3 / 2}
+            y2={beamTopY + s.t2 + s.H / 4}
+            label={`b3 = ${b3}`}
+            isHighlighted={isDimensionHighlighted('b3')}
+            isDimmed={hoveredKey !== null && hoveredKey !== 'b3'}
+            position="bottom"
+            onMouseEnter={() => setHoveredKey('b3')}
+            onMouseLeave={() => setHoveredKey(null)}
+          />
+
+          <Dimension
+            x1={rightBeamCenterX - s.b3 / 2 - s.t3}
+            y1={beamTopY + s.t2 + s.H / 3}
+            x2={rightBeamCenterX - s.b3 / 2}
+            y2={beamTopY + s.t2 + s.H / 3}
+            label={`t3 = ${t3}`}
+            isHighlighted={isDimensionHighlighted('t3')}
+            isDimmed={hoveredKey !== null && hoveredKey !== 't3'}
+            position="left"
+            onMouseEnter={() => setHoveredKey('t3')}
+            onMouseLeave={() => setHoveredKey(null)}
+          />
+
           {/* Height dimension */}
           <Dimension
             x1={rightBeamCenterX + s.b2 / 2 + 20} 
@@ -363,6 +402,18 @@ export const DoubleBeamCrossSection: React.FC<DoubleBeamCrossSectionProps> = ({ 
             position="top"
             onMouseEnter={() => setHoveredKey('Tr')}
             onMouseLeave={() => setHoveredKey(null)}
+          />
+
+          {/* Distance between inner bottom flanges */}
+          <Dimension
+            x1={leftBeamCenterX + s.b1 / 2}
+            y1={beamTopY + s.H}
+            x2={rightBeamCenterX - s.b1 / 2}
+            y2={beamTopY + s.H}
+            label={`${(Td - b1).toFixed(0)}`}
+            isHighlighted={isDimensionHighlighted('Td') || isDimensionHighlighted('b1')}
+            isDimmed={hoveredKey !== null && !['Td', 'b1'].includes(hoveredKey)}
+            position="bottom"
           />
         </svg>
       </div>

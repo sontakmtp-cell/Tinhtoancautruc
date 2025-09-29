@@ -193,8 +193,8 @@ export const BeamCrossSection: React.FC<BeamCrossSectionProps> = ({ inputs, acti
             onMouseLeave={() => setHoveredKey(null)}
           />
           <Dimension
-            x1={width - padding / 2} y1={topY}
-            x2={width - padding / 2} y2={topY + s.h}
+            x1={centerX + totalWidth * scale / 2 + 20} y1={topY}
+            x2={centerX + totalWidth * scale / 2 + 20} y2={topY + s.h}
             label={`H = ${h}`}
             isHighlighted={isDimensionHighlighted('h')}
             position="right"
@@ -202,8 +202,8 @@ export const BeamCrossSection: React.FC<BeamCrossSectionProps> = ({ inputs, acti
             onMouseLeave={() => setHoveredKey(null)}
           />
           <Dimension
-            x1={padding / 2} y1={topY}
-            x2={padding / 2} y2={topY + s.t2}
+            x1={centerX - totalWidth * scale / 2 - 20} y1={topY}
+            x2={centerX - totalWidth * scale / 2 - 20} y2={topY + s.t2}
             label={`t2 = ${t2}`}
             isHighlighted={isDimensionHighlighted('t2')}
             position="left"
@@ -211,8 +211,8 @@ export const BeamCrossSection: React.FC<BeamCrossSectionProps> = ({ inputs, acti
             onMouseLeave={() => setHoveredKey(null)}
           />
           <Dimension
-            x1={padding / 2} y1={topY + s.h - s.t1}
-            x2={padding / 2} y2={topY + s.h}
+            x1={centerX - totalWidth * scale / 2 - 20} y1={topY + s.h - s.t1}
+            x2={centerX - totalWidth * scale / 2 - 20} y2={topY + s.h}
             label={`t1 = ${t1}`}
             isHighlighted={isDimensionHighlighted('t1')}
             position="left"
