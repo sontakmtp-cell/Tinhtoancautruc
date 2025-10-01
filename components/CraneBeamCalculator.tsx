@@ -245,7 +245,8 @@ const BeamTypeTabs: React.FC<{ active: BeamType; onChange: (type: BeamType) => v
   const { t } = useTranslation();
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:divide-x sm:divide-gray-200 dark:sm:divide-gray-700">
+      {/* Ensure all tabs have identical width and height across modules */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:divide-x sm:divide-gray-200 dark:sm:divide-gray-700">
         {beamTabs.map((tab) => {
           const isActive = tab.id === active;
           return (
@@ -253,13 +254,13 @@ const BeamTypeTabs: React.FC<{ active: BeamType; onChange: (type: BeamType) => v
               key={tab.id}
               type="button"
               onClick={() => onChange(tab.id)}
-              className={`flex-1 text-left px-4 py-3 transition-colors ${
+              className={`flex-1 h-full min-h-[72px] sm:min-h-[84px] text-left px-4 py-3 transition-colors ${
                 isActive
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'bg-transparent text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-800'
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 h-full">
                 <tab.icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-blue-500'}`} />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
@@ -685,7 +686,7 @@ export const CraneBeamCalculator: React.FC = () => {
                     const isMaterialField = ['sigma_allow','sigma_yield','E','nu'].includes(name as string);
                     const disabled = isMaterialField && materialType !== 'CUSTOM';
                     return (
-                      <div key={name} className="col-span-2 sm:col-span-1">
+                      <div key={name} className="col-span-2 sm:col-span-1 calc-field">
                         <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           {t(label)}
                         </label>

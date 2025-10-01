@@ -172,3 +172,10 @@ footer p {
   text-shadow: 0px 0px 12px #cae2fd;
 }
 
+/* Uniform tile size for input fields across modules */
+.calc-field {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 96px; /* keep label + input consistent */
+}

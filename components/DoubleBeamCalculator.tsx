@@ -72,14 +72,14 @@ const getDoubleBeamInputConfig = (t: (key: string, opts?: any) => string) => [
       { name: 'L', label: 'calculator.spanLengthL', unit: 'cm' },
       { name: 'A', label: 'endCarriageWheelCenterA', unit: 'mm' },
       { name: 'C', label: 'endInclinedSegmentC', unit: 'mm' },
-      // Section geometry parameters
+      // Section geometry parameters - grouped by element
+      { name: 'h', label: 'calculator.beamHeightH', unit: 'mm' },
       { name: 'b', label: 'calculator.bottomFlangeWidthB1Short', unit: 'mm' },
       { name: 't1', label: 'calculator.bottomFlangeThicknessT1', unit: 'mm' },
       { name: 'b3', label: 'calculator.topFlangeWidthB2', unit: 'mm' },
       { name: 't2', label: 'calculator.topFlangeThicknessT2', unit: 'mm' },
       { name: 'b1', label: 'calculator.webSpacingB2', unit: 'mm' },
       { name: 't3', label: 'calculator.webThicknessT3', unit: 'mm' },
-      { name: 'h', label: 'calculator.beamHeightH', unit: 'mm' },
     ],
   },
   {
@@ -358,23 +358,7 @@ export const DoubleBeamCalculator: React.FC = () => {
   }, [results, inputs.L]);
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6">
-        <div className="flex items-center gap-4">
-          <Copy className="w-8 h-8 text-blue-500" />
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {t('Double Girder Crane Beam Calculator')}
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {t('Design and analyze double girder crane beams with geometry, loading, and safety checks')}
-            </p>
-          </div>
-          <div className="ml-auto"></div>
-        </div>
-      </div>
-
+    <>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <form onSubmit={handleSubmit} className="lg:col-span-1 space-y-6">
           {/* Mobile-only Cross Section Diagram */}
@@ -420,7 +404,7 @@ export const DoubleBeamCalculator: React.FC = () => {
                   const isMaterialField = ['sigma_allow','sigma_yield','E','nu'].includes(name as string);
                   const disabled = isMaterialField && materialType !== 'CUSTOM';
                   return (
-                    <div key={name} className="col-span-2 sm:col-span-1">
+                    <div key={name} className="col-span-2 sm:col-span-1 calc-field">
                       <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         {t(label)}
                       </label>
@@ -695,6 +679,6 @@ export const DoubleBeamCalculator: React.FC = () => {
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 };
