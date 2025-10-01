@@ -172,7 +172,7 @@
                           "unit":  "σ (kg/cm²)"
                       },
     "unit":  "Unit",
-    "pdf":  {"torsionResults":  "Torsion results", "torsionCheck":  "Torsion check", "angleOfTwist":  "Angle of twist", "railDifferential":  "Rail level differential",
+    "pdf":  {"torsionResults":  "Torsion results", "torsionCheck":  "Torsion check", "angleOfTwist":  "Angle of twist", "railDifferential":  "Rail level differential", "torsionParameters":  "Parameters",
                 "notAvailable":  "N/A",
                 "customMaterial":  "Custom",
                 "defaultProjectName":  "Crane Beam Calculation Project",

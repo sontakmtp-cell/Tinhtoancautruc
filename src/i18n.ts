@@ -139,7 +139,7 @@ i18n.addResources('vi', 'translation', {
 });
 
 i18n.addResources('en', 'translation', { 'pdf.mode': 'Calculation mode' });
-i18n.addResources('vi', 'translation', { 'pdf.mode': 'Che do' });
+i18n.addResources('vi', 'translation', { 'pdf.mode': 'Chế độ' });
 
 
 i18n.addResources('en','translation',{

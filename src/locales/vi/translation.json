@@ -156,7 +156,7 @@
                           "unit":  "σ (kg/cm²)"
                       },
     "unit":  "Đơn vị",
-    "pdf":  {"torsionResults":  "Kết quả xoắn", "torsionCheck":  "Kiểm tra xoắn", "angleOfTwist":  "Góc xoay", "railDifferential":  "Chênh cao tim ray",
+    "pdf":  {"torsionResults":  "Kết quả xoắn", "torsionCheck":  "Kiểm tra xoắn", "angleOfTwist":  "Góc xoay", "railDifferential":  "Chênh cao tim ray", "torsionParameters":  "Tham số",
                 "notAvailable":  "Không có",
                 "stressCheck":  "Kiểm tra ứng suất",
                 "deflectionCheck":  "Kiểm tra độ võng",

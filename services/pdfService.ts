@@ -116,7 +116,7 @@ class PDFReportService {
   }
 
   // --- CONTENT SECTIONS ---
-  private addProjectInfo(engineer: string, date: string) {
+  private addProjectInfo(engineer: string, date: string, results: CalculationResults) {
     this.pdf.setFontSize(12);
     this.pdf.setFont('NotoSans', 'bold');
     this.pdf.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
@@ -140,31 +140,6 @@ class PDFReportService {
     });
 
     this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
-    // --- Torsion results for double-girder ---
-    if ((results as any).calculationMode === 'double-girder' && typeof (results as any).T_torsion !== 'undefined') {
-      const torsionRows = [
-        [this.t('pdf.torsionResults'), '', ''],
-        [this.t('calculator.torsionTitle'), Number((results as any).T_torsion || 0).toFixed(2), 'kg.cm'],
-        [this.t('pdf.angleOfTwist'), (Number((results as any).theta || 0) * 1000).toExponential(2), 'mrad'],
-        [this.t('calculator.tauTop'), Number((results as any).tau_t_top || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('calculator.tauWeb'), Number((results as any).tau_t_web || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('calculator.tauBottom'), Number((results as any).tau_t_bottom || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('pdf.railDifferential'), Number((results as any).railDifferential || 0).toFixed(2), 'mm'],
-        [this.t('pdf.torsionCheck'), (results as any).torsion_check === 'pass' ? this.t('pass') : this.t('fail'), ''],
-      ];
-
-      autoTable(this.pdf, {
-        head: [[this.t('pdf.torsionResults'), this.t('value'), this.t('unit')]],
-        body: torsionRows.slice(1),
-        startY: this.currentY,
-        theme: 'grid',
-        styles: { font: 'NotoSans' },
-        headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'NotoSans', fontStyle: 'bold' },
-        alternateRowStyles: { fillColor: SECONDARY_COLOR },
-      });
-
-      this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
-    }
   }
 
   private addInputs(inputs: BeamInputs, results: CalculationResults) {
@@ -248,31 +223,6 @@ class PDFReportService {
     });
     
     this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
-    // --- Torsion results for double-girder ---
-    if ((results as any).calculationMode === 'double-girder' && typeof (results as any).T_torsion !== 'undefined') {
-      const torsionRows = [
-        [this.t('pdf.torsionResults'), '', ''],
-        [this.t('calculator.torsionTitle'), Number((results as any).T_torsion || 0).toFixed(2), 'kg.cm'],
-        [this.t('pdf.angleOfTwist'), (Number((results as any).theta || 0) * 1000).toExponential(2), 'mrad'],
-        [this.t('calculator.tauTop'), Number((results as any).tau_t_top || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('calculator.tauWeb'), Number((results as any).tau_t_web || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('calculator.tauBottom'), Number((results as any).tau_t_bottom || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('pdf.railDifferential'), Number((results as any).railDifferential || 0).toFixed(2), 'mm'],
-        [this.t('pdf.torsionCheck'), (results as any).torsion_check === 'pass' ? this.t('pass') : this.t('fail'), ''],
-      ];
-
-      autoTable(this.pdf, {
-        head: [[this.t('pdf.torsionResults'), this.t('value'), this.t('unit')]],
-        body: torsionRows.slice(1),
-        startY: this.currentY,
-        theme: 'grid',
-        styles: { font: 'NotoSans' },
-        headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'NotoSans', fontStyle: 'bold' },
-        alternateRowStyles: { fillColor: SECONDARY_COLOR },
-      });
-
-      this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
-    }
   }
 
   private addResults(results: CalculationResults) {
@@ -331,31 +281,6 @@ class PDFReportService {
     });
     
     this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
-    // --- Torsion results for double-girder ---
-    if ((results as any).calculationMode === 'double-girder' && typeof (results as any).T_torsion !== 'undefined') {
-      const torsionRows = [
-        [this.t('pdf.torsionResults'), '', ''],
-        [this.t('calculator.torsionTitle'), Number((results as any).T_torsion || 0).toFixed(2), 'kg.cm'],
-        [this.t('pdf.angleOfTwist'), (Number((results as any).theta || 0) * 1000).toExponential(2), 'mrad'],
-        [this.t('calculator.tauTop'), Number((results as any).tau_t_top || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('calculator.tauWeb'), Number((results as any).tau_t_web || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('calculator.tauBottom'), Number((results as any).tau_t_bottom || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('pdf.railDifferential'), Number((results as any).railDifferential || 0).toFixed(2), 'mm'],
-        [this.t('pdf.torsionCheck'), (results as any).torsion_check === 'pass' ? this.t('pass') : this.t('fail'), ''],
-      ];
-
-      autoTable(this.pdf, {
-        head: [[this.t('pdf.torsionResults'), this.t('value'), this.t('unit')]],
-        body: torsionRows.slice(1),
-        startY: this.currentY,
-        theme: 'grid',
-        styles: { font: 'NotoSans' },
-        headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'NotoSans', fontStyle: 'bold' },
-        alternateRowStyles: { fillColor: SECONDARY_COLOR },
-      });
-
-      this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
-    }
   }
 
   private addGeometricBalance(inputs: BeamInputs) {
@@ -417,31 +342,6 @@ class PDFReportService {
     });
 
     this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
-    // --- Torsion results for double-girder ---
-    if ((results as any).calculationMode === 'double-girder' && typeof (results as any).T_torsion !== 'undefined') {
-      const torsionRows = [
-        [this.t('pdf.torsionResults'), '', ''],
-        [this.t('calculator.torsionTitle'), Number((results as any).T_torsion || 0).toFixed(2), 'kg.cm'],
-        [this.t('pdf.angleOfTwist'), (Number((results as any).theta || 0) * 1000).toExponential(2), 'mrad'],
-        [this.t('calculator.tauTop'), Number((results as any).tau_t_top || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('calculator.tauWeb'), Number((results as any).tau_t_web || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('calculator.tauBottom'), Number((results as any).tau_t_bottom || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('pdf.railDifferential'), Number((results as any).railDifferential || 0).toFixed(2), 'mm'],
-        [this.t('pdf.torsionCheck'), (results as any).torsion_check === 'pass' ? this.t('pass') : this.t('fail'), ''],
-      ];
-
-      autoTable(this.pdf, {
-        head: [[this.t('pdf.torsionResults'), this.t('value'), this.t('unit')]],
-        body: torsionRows.slice(1),
-        startY: this.currentY,
-        theme: 'grid',
-        styles: { font: 'NotoSans' },
-        headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'NotoSans', fontStyle: 'bold' },
-        alternateRowStyles: { fillColor: SECONDARY_COLOR },
-      });
-
-      this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
-    }
   }
 
   private addSafetyChecks(results: CalculationResults) {
@@ -477,31 +377,6 @@ class PDFReportService {
     });
 
     this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
-    // --- Torsion results for double-girder ---
-    if ((results as any).calculationMode === 'double-girder' && typeof (results as any).T_torsion !== 'undefined') {
-      const torsionRows = [
-        [this.t('pdf.torsionResults'), '', ''],
-        [this.t('calculator.torsionTitle'), Number((results as any).T_torsion || 0).toFixed(2), 'kg.cm'],
-        [this.t('pdf.angleOfTwist'), (Number((results as any).theta || 0) * 1000).toExponential(2), 'mrad'],
-        [this.t('calculator.tauTop'), Number((results as any).tau_t_top || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('calculator.tauWeb'), Number((results as any).tau_t_web || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('calculator.tauBottom'), Number((results as any).tau_t_bottom || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('pdf.railDifferential'), Number((results as any).railDifferential || 0).toFixed(2), 'mm'],
-        [this.t('pdf.torsionCheck'), (results as any).torsion_check === 'pass' ? this.t('pass') : this.t('fail'), ''],
-      ];
-
-      autoTable(this.pdf, {
-        head: [[this.t('pdf.torsionResults'), this.t('value'), this.t('unit')]],
-        body: torsionRows.slice(1),
-        startY: this.currentY,
-        theme: 'grid',
-        styles: { font: 'NotoSans' },
-        headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'NotoSans', fontStyle: 'bold' },
-        alternateRowStyles: { fillColor: SECONDARY_COLOR },
-      });
-
-      this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
-    }
   }
 
   private addStiffenerResults(results: CalculationResults) {
@@ -554,31 +429,6 @@ class PDFReportService {
       alternateRowStyles: { fillColor: SECONDARY_COLOR },
     });
     this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
-    // --- Torsion results for double-girder ---
-    if ((results as any).calculationMode === 'double-girder' && typeof (results as any).T_torsion !== 'undefined') {
-      const torsionRows = [
-        [this.t('pdf.torsionResults'), '', ''],
-        [this.t('calculator.torsionTitle'), Number((results as any).T_torsion || 0).toFixed(2), 'kg.cm'],
-        [this.t('pdf.angleOfTwist'), (Number((results as any).theta || 0) * 1000).toExponential(2), 'mrad'],
-        [this.t('calculator.tauTop'), Number((results as any).tau_t_top || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('calculator.tauWeb'), Number((results as any).tau_t_web || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('calculator.tauBottom'), Number((results as any).tau_t_bottom || 0).toFixed(2), `kg/cm${SUP2}`],
-        [this.t('pdf.railDifferential'), Number((results as any).railDifferential || 0).toFixed(2), 'mm'],
-        [this.t('pdf.torsionCheck'), (results as any).torsion_check === 'pass' ? this.t('pass') : this.t('fail'), ''],
-      ];
-
-      autoTable(this.pdf, {
-        head: [[this.t('pdf.torsionResults'), this.t('value'), this.t('unit')]],
-        body: torsionRows.slice(1),
-        startY: this.currentY,
-        theme: 'grid',
-        styles: { font: 'NotoSans' },
-        headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'NotoSans', fontStyle: 'bold' },
-        alternateRowStyles: { fillColor: SECONDARY_COLOR },
-      });
-
-      this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
-    }
   }
 
   private addOverallAssessment(results: CalculationResults) {
@@ -760,33 +610,39 @@ class PDFReportService {
       this.pdf.addFont('NotoSans-Bold.ttf', 'NotoSans', 'bold');
       this.pdf.setFont('NotoSans', 'normal');
 
+      // Page 1: Project Info & Input Parameters
       this.addHeader(projectName);
-      this.addProjectInfo(engineer, date);
+      this.addProjectInfo(engineer, date, results);
       this.addInputs(inputs, results);
 
-      // Move results to the second page
+      // Page 2 onwards: Geometric Balance, Calculation Results, Assessments
       this.pdf.addPage();
       this.currentY = MARGIN.top;
 
-      this.addResults(results);
+      // Geometric Balance
       if ((results as any).calculationMode !== 'i-beam') {
-        // Check for space before adding the geometric balance table
-        if (this.currentY > this.pageHeight - MARGIN.bottom - 60) { // Estimate height
-          this.pdf.addPage();
-          this.currentY = MARGIN.top;
-        }
-        this.addGeometricBalance(inputs);
+        this.addGeometricBalance(inputs, (results as any).calculationMode);
       }
-      this.addStiffenerResults(results);
-      this.addSafetyChecks(results);
 
-      // Ensure there is enough space for the overall assessment box.
-      if (this.currentY > this.pageHeight - MARGIN.bottom - 30) { // Assessment box is ~25mm high
+      // Calculation Results
+      if (this.currentY > this.pageHeight - MARGIN.bottom - 80) {
         this.pdf.addPage();
         this.currentY = MARGIN.top;
       }
+      this.addResults(results);
 
+      // Torsion Results (for double-girder) - Moved here
+      if ((results as any).calculationMode === 'double-girder' && typeof (results as any).T_torsion !== 'undefined') {
+        this.addTorsionResults(results);
+      }
+
+      // Stiffener Recommendation
+      this.addStiffenerResults(results);
+      // Safety Checks
+      this.addSafetyChecks(results);
+      // Overall Assessment
       this.addOverallAssessment(results);
+
       if (options.aiRecommendation && options.aiRecommendation.trim().length > 0) {
         this.addAIRecommendations(options.aiRecommendation);
       }
@@ -844,6 +700,43 @@ class PDFReportService {
       }
     }
   }
+}
+
+/**
+ * Adds Torsion-specific results to the PDF.
+ */
+PDFReportService.prototype.addTorsionResults = function(results: CalculationResults) {
+  if (this.currentY + 50 > this.pageHeight - MARGIN.bottom) {
+    this.pdf.addPage();
+    this.currentY = MARGIN.top;
+  }
+
+  this.pdf.setFontSize(12);
+  this.pdf.setFont('NotoSans', 'bold');
+  this.pdf.text(this.t('pdf.torsionResults'), MARGIN.left, this.currentY);
+  this.currentY += 6;
+
+  const torsionRows = [
+    [this.t('calculator.torsionTitle'), Number((results as any).T_torsion || 0).toExponential(2), 'kg.cm'],
+    [this.t('pdf.angleOfTwist'), (Number((results as any).theta || 0) * 1000).toExponential(2), 'mrad'],
+    [this.t('calculator.tauTop'), Number((results as any).tau_t_top || 0).toFixed(2), UNIT_SIGMA],
+    [this.t('calculator.tauWeb'), Number((results as any).tau_t_web || 0).toFixed(2), UNIT_SIGMA],
+    [this.t('calculator.tauBottom'), Number((results as any).tau_t_bottom || 0).toFixed(2), UNIT_SIGMA],
+    [this.t('pdf.railDifferential'), Number((results as any).railDifferential || 0).toFixed(2), 'mm'],
+    [this.t('pdf.torsionCheck'), (results as any).torsion_check === 'pass' ? this.t('pass') : this.t('fail'), ''],
+  ];
+
+  autoTable(this.pdf, {
+    head: [[this.t('pdf.torsionParameters'), this.t('value'), this.t('unit')]],
+    body: torsionRows,
+    startY: this.currentY,
+    theme: 'grid',
+    styles: { font: 'NotoSans' },
+    headStyles: { fillColor: PRIMARY_COLOR, textColor: HEADER_TEXT_COLOR, font: 'NotoSans', fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: SECONDARY_COLOR },
+  });
+
+  this.currentY = (this.pdf as any).lastAutoTable.finalY + 10;
 }
 
 export const generatePDFReport = async (
