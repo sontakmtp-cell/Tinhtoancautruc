@@ -1,10 +1,11 @@
 // Đặt tên cho cache và phiên bản
-const CACHE_NAME = 'crane-beam-studio-v2';
+const CACHE_VERSION = 1759399095; // <-- TĂNG SỐ NÀY MỖI KHI DEPLOY BẢN MỚI
+const CACHE_NAME = `crane-beam-studio-v${CACHE_VERSION}`;
 
 // Danh sách các file cần cache để ứng dụng chạy offline
 const urlsToCache = [
   '/',
-  '/index.html',
+  '/index.html', // Cần thiết để fallback khi offline
   '/manifest.json',
   '/favicon.svg',
   '/icon-192x192.png',
@@ -49,48 +50,46 @@ self.addEventListener('activate', (event) => {
 
 // Sự kiện 'fetch': Canh thiệp vào các yêu cầu mạng
 self.addEventListener('fetch', (event) => {
-  // Skip cross-origin requests
+  // Bỏ qua các yêu cầu không phải GET hoặc từ nguồn khác (ví dụ: API của Google Fonts, Plotly)
   if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Nếu tìm thấy yêu cầu trong cache, trả về từ cache
-        if (response) {
+  // Chiến lược "Network First" cho trang HTML (navigation requests)
+  // Để người dùng luôn nhận được phiên bản mới nhất của trang
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          // Nếu fetch thành công, trả về response từ mạng
           return response;
-        }
-        
-        // Nếu không, thực hiện yêu cầu mạng
-        return fetch(event.request)
-          .then((response) => {
-            // Kiểm tra response hợp lệ trước khi cache
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
+        })
+        .catch(() => {
+          // Nếu mạng lỗi, trả về trang index.html từ cache
+          return caches.match('/index.html');
+        })
+    );
+    return;
+  }
 
-            // Clone response để cache (vì response stream chỉ có thể đọc 1 lần)
-            const responseToCache = response.clone();
+  // Chiến lược "Cache First" cho các tài nguyên khác (CSS, JS, ảnh, v.v.)
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      // Nếu có trong cache, trả về từ cache
+      if (cachedResponse) {
+        return cachedResponse;
+      }
 
-            // Cache dynamic resources (JS, CSS files)
-            if (event.request.destination === 'script' || 
-                event.request.destination === 'style' ||
-                event.request.url.includes('/assets/')) {
-              caches.open(CACHE_NAME)
-                .then((cache) => {
-                  cache.put(event.request, responseToCache);
-                });
-            }
-
-            return response;
-          })
-          .catch(() => {
-            // Fallback cho navigation requests
-            if (event.request.destination === 'document') {
-              return caches.match('/index.html');
-            }
-          });
-      })
+      // Nếu không có trong cache, đi lấy từ mạng
+      return fetch(event.request).then((networkResponse) => {
+        // Clone response để có thể trả về và cache cùng lúc
+        const responseToCache = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          // Cache lại tài nguyên mới này
+          cache.put(event.request, responseToCache);
+        });
+        return networkResponse;
+      });
+    })
   );
 });
