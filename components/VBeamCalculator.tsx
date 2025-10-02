@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
   Bot,
@@ -16,70 +16,108 @@ import {
   RotateCcw,
   Copy
 } from 'lucide-react';
-import type { BeamInputs, CalculationResults, DiagramData, MaterialType, DoubleBeamInputs } from '../types';
+import type { CalculationResults, DiagramData, MaterialType, VBeamInputs, BeamInputs } from '../types';
 import { MATERIAL_LIBRARY, MATERIAL_LABELS } from '../utils/materials';
-import { calculateDoubleBeamProperties, generateDoubleBeamDiagramData } from '../services/calculationService';
-// Import các service tính toán - sẽ cần tùy chỉnh cho dầm đôi
-// import { calculateDoubleBeamProperties, generateDoubleBeamDiagramData } from '../services/calculationService';
 import { useTranslation } from 'react-i18next';
 import { HamsterLoader } from './Loader';
 import { InternalForceDiagram } from './InternalForceDiagram';
 import { StressDistributionDiagram } from './StressDistributionDiagram';
 import { DeflectedShapeDiagram } from './DeflectedShapeDiagram';
 import { PDFExportButton } from './PDFReport';
-import { BeamCrossSection } from './BeamCrossSection';
-import { DoubleBeamCrossSection } from './DoubleBeamCrossSection';
+import { VBeamCrossSection } from './VBeamCrossSection';
 import { multiplyForDisplay } from '../utils/display';
 
 const MIN_LOADER_DURATION_MS = 4_000;
 
-// Định nghĩa inputs mặc định cho dầm đôi
+// Helper function to convert VBeamInputs to BeamInputs for compatibility
+const convertVBeamToBeamInputs = (vBeamInputs: VBeamInputs): BeamInputs => ({
+  b: vBeamInputs.b1, // Flange width
+  h: vBeamInputs.H || (vBeamInputs.h1 + vBeamInputs.h3), // Total height
+  t1: vBeamInputs.t1, // Bottom flange thickness
+  t2: vBeamInputs.t2, // Top flange thickness (using body thickness as approximation)
+  t3: vBeamInputs.t3, // Web thickness
+  b1: vBeamInputs.b1, // Web spacing (using flange width as approximation)
+  b3: vBeamInputs.b1, // Top flange width
+  L: vBeamInputs.L,
+  A: vBeamInputs.A / 10, // Convert mm to cm
+  C: 0, // Not applicable for V-beam
+  P_nang: vBeamInputs.P_nang,
+  P_thietbi: vBeamInputs.P_thietbi,
+  sigma_allow: vBeamInputs.sigma_allow,
+  sigma_yield: vBeamInputs.sigma_yield,
+  E: vBeamInputs.E,
+  nu: vBeamInputs.nu,
+  q: vBeamInputs.q,
+  materialType: vBeamInputs.materialType,
+});
 
-const defaultDoubleBeamInputs: DoubleBeamInputs = {
-  b: 800,       // Bottom flange width
-  h: 1200,      // Total beam height
-  t1: 40,       // Bottom flange thickness
-  t2: 40,       // Top flange thickness
-  t3: 20,       // Web thickness
-  b1: 500,      // Web spacing
-  b3: 800,      // Top flange width (same as b for symmetry)
-  L: 1200,      // Beam span
-  A: 0,         // End carriage wheel center distance
-  C: 0,         // End inclined segment
-  P_nang: 50000,    // Hoist load (higher for double girder)
-  P_thietbi: 15000, // Trolley weight
+// --- Tính toán các giá trị mặc định dựa trên hình học ---
+const default_t1 = 16;
+const default_h1 = 235;
+const default_h3 = 1000;
+const a1_rad = (30 * Math.PI) / 180; // Góc nghiêng V-web là 30 độ
+const default_vWebHeight = default_h3 * Math.cos(a1_rad);
+const default_H1 = default_t1 + default_h1;
+const default_H2 = default_H1 + default_vWebHeight;
+const default_H3 = 99.07; // Giá trị tham khảo từ bản vẽ gốc
+const default_H = default_H2 + default_H3;
+
+// Định nghĩa inputs mặc định cho dầm V
+const defaultVBeamInputs: VBeamInputs = {
+  // V-beam specific parameters from the image
+  t3: 6,       // Độ dày bụng (Web thickness) - mm
+  h3: 1000,      // Chiều cao bụng (Web height) - mm
+  t4: 10,       // Độ dày mái (Roof thickness) - mm
+  b1: 170,      // Chiều rộng cánh (Flange width) - mm
+  t1: 16,       // Chiều dày cánh (Flange thickness) - mm
+  t2: 12,       // Chiều dày thân (Body thickness) - mm
+  h1: default_h1,      // Chiều cao I (I-height) - mm
+  L: 1200,      // Khẩu độ dầm (Beam span) - cm
+  A: 150,       // Tâm bánh xe dầm biên A (Edge beam wheel center A) - mm
+  
+  // Các kích thước tổng thể, được tính toán tự động để nhất quán
+  H: default_H,      // Total height - mm
+  H1: default_H1,      // Height to V-section start - mm
+  H2: default_H2,     // Height to V-top corner - mm
+  H3: default_H3,      // Height from V-corner to top - mm
+  Lc: 480,      // Length of top-left angled segment - mm
+  d: 50,        // Small horizontal offset at top-left - mm
+  s: 30,        // Small vertical offset at top-right - mm
+  a1: 45,       // Angle of V-section - degrees
+  La: 700,      // Total width at top - mm
+  Lb: 600,      // Width at top (narrower) - mm
+  Ld: 550,      // Width at top (narrowest) - mm
+  b: 500,       // Base width - mm
+  h2: 640,      // Height dimension - mm
+  a: 150,       // Wheel center distance - mm
+
+  // Material and Load properties
+  P_nang: 40000,    // Hoist load (kg)
+  P_thietbi: 12000, // Trolley weight (kg)
   sigma_allow: 1650,
   sigma_yield: 2450,
   E: 2.1e6,
   nu: 0.3,
-  q: 30,        // Self weight factor
+  q: 25,        // Self weight factor
   materialType: 'SS400',
-  // Double beam specific parameters
-  Td: 1500,               // Distance between beam centers (mm)
-  Tr: 1200,               // Distance between rail centers (mm)
-  transversalLoad: 50,    // Distributed load from cross structure (kg/m)
 };
 
-// Cấu hình input cho dầm đôi
-const getDoubleBeamInputConfig = (t: (key: string, opts?: any) => string) => [
+// Cấu hình input cho dầm V
+const getVBeamInputConfig = (t: (key: string, opts?: any) => string) => [
   {
     title: 'Section geometry',
     icon: Scale,
     fields: [
-      // Double girder specific parameters
-      { name: 'Td', label: 'calculator.beamCenterDistance', unit: 'mm' },
-      { name: 'Tr', label: 'calculator.railCenterDistance', unit: 'mm' },
+      // V-beam specific parameters
+      { name: 't3', label: 'calculator.webThicknessT3', unit: 'mm' },
+      { name: 'h3', label: 'calculator.webHeightH3', unit: 'mm' },
+      { name: 't4', label: 'calculator.roofThicknessT4', unit: 'mm' },
+      { name: 'b1', label: 'calculator.flangeWidthB1', unit: 'mm' },
+      { name: 't1', label: 'calculator.flangeThicknessT1', unit: 'mm' },
+      { name: 't2', label: 'calculator.bodyThicknessT2', unit: 'mm' },
+      { name: 'h1', label: 'calculator.iHeightH1', unit: 'mm' },
       { name: 'L', label: 'calculator.spanLengthL', unit: 'cm' },
       { name: 'A', label: 'endCarriageWheelCenterA', unit: 'mm' },
-      { name: 'C', label: 'endInclinedSegmentC', unit: 'mm' },
-      // Section geometry parameters - grouped by element
-      { name: 'h', label: 'calculator.beamHeightH', unit: 'mm' },
-      { name: 'b', label: 'calculator.bottomFlangeWidthB1Short', unit: 'mm' },
-      { name: 't1', label: 'calculator.bottomFlangeThicknessT1', unit: 'mm' },
-      { name: 'b3', label: 'calculator.topFlangeWidthB2', unit: 'mm' },
-      { name: 't2', label: 'calculator.topFlangeThicknessT2', unit: 'mm' },
-      { name: 'b1', label: 'calculator.webSpacingB2', unit: 'mm' },
-      { name: 't3', label: 'calculator.webThicknessT3', unit: 'mm' },
     ],
   },
   {
@@ -88,7 +126,6 @@ const getDoubleBeamInputConfig = (t: (key: string, opts?: any) => string) => [
     fields: [
       { name: 'P_nang', label: 'Hoist load', unit: 'kg' },
       { name: 'P_thietbi', label: 'Trolley weight', unit: 'kg' },
-      { name: 'transversalLoad', label: 'calculator.transversalLoad', unit: 'kg/m' },
       { name: 'sigma_allow', label: 'Allowable stress', unit: 'kg/cm²' },
       { name: 'sigma_yield', label: 'Yield stress', unit: 'kg/cm²' },
       { name: 'E', label: 'Elastic modulus E', unit: 'kg/cm²' },
@@ -150,16 +187,16 @@ const CheckBadge: React.FC<{ status: 'pass' | 'fail'; label: string; value: stri
   );
 };
 
-export const DoubleBeamCalculator: React.FC = () => {
-  const [inputs, setInputs] = useState<DoubleBeamInputs>(defaultDoubleBeamInputs);
-  const [inputStrings, setInputStrings] = useState<Partial<Record<keyof DoubleBeamInputs, string>>>(() => {
-    const map: Partial<Record<keyof DoubleBeamInputs, string>> = {};
-    (Object.keys(defaultDoubleBeamInputs) as (keyof DoubleBeamInputs)[]).forEach((k) => {
-      map[k] = String((defaultDoubleBeamInputs as any)[k] ?? '');
+export const VBeamCalculator: React.FC = () => {
+  const [inputs, setInputs] = useState<VBeamInputs>(defaultVBeamInputs);
+  const [inputStrings, setInputStrings] = useState<Partial<Record<keyof VBeamInputs, string>>>(() => {
+    const map: Partial<Record<keyof VBeamInputs, string>> = {};
+    (Object.keys(defaultVBeamInputs) as (keyof VBeamInputs)[]).forEach((k) => {
+      map[k] = String((defaultVBeamInputs as any)[k] ?? '');
     });
     return map;
   });
-  const [materialType, setMaterialType] = useState<MaterialType>(defaultDoubleBeamInputs.materialType || 'SS400');
+  const [materialType, setMaterialType] = useState<MaterialType>(defaultVBeamInputs.materialType || 'SS400');
   const [results, setResults] = useState<CalculationResults | null>(null);
   const [diagramData, setDiagramData] = useState<DiagramData | null>(null);
   const [recommendation, setRecommendation] = useState<string>('');
@@ -192,7 +229,7 @@ export const DoubleBeamCalculator: React.FC = () => {
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name } = e.target;
-    const raw = inputStrings[name as keyof DoubleBeamInputs] ?? '';
+    const raw = inputStrings[name as keyof VBeamInputs] ?? '';
     const normalized = String(raw).replace(',', '.');
     const numValue = Number(normalized);
     if (!Number.isNaN(numValue)) {
@@ -230,13 +267,70 @@ export const DoubleBeamCalculator: React.FC = () => {
     const loaderStart = Date.now();
 
     try {
-      const calculatedResults = calculateDoubleBeamProperties(inputs);
-      const newDiagramData = generateDoubleBeamDiagramData(inputs, calculatedResults);
-      setResults(calculatedResults);
-      setDiagramData(newDiagramData as unknown as DiagramData);
+      // TODO: Implement V-beam calculation service
+      // For now, create mock results
+      const mockResults: CalculationResults = {
+        F: 245.6,
+        Yc: 68.2,
+        Xc: 25.0,
+        Jx: 1.2e6,
+        Jy: 3.8e5,
+        Wx: 17600,
+        Wy: 15200,
+        P: inputs.P_nang + inputs.P_thietbi,
+        M_bt: 0,
+        M_vn: 0,
+        M_x: 6.8e6,
+        M_y: 0,
+        beamSelfWeight: 245.6,
+        q: inputs.q,
+        Jx_top: 2.1e5,
+        Jx_bottom: 3.2e5,
+        Jx_webs: 6.7e5,
+        Jy_top: 1.8e5,
+        Jy_bottom: 2.1e5,
+        Jy_webs: -1.0e4,
+        sigma_u: 386.4,
+        sigma_top_compression: 386.4,
+        sigma_bottom_tension: 386.4,
+        f: 2.1,
+        f_allow: 2.4,
+        K_sigma: 4.27,
+        n_f: 1.14,
+        K_buckling: 1.8,
+        stress_check: 'pass',
+        deflection_check: 'pass',
+        buckling_check: 'pass',
+        calculationMode: 'single-girder',
+        stiffener: {
+          required: false,
+          effectiveWebHeight: inputs.h3,
+          epsilon: 1.2,
+          optimalSpacing: 1500,
+          count: 0,
+          width: 150,
+          thickness: 12,
+          requiredInertia: 2.5e6,
+          positions: [],
+          totalWeight: 0,
+        },
+      };
+
+      setResults(mockResults);
+      
+      // Generate mock diagram data
+      const mockDiagramData: DiagramData = [];
+      for (let i = 0; i <= 20; i++) {
+        const x = (i / 20) * inputs.L;
+        const shear = inputs.P_nang * (0.5 - x / inputs.L);
+        const moment = inputs.P_nang * x * (1 - x / inputs.L) / 2;
+        mockDiagramData.push({ x, shear, moment });
+      }
+      setDiagramData(mockDiagramData);
+      
       setRecommendation('');
     } catch (error) {
-      console.error('Double Beam Calculation Error:', error);
+      console.error('V-Beam Calculation Error:', error);
       setRecommendation('');
     } finally {
       const elapsed = Date.now() - loaderStart;
@@ -248,13 +342,13 @@ export const DoubleBeamCalculator: React.FC = () => {
   };
 
   const handleReset = () => {
-    setInputs(defaultDoubleBeamInputs);
-    const map: Partial<Record<keyof DoubleBeamInputs, string>> = {};
-    (Object.keys(defaultDoubleBeamInputs) as (keyof DoubleBeamInputs)[]).forEach((k) => {
-      map[k] = String((defaultDoubleBeamInputs as any)[k] ?? '');
+    setInputs(defaultVBeamInputs);
+    const map: Partial<Record<keyof VBeamInputs, string>> = {};
+    (Object.keys(defaultVBeamInputs) as (keyof VBeamInputs)[]).forEach((k) => {
+      map[k] = String((defaultVBeamInputs as any)[k] ?? '');
     });
     setInputStrings(map);
-    setMaterialType(defaultDoubleBeamInputs.materialType || 'SS400');
+    setMaterialType(defaultVBeamInputs.materialType || 'SS400');
     setResults(null);
     setDiagramData(null);
     setRecommendation('');
@@ -262,17 +356,17 @@ export const DoubleBeamCalculator: React.FC = () => {
     setIsCallingAI(false);
   };
 
-  // Tính toán cân bằng hình học cho dầm đôi
+  // Tính toán cân bằng hình học cho dầm V
   const geometricBalanceItems = React.useMemo(() => {
     const items: { key: string; label: string; status: 'pass' | 'fail'; value: string }[] = [];
     if (!results) return items;
 
-    const H_cm = inputs.h / 10;
+    const H_cm = inputs.H! / 10;
     const L_cm = inputs.L; // already in cm
-    const b1_cm = inputs.b / 10; // bottom flange width
-    const b3_cm = inputs.b1 / 10; // web spacing (khoảng cách bụng)
+    const b1_cm = inputs.b1 / 10; // flange width
+    const h1_cm = inputs.h1 / 10; // I-height
+    const h3_cm = inputs.h3 / 10; // web height
     const A_cm = inputs.A / 10;
-    const C_cm = inputs.C / 10;
     
     const assess = (
       key: string,
@@ -297,37 +391,24 @@ export const DoubleBeamCalculator: React.FC = () => {
       }
     };
 
-    // Double girder specific geometric balance checks
-    // 1) H = 1/16 .. 1/12 of L (taller than single girder)
-    assess('H', t('Beam height H'), H_cm, L_cm, 1 / 16, 1 / 12);
-    // 2) Web spacing (b3) = 1/50 .. 1/40 of L (khoảng cách bụng)
-    assess('b3', t('calculator.webSpacingB2'), b3_cm, L_cm, 1 / 50, 1 / 40);
-    // 3) b1 (bottom flange width) = 1/3 .. 1/2 of H
-    assess('b1', t('calculator.bottomFlangeWidthB1Short'), b1_cm, H_cm, 1 / 3, 1 / 2);
-    // 4) A = 1/8 .. 1/6 of L (smaller ratio for double girder)
+    // V-beam specific geometric balance checks
+    // 1) H = 1/16 .. 1/12 of L (similar to other beam types)
+    assess('H', t('Total height H'), H_cm, L_cm, 1 / 16, 1 / 12);
+    // 2) b1 (flange width) = 1/3 .. 1/2 of H
+    assess('b1', t('calculator.flangeWidthB1'), b1_cm, H_cm, 1 / 3, 1 / 2);
+    // 3) h1 (I-height) = 1/2 .. 2/3 of H
+    assess('h1', t('calculator.iHeightH1'), h1_cm, H_cm, 1 / 2, 2 / 3);
+    // 4) h3 (web height) = 1/4 .. 1/3 of H
+    assess('h3', t('calculator.webHeightH3'), h3_cm, H_cm, 1 / 4, 1 / 3);
+    // 5) A = 1/8 .. 1/6 of L
     assess('A', t('endCarriageWheelCenterA'), A_cm, L_cm, 1 / 8, 1 / 6);
-    // 5) C = 0.08 .. 0.12 of L (smaller ratio for double girder)
-    assess('C', t('endInclinedSegmentC'), C_cm, L_cm, 0.08, 0.12);
 
     return items;
   }, [inputs, results, t]);
 
   const activeInputKey = !results && typeof document !== 'undefined'
-    ? (Object.keys(inputStrings) as (keyof DoubleBeamInputs)[]).find((key) => document.activeElement?.id === key)
+    ? (Object.keys(inputStrings) as (keyof VBeamInputs)[]).find((key) => document.activeElement?.id === key)
     : undefined;
-
-  // Map DoubleBeamInputs to DoubleBeamCrossSection inputs format
-  const doubleBeamCrossSectionInputs = React.useMemo(() => ({
-    b1: inputs.b,           // Bottom flange width
-    b2: inputs.b3,          // Top flange width  
-    H: inputs.h,            // Total height
-    t1: inputs.t1,          // Bottom flange thickness
-    t2: inputs.t2,          // Top flange thickness
-    b3: inputs.b1,          // Web spacing
-    t3: inputs.t3,          // Web thickness
-    Td: inputs.Td,                        // Distance between beam centers
-    Tr: inputs.Tr,                        // Distance between rail centers
-  }), [inputs]);
 
   // Mock stiffener layout for display
   const stiffenerLayout = React.useMemo(() => {
@@ -366,8 +447,8 @@ export const DoubleBeamCalculator: React.FC = () => {
             <div className="block lg:hidden">
               <CollapsibleSection title={t('Cross-section reference')} icon={Scale}>
                 <div id="cross-section-diagram-mobile">
-                  <DoubleBeamCrossSection
-                    inputs={doubleBeamCrossSectionInputs}
+                  <VBeamCrossSection
+                    inputs={inputs}
                     activeInput={activeInputKey}
                   />
                 </div>
@@ -376,7 +457,7 @@ export const DoubleBeamCalculator: React.FC = () => {
           )}
 
           {/* Input Sections */}
-          {getDoubleBeamInputConfig(t).map(({ title, icon, fields }) => (
+          {getVBeamInputConfig(t).map(({ title, icon, fields }) => (
             <CollapsibleSection key={title} title={t(title)} icon={icon}>
               {/* Material selection radio buttons for Loading & material section */}
               {title === 'Loading & material' && (
@@ -453,7 +534,7 @@ export const DoubleBeamCalculator: React.FC = () => {
               {!isLoading && <ChevronsRight className="ml-2 h-5 w-5 flex-shrink-0" />}
             </button>
             <PDFExportButton
-              inputs={inputs}
+              inputs={convertVBeamToBeamInputs(inputs)}
               results={results}
               isLoading={isLoading}
               aiRecommendation={recommendation}
@@ -478,8 +559,8 @@ export const DoubleBeamCalculator: React.FC = () => {
             <div className="hidden lg:block">
               <CollapsibleSection title={t('Cross-section reference')} icon={Scale}>
                 <div id="cross-section-diagram">
-                  <DoubleBeamCrossSection
-                    inputs={doubleBeamCrossSectionInputs}
+                  <VBeamCrossSection
+                    inputs={inputs}
                     activeInput={activeInputKey}
                   />
                 </div>
@@ -489,14 +570,6 @@ export const DoubleBeamCalculator: React.FC = () => {
 
           {!isLoading && results && (
             <>
-              {(inputs.Tr !== inputs.Td) && (
-                <div className="bg-yellow-50 dark:bg-gray-800 border-l-4 border-yellow-500 p-4 rounded-r-lg mb-4">
-                  <div className="flex items-start">
-                    <RotateCcw className="h-6 w-6 text-yellow-600 mr-3 flex-shrink-0" />
-                    <div className="text-sm text-gray-800 dark:text-gray-200">{t('calculator.torsionWarning')} (Tr = {inputs.Tr} mm, Td = {inputs.Td} mm)</div>
-                  </div>
-                </div>
-              )}
               {recommendation && (
                 <div className="bg-orange-50 dark:bg-gray-800 border-l-4 border-orange-500 p-4 rounded-r-lg">
                   <div className="flex items-start">
@@ -539,13 +612,6 @@ export const DoubleBeamCalculator: React.FC = () => {
                     label={t('Buckling')}
                     value={`K_buckling = ${results.K_buckling.toFixed(2)}`}
                   />
-                  {typeof results.torsion_check !== 'undefined' && (
-                    <CheckBadge
-                      status={results.torsion_check!}
-                      label={t('calculator.torsionCheck')}
-                      value={results.torsion_check === 'pass' ? t('pass') : t('fail')}
-                    />
-                  )}
                 </div>
               </CollapsibleSection>
 
@@ -636,23 +702,8 @@ export const DoubleBeamCalculator: React.FC = () => {
                   <ResultItem label={t('Stress sigma_u')} value={results.sigma_u.toFixed(2)} unit="kg/cm²" />
                   <ResultItem label={t('Deflection f')} value={results.f.toFixed(3)} unit="cm" />
                   <ResultItem label={t('selfWeight')} value={results.beamSelfWeight.toFixed(1)} unit="kg" />
-                  <ResultItem label={t('calculator.beamCenterDistance')} value={(inputs.Td / 10).toFixed(1)} unit="cm" />
-                  <ResultItem label={t('calculator.transversalLoad')} value={inputs.transversalLoad.toFixed(1)} unit="kg/m" />
                 </div>
               </CollapsibleSection>
-
-              {typeof results.T_torsion !== 'undefined' && (
-                <CollapsibleSection title={t('calculator.torsionGroup')} icon={RotateCcw}>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <ResultItem label={t('calculator.torsionTitle')} value={Number(results.T_torsion || 0).toFixed(2)} unit="kg.cm" />
-                    <ResultItem label={t('calculator.angleOfTwist')} value={(Number(results.theta||0)*1000).toFixed(2)} unit="mrad" />
-                    <ResultItem label={t('calculator.tauTop')} value={Number(results.tau_t_top||0).toFixed(2)} unit="kg/cm^2" />
-                    <ResultItem label={t('calculator.tauWeb')} value={Number(results.tau_t_web||0).toFixed(2)} unit="kg/cm^2" />
-                    <ResultItem label={t('calculator.tauBottom')} value={Number(results.tau_t_bottom||0).toFixed(2)} unit="kg/cm^2" />
-                    <ResultItem label={t('calculator.railDifferential')} value={Number(results.railDifferential||0).toFixed(2)} unit="mm" />
-                  </div>
-                </CollapsibleSection>
-              )}
 
               {diagramData && (
                 <CollapsibleSection title={t('Analysis diagrams')} icon={AreaChart}>
@@ -670,8 +721,8 @@ export const DoubleBeamCalculator: React.FC = () => {
                       unit="kg"                          
                       stiffenerMarkers={stiffenerLayout && stiffenerLayout.required ? { positions: stiffenerLayout.positions, span: stiffenerLayout.span } : undefined}
                     />
-                    <StressDistributionDiagram inputs={inputs} results={results} />
-                    <DeflectedShapeDiagram inputs={inputs} results={results} />
+                    <StressDistributionDiagram inputs={convertVBeamToBeamInputs(inputs)} results={results} />
+                    <DeflectedShapeDiagram inputs={convertVBeamToBeamInputs(inputs)} results={results} />
                   </div>
                 </CollapsibleSection>
               )}

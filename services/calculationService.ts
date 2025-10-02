@@ -394,6 +394,19 @@ export const calculateDoubleBeamProperties = (inputs: DoubleBeamInputs): Calcula
     totalWeight: perBeamResults.stiffener.totalWeight * 2,
   };
 
+  // --- Override local buckling check for double-girder ---
+  // In double-girder, the rail/load sits on the top flange (t2),
+  // so evaluate the internal compression flange (between two webs)
+  // using EN 1993-1-1 Class 3 limit: c/t <= 42*epsilon
+  const sigma_yield_mpa_d = (inputs.sigma_yield || 0) * KG_CM2_TO_MPA;
+  const epsilon_d = sigma_yield_mpa_d > 0 ? Math.sqrt(235 / sigma_yield_mpa_d) : 0;
+  const c_mm = Math.max(inputs.b1 || 0, 0);   // web spacing (between webs)
+  const t_top_mm = Math.max(inputs.t2 || 0, 0); // top flange thickness (compression flange)
+  const lambda_limit_d = 42 * (epsilon_d || 0);
+  const lambda_actual_d = (c_mm > 0 && t_top_mm > 0) ? (c_mm / t_top_mm) : 0; // unitless
+  const K_buckling_d = lambda_actual_d > 0 ? (lambda_limit_d / lambda_actual_d) : Infinity;
+  const buckling_check_d: 'pass' | 'fail' = K_buckling_d >= 1 ? 'pass' : 'fail';
+
     // --- Torsion due to rail misalignment (Tr vs Td) ---
   try {
     const Tr_mm = inputs.Tr || 0;
@@ -489,10 +502,11 @@ export const calculateDoubleBeamProperties = (inputs: DoubleBeamInputs): Calcula
     // Safety factors (per-beam)
     K_sigma: perBeamResults.K_sigma,
     n_f: perBeamResults.n_f,
-    K_buckling: perBeamResults.K_buckling,
+    // Use double-girder specific local buckling based on top flange (t2)
+    K_buckling: K_buckling_d,
     stress_check: perBeamResults.stress_check,
     deflection_check: perBeamResults.deflection_check,
-    buckling_check: perBeamResults.buckling_check,
+    buckling_check: buckling_check_d,
 
     calculationMode: 'double-girder',
     stiffener,

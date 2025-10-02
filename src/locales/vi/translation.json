@@ -1,4 +1,4 @@
-{
+﻿{
     "reportTitle":  "Báo cáo Phân tích Kết cấu Dầm Cẩu",
     "projectInformation":  "THÔNG TIN DỰ ÁN",
     "designEngineer":  "Kỹ sư thiết kế:",
@@ -57,7 +57,7 @@
     "geometricBalance":  "Cân đối hình học",
     "bottomFlangeWidthB1":  "Chiều rộng cánh dưới (b1)",
     "endCarriageWheelCenterA":  "Tâm bánh xe dầm biên (A)",
-    "endInclinedSegmentC":  "Chiều dài đoạn nghiêng đầu dầm (C)",
+    "endInclinedSegmentC":  "Đoạn nghiêng đầu dầm (C)",
     "meetsCriterion":  "Đạt",
     "increaseByPct":  "Cần tăng {pct}%",
     "decreaseByPct":  "Cần giảm {pct}%",
@@ -258,5 +258,19 @@
     "Buckling": "Kiểm tra ổn định",
     "Calculation summary": "Tóm tắt tính toán",
     "stiffenerWeight": "Trọng lượng sườn tăng cường",
-    "selfWeight": "Trọng lượng bản thân dầm"
+    "selfWeight": "Trọng lượng bản thân dầm",
+    "webThicknessT3": "Độ dày bụng t3",
+    "webHeightH3": "Chiều cao bụng h3", 
+    "roofThicknessT4": "Độ dày mái t4",
+    "flangeWidthB1": "Chiều rộng cánh b1",
+    "flangeThicknessT1": "Chiều dày cánh t1",
+    "bodyThicknessT2": "Chiều dày thân t2",
+    "iHeightH1": "Chiều cao I h1",
+    "calculator.webThicknessT3": "Độ dày bụng t3",
+    "calculator.webHeightH3": "Chiều cao bụng h3",
+    "calculator.roofThicknessT4": "Độ dày mái t4",
+    "calculator.flangeWidthB1": "Chiều rộng cánh b1",
+    "calculator.flangeThicknessT1": "Chiều dày cánh t1",
+    "calculator.bodyThicknessT2": "Chiều dày thân t2",
+    "calculator.iHeightH1": "Chiều cao I h1"
 }

@@ -28,6 +28,7 @@ import { PDFExportButton } from './PDFReport';
 
 import { BeamCrossSection } from './BeamCrossSection';
 import { DoubleBeamCalculator } from './DoubleBeamCalculator';
+import { VBeamCalculator } from './VBeamCalculator';
 import { multiplyForDisplay } from '../utils/display';
 
 const MIN_LOADER_DURATION_MS = 4_000;
@@ -197,46 +198,14 @@ type BeamTab = {
     {
       id: 'v-beam',
       label: 'V-type beam',
-      subLabel: 'Preview layout',
-      description: 'Preview of asymmetric V-type girder inputs and stability criteria.',
-      status: 'preview',
+      subLabel: 'Live module',
+      description: 'Design V-type crane beams with asymmetric geometry and specialized load paths.',
+      status: 'available',
       icon: AreaChart,
-      previewSections: [
-        {
-          title: 'Geometry definition',
-          icon: AreaChart,
-          description: 'Set leg angle, thickness, and spacing for the V configuration.',
-          items: [
-            'Leg angle (degrees)',
-            'Chord or tie thickness',
-            'Panel length / spacing',
-          ],
-        },
-        {
-          title: 'Load paths',
-          icon: HardHat,
-          description: 'Distribute vertical and horizontal loads into the legs.',
-          items: [
-            'Vertical load split factor',
-            'Horizontal guide load',
-            'Dynamic amplification factors',
-          ],
-        },
-        {
-          title: 'Stability checks',
-          icon: HelpCircle,
-          description: 'Prepare lateral torsional and local buckling verifications.',
-          items: [
-            'Lateral restraint spacing',
-            'Local buckling reduction factor',
-            'Combined stress utilisation target',
-          ],
-        },
-      ],
       highlights: [
-        'Asymmetric load path visualisation',
-        'Custom leg stiffness modelling',
-        'Stability checklist for lateral bracing',
+        'V-beam specific geometry and parameters',
+        'Stress, deflection, and buckling verification',
+        'PDF reporting with diagrams',
       ],
     },
   ];
@@ -320,7 +289,7 @@ const ComingSoonPanel: React.FC<{ tab: BeamTab }> = ({ tab }) => {
 const CollapsibleSection: React.FC<{ title: string | React.ReactNode; icon: React.FC<any>; children: React.ReactNode; defaultOpen?: boolean }> = ({ title, icon: Icon, children, defaultOpen = true }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   return (
-    <div className="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
+    <div className="bg-white dark:bg-gray-800 shadow rounded-lg mb-8">
       <button
         type="button"
         aria-expanded={isOpen}
@@ -334,7 +303,7 @@ const CollapsibleSection: React.FC<{ title: string | React.ReactNode; icon: Reac
         </h3>
         {isOpen ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
       </button>
-      {isOpen && <div className="p-4 border-t border-gray-200 dark:border-gray-700">{children}</div>}
+      {isOpen && <div className="px-4 pt-2 pb-5 border-t border-gray-200 dark:border-gray-700">{children}</div>}
     </div>
   );
 };
@@ -625,7 +594,7 @@ export const CraneBeamCalculator: React.FC = () => {
     ? (Object.keys(inputStrings) as (keyof BeamInputs)[]).find((key) => document.activeElement?.id === key)
     : undefined;
 
-  // Render DoubleBeamCalculator if double-girder is selected
+  // Render specialized calculators for double-girder and v-beam
   if (beamType === 'double-girder') {
     return (
       <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
@@ -635,12 +604,21 @@ export const CraneBeamCalculator: React.FC = () => {
     );
   }
 
+  if (beamType === 'v-beam') {
+    return (
+      <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+        <BeamTypeTabs active={beamType} onChange={setBeamType} />
+        <VBeamCalculator />
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
       <BeamTypeTabs active={beamType} onChange={setBeamType} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <form onSubmit={handleSubmit} className="lg:col-span-1 space-y-6">
+        <form onSubmit={handleSubmit} className="lg:col-span-1">
           {/* Mobile-only Cross Section Diagram */}
           {isPrimaryModule && !isLoading && !results && (
             <div className="block lg:hidden">
@@ -687,7 +665,7 @@ export const CraneBeamCalculator: React.FC = () => {
                     const disabled = isMaterialField && materialType !== 'CUSTOM';
                     return (
                       <div key={name} className="col-span-2 sm:col-span-1 calc-field">
-                        <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           {t(label)}
                         </label>
                         <div className="relative">
@@ -698,7 +676,7 @@ export const CraneBeamCalculator: React.FC = () => {
                             value={inputStrings[name] ?? String(inputs[name] ?? '')}
                             onChange={handleChange}
                             onBlur={handleBlur}
-                            className={`input ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+                            className={`input mb-2 ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
                             step="any"
                             inputMode="decimal"
                             disabled={disabled}

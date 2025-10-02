@@ -134,3 +134,45 @@ export interface DoubleBeamInputs extends BeamInputs {
   /** Transversal load from cross members (kg/m) */
   transversalLoad: number;
 }
+
+// V-beam specific inputs based on the engineering drawing
+export interface VBeamInputs {
+  // V-beam specific geometric parameters from the image
+  t3: number; // Độ dày bụng (Web thickness) - mm
+  h3: number; // Chiều cao bụng (Web height) - mm  
+  t4: number; // Độ dày mái (Roof thickness) - mm
+  b1: number; // Chiều rộng cánh (Flange width) - mm
+  t1: number; // Chiều dày cánh (Flange thickness) - mm
+  t2: number; // Chiều dày thân (Body thickness) - mm
+  h1: number; // Chiều cao I (I-height) - mm
+  L: number;  // Khẩu độ dầm (Beam span) - cm
+  A: number;  // Tâm bánh xe dầm biên A (Edge beam wheel center A) - mm
+  
+  // Additional dimensions from the image (optional, with defaults)
+  H?: number; // Total height - mm
+  H1?: number; // Height to V-section start - mm
+  H2?: number; // Height to V-top corner - mm
+  H3?: number; // Height from V-corner to top - mm
+  Lc?: number; // Length of top-left angled segment - mm
+  d?: number;  // Small horizontal offset at top-left - mm
+  s?: number;  // Small vertical offset at top-right - mm
+  a1?: number; // Angle of V-section - degrees
+  La?: number; // Total width at top - mm
+  Lb?: number; // Width at top (narrower) - mm
+  Ld?: number; // Width at top (narrowest) - mm
+  b?: number;  // Base width - mm
+  h2?: number; // Height dimension - mm
+  a?: number;  // Wheel center distance - mm
+
+  // Material and Load properties (same as BeamInputs)
+  P_nang: number; // Hoist load (kg)
+  P_thietbi: number; // Trolley weight (kg)
+  sigma_allow: number; // Allowable stress (kg/cm^2)
+  sigma_yield: number; // Yield strength (kg/cm^2)
+  E: number; // Modulus of Elasticity (kg/cm^2)
+  nu: number; // Poisson's ratio
+  q: number; // Self weight factor
+
+  // Selected material type (optional; for UI/reporting)
+  materialType?: MaterialType;
+}

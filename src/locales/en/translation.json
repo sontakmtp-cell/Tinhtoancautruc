@@ -1,4 +1,4 @@
-{
+﻿{
     "reportTitle":  "Crane Beam Structural Analysis Report",
     "projectInformation":  "PROJECT INFORMATION",
     "designEngineer":  "Design Engineer:",
@@ -77,8 +77,8 @@
     "Internal Force Diagram (Bending Moment)":  "Internal Force Diagram (Bending Moment)",
     "Internal Force Diagram (Shear Force)":  "Internal Force Diagram (Shear Force)",
     "bottomFlangeWidthB1":  "Bottom Flange Width (b1)",
-    "endCarriageWheelCenterA":  "End carriage wheel center distance (A)",
-    "endInclinedSegmentC":  "End inclined segment length (C)",
+    "endCarriageWheelCenterA":  "Wheel center distance (A)",
+    "endInclinedSegmentC":  "Inclined segment length (C)",
     "meetsCriterion":  "Meets criterion",
     "increaseByPct":  "Increase by {{pct}}%",
     "decreaseByPct":  "Decrease by {{pct}}%",
@@ -267,5 +267,19 @@
     "Local buckling reduction factor":  "Local buckling reduction factor",
     "Combined stress utilisation target":  "Combined stress utilisation target",
     "stiffenerWeight": "Stiffener weight",
-    "selfWeight": "Self-weight of beam"
+    "selfWeight": "Self-weight of beam",
+    "webThicknessT3": "Web thickness t3",
+    "webHeightH3": "Web height h3", 
+    "roofThicknessT4": "Roof thickness t4",
+    "flangeWidthB1": "Flange width b1",
+    "flangeThicknessT1": "Flange thickness t1",
+    "bodyThicknessT2": "Body thickness t2",
+    "iHeightH1": "I-height h1",
+    "calculator.webThicknessT3": "Web thickness t3",
+    "calculator.webHeightH3": "Web height h3",
+    "calculator.roofThicknessT4": "Roof thickness t4",
+    "calculator.flangeWidthB1": "Flange width b1",
+    "calculator.flangeThicknessT1": "Flange thickness t1",
+    "calculator.bodyThicknessT2": "Body thickness t2",
+    "calculator.iHeightH1": "I-height h1"
 }
