@@ -1,4 +1,4 @@
-import type { BeamInputs, CalculationResults, DiagramData, DoubleBeamInputs } from '../types';
+import type { BeamInputs, CalculationResults, DiagramData, DoubleBeamInputs, VBeamInputs } from '../types';
 
 const KG_TO_KN = 9.80665 / 1000; // Chuyá»ƒn Ä‘á»•i kilogram-lá»±c sang kilonewton
 const KG_CM2_TO_MPA = 0.0980665; // Chuyá»ƒn Ä‘á»•i kg/cm^2 sang MPa
@@ -529,4 +529,236 @@ export const generateDoubleBeamDiagramData = (inputs: DoubleBeamInputs, _results
   const perData = generateDiagramData(perBeam, perBeamResults);
   // For the full system, shear and moment are doubled (two identical girders in parallel)
   return perData.map(p => ({ x: p.x, shear: p.shear * 2, moment: p.moment * 2 }));
+};
+
+// --- V-beam specialized calculation ---
+export const calculateVBeamProperties = (inputs: VBeamInputs): CalculationResults => {
+  const deg = (d: number) => (d * Math.PI) / 180;
+  const a1 = deg(30);   // V-web angle from vertical
+  const alpha = deg(10); // Roof angle from horizontal
+
+  // Extract and convert to cm
+  const b1_cm = (inputs.b1 || 0) / 10;
+  const t1_cm = (inputs.t1 || 0) / 10;
+  const t2_cm = (inputs.t2 || 0) / 10;
+  const t3_cm = (inputs.t3 || 0) / 10;
+  const t4_cm = (inputs.t4 || 0) / 10;
+  const h1_cm = (inputs.h1 || 0) / 10;
+  const h3_cm = (inputs.h3 || 0) / 10; // along web axis
+
+  // Key vertical levels
+  const yJunc = t1_cm + h1_cm; // bottom to V junction
+  const x_web_in = t2_cm / 2 + h3_cm * Math.sin(a1); // inner web top x
+  const H2 = yJunc + h3_cm * Math.cos(a1); // inner web top y
+  const H3 = Math.tan(alpha) * x_web_in;   // inner roof rise
+  const yApexIn = H2 + H3;
+  const H_total = yApexIn + t4_cm;         // outer apex (vertical thickness t4)
+
+  // Areas (cm^2)
+  const A_bottom = b1_cm * t1_cm;
+  const A_central = t2_cm * h1_cm;
+  const A_vweb_one = t3_cm * h3_cm;
+  const A_vweb_total = 2 * A_vweb_one;
+  // Roof: thickness is vertical; convert to normal thickness by 1/cos(alpha). Length along plate = x_web_in / cos(alpha)
+  const A_roof_one = (x_web_in / Math.cos(alpha)) * t4_cm; // Area is horizontal projection * vertical thickness
+  const A_roof_total = 2 * A_roof_one;
+
+  const F_total = A_bottom + A_central + A_vweb_total + A_roof_total;
+
+  // Centroid Y (cm)
+  const y_bottom_c = t1_cm / 2;
+  const y_central_c = t1_cm + h1_cm / 2;
+  const y_vweb_c = yJunc + (h3_cm * Math.cos(a1)) / 2;
+  const y_roof_c = yApexIn + t4_cm / 2; // Centroid of the top roof plate
+
+  const Yc = (A_bottom * y_bottom_c + A_central * y_central_c + A_vweb_total * y_vweb_c + A_roof_total * y_roof_c) / (F_total || 1);
+
+  // Jx (cm^4): Use Steiner's theorem for all parts. For inclined parts, use formula for rotated rectangle.
+  // I_x = (b*h^3/12)*cos^2(a) + (h*b^3/12)*sin^2(a)
+  const Jx_bottom = (b1_cm * Math.pow(t1_cm, 3)) / 12 + A_bottom * Math.pow(y_bottom_c - Yc, 2);
+  const Jx_central = (t2_cm * Math.pow(h1_cm, 3)) / 12 + A_central * Math.pow(y_central_c - Yc, 2);
+  
+  // Correct inertia for V-webs (rotated rectangles)
+  const cos_a1_sq = Math.pow(Math.cos(a1), 2);
+  const sin_a1_sq = Math.pow(Math.sin(a1), 2);
+  const Jx_vweb_one_local = (t3_cm * Math.pow(h3_cm, 3) / 12) * cos_a1_sq + (h3_cm * Math.pow(t3_cm, 3) / 12) * sin_a1_sq;
+  const Jx_vweb_one = Jx_vweb_one_local + A_vweb_one * Math.pow(y_vweb_c - Yc, 2);
+  const Jx_vweb_total = 2 * Jx_vweb_one;
+
+  // Correct inertia for roof plates (rotated rectangles)
+  const Jx_roof_one_local = (x_web_in * Math.pow(t4_cm, 3) / 12); // Simplified as it's mostly horizontal
+  const Jx_roof_one = Jx_roof_one_local + A_roof_one * Math.pow(y_roof_c - Yc, 2);
+  const Jx_roof_total = 2 * Jx_roof_one;
+  const Jx = Jx_bottom + Jx_central + Jx_vweb_total + Jx_roof_total;
+
+  // Jy (cm^4): symmetry about y-axis; Xc = 0
+  const Xc = 0;
+  const Jy_bottom = (t1_cm * Math.pow(b1_cm, 3)) / 12; // centered at x=0
+  const Jy_central = (h1_cm * Math.pow(t2_cm, 3)) / 12; // centered at x=0
+  // V-web centroid x from center (one side)
+  const x_vweb_c = t2_cm / 2 + (h3_cm * Math.sin(a1)) / 2; // Centroid of one V-web from center
+  const Jy_vweb_one_local = (h3_cm * Math.pow(t3_cm, 3) / 12) * cos_a1_sq + (t3_cm * Math.pow(h3_cm, 3) / 12) * sin_a1_sq;
+  const Jy_vweb_one = Jy_vweb_one_local + A_vweb_one * Math.pow(x_vweb_c - Xc, 2);
+  const Jy_vweb_total = 2 * Jy_vweb_one;
+  // Roof centroid x from center (one side)
+  const x_roof_c = x_web_in / 2;
+  const Jy_roof_one_local = (t4_cm * Math.pow(x_web_in, 3) / 12);
+  const Jy_roof_one = Jy_roof_one_local + A_roof_one * Math.pow(x_roof_c - Xc, 2);
+  const Jy_roof_total = 2 * Jy_roof_one;
+  const Jy = Jy_bottom + Jy_central + Jy_vweb_total + Jy_roof_total;
+
+  // Section moduli
+  const Wx = Jx / Math.max(Yc, H_total - Yc || 1e-9);
+  const halfTopWidth = x_web_in; // conservative lever arm for Wy
+  const halfBottomWidth = b1_cm / 2;
+  const c_y = Math.max(halfTopWidth, halfBottomWidth, 1e-9);
+  const Wy = Jy / c_y;
+
+  // --- Loads and performance (reuse logic) ---
+  const L = inputs.L || 0; // cm
+  const P = (inputs.P_nang || 0) + (inputs.P_thietbi || 0);
+  const q_auto = F_total * 7850 / 1_000_000; // kg/cm
+  const M_bt = (q_auto * Math.pow(L, 2)) / 8;
+  const M_vn = (P * L) / 4;
+  const M_x = 1.05 * (M_bt + 1.25 * M_vn);
+  const M_y = 0.05 * (M_bt + M_vn);
+
+  const sigma_u = (M_x / (Wx || 1e-9)) + (M_y / (Wy || 1e-9));
+  
+  // Corrected stress calculation for V-beam with load on bottom flange
+  // For crane beam with load on bottom flange, bottom fiber is in compression
+  const sigma_bottom_compression = (M_x * Yc) / (Jx || 1e-9);
+  const sigma_top_tension = (M_x * (H_total - Yc)) / (Jx || 1e-9);
+
+  const E = inputs.E || 0;
+  const f = (5 * q_auto * Math.pow(L, 4)) / (384 * E * (Jx || 1e-9)) + (P * Math.pow(L, 3)) / (48 * E * (Jx || 1e-9));
+  const f_allow = L / 850;
+
+  const sigma_allow = inputs.sigma_allow || 0;
+  const sigma_yield = inputs.sigma_yield || 0;
+  const K_sigma = sigma_allow > 0 ? sigma_allow / (sigma_u || 1e-9) : Infinity;
+  const n_f = f_allow > 0 ? f_allow / (f || 1e-9) : Infinity;
+
+  // Corrected local buckling check for bottom flange (compression flange)
+  // For V-beam with load on bottom flange, check bottom flange buckling
+  const sigma_yield_mpa = sigma_yield * KG_CM2_TO_MPA;
+  const epsilon = sigma_yield_mpa > 0 ? Math.sqrt(235 / sigma_yield_mpa) : 0;
+  // Bottom flange outstand from central web - critical for compression
+  const representative_b = Math.max(b1_cm - t2_cm, 0) / 2; // outstand from central web
+  const representative_t = t1_cm;
+  const lambda_limit = 14 * epsilon; // Class 3 limit for outstand flange in compression
+  const lambda_actual = representative_t > 0 ? representative_b / representative_t : 0;
+  const K_buckling = lambda_actual > 0 ? lambda_limit / lambda_actual : Infinity;
+
+  // Stiffener recommendation use clear web height between flanges
+  const h_w_mm = Math.max((H_total * 10) - (inputs.t1 || 0) - (inputs.t2 || 0), 0);
+  const t_web_input_mm = inputs.t3 || 0;
+
+  let needsStiffeners = false;
+  let optimalSpacing_mm = 0;
+  let stiffenerWidth_mm = 0;
+  let stiffenerThickness_mm = 0;
+  let stiffenerInertia_mm4 = 0;
+  let stiffenerCount = 0;
+  let stiffenersTotalWeight_kg = 0;
+  const stiffenerPositions_cm: number[] = [];
+  const span_mm = (inputs.L || 0) * 10;
+
+  if (h_w_mm > 0 && t_web_input_mm > 0) {
+    const slendernessRatio = h_w_mm / t_web_input_mm;
+    const eta = 1.2;
+    const slendernessLimit = 72 * epsilon / eta;
+    needsStiffeners = Number.isFinite(slendernessRatio) && slendernessRatio > slendernessLimit;
+
+    if (needsStiffeners) {
+      const gammaM1 = 1.1;
+      const supportShear_kg = P / 2 + (q_auto * (inputs.L || 0)) / 2;
+      const supportShear_kN = supportShear_kg * KG_TO_KN;
+      const supportShear_N = supportShear_kN * 1000;
+      if (sigma_yield_mpa > 0 && supportShear_N > 0) {
+        const plasticShearCapacity_N = (h_w_mm * t_web_input_mm * sigma_yield_mpa) / (Math.sqrt(3) * gammaM1);
+        const utilisation = plasticShearCapacity_N / supportShear_N;
+        optimalSpacing_mm = utilisation * h_w_mm;
+      }
+      if (!Number.isFinite(optimalSpacing_mm) || optimalSpacing_mm <= 0) {
+        optimalSpacing_mm = h_w_mm;
+      }
+      const a_min = 0.5 * h_w_mm;
+      const a_limit_aspect = 3 * h_w_mm;
+      optimalSpacing_mm = Math.max(a_min, Math.min(optimalSpacing_mm, a_limit_aspect));
+      optimalSpacing_mm = Math.max(10, Math.round(optimalSpacing_mm / 10) * 10);
+
+      if (h_w_mm > 0 && t_web_input_mm > 0) {
+        stiffenerWidth_mm = Math.round(Math.max(0.1 * h_w_mm, 80) / 10) * 10;
+        const rawThickness = Math.max(0.6 * Math.sqrt(Math.max(sigma_yield_mpa, 1) / 235) * t_web_input_mm, 8);
+        stiffenerThickness_mm = Math.max(8, Math.round(rawThickness));
+        stiffenerInertia_mm4 = stiffenerWidth_mm * Math.pow(stiffenerThickness_mm, 3) / 12;
+      }
+
+      if (optimalSpacing_mm >= span_mm) {
+        needsStiffeners = false;
+        stiffenerCount = 0;
+        stiffenersTotalWeight_kg = 0;
+        optimalSpacing_mm = span_mm;
+      } else {
+        const spacing_cm = optimalSpacing_mm / 10;
+        let currentPosition = spacing_cm;
+        let guard = 0;
+        while (currentPosition < (inputs.L || 0) && guard < 500) {
+          stiffenerPositions_cm.push(Number(currentPosition.toFixed(2)));
+          currentPosition += spacing_cm;
+          guard += 1;
+        }
+        stiffenerCount = stiffenerPositions_cm.length; // Correct the count
+        const singleStiffenerVolume_mm3 = h_w_mm * stiffenerWidth_mm * stiffenerThickness_mm;
+        const singleStiffenerWeight_kg = (singleStiffenerVolume_mm3 * 7850) / 1e9;
+        stiffenersTotalWeight_kg = stiffenerCount * singleStiffenerWeight_kg;
+      }
+    }
+  }
+
+  const beamSelfWeight_kg = q_auto * (inputs.L || 0);
+
+  return {
+    // Geometry
+    F: F_total,
+    Yc, Xc, Jx, Jy, Wx, Wy,
+    
+    // Inertia component breakdown
+    Jx_top: Jx_roof_total,
+    Jx_bottom: Jx_bottom,
+    Jx_webs: Jx_central + Jx_vweb_total,
+    Jy_top: Jy_roof_total, 
+    Jy_bottom: Jy_bottom,
+    Jy_webs: Jy_central + Jy_vweb_total,
+
+    // Loads & moments
+    P, M_bt, M_vn, M_x, M_y,
+    beamSelfWeight: beamSelfWeight_kg,
+    q: q_auto,
+
+    // Stresses & deflection (corrected for V-beam with load on bottom flange)
+    sigma_u, 
+    sigma_top_compression: sigma_top_tension, // Actually tension for crane beam
+    sigma_bottom_tension: sigma_bottom_compression, // Actually compression for crane beam
+    f, f_allow,
+    K_sigma, n_f, K_buckling,
+    stress_check: K_sigma >= 1 ? 'pass' : 'fail',
+    deflection_check: n_f >= 1 ? 'pass' : 'fail',
+    buckling_check: K_buckling >= 1 ? 'pass' : 'fail',
+
+    calculationMode: 'v-beam',
+    stiffener: {
+      required: needsStiffeners,
+      effectiveWebHeight: Math.max((H_total * 10) - (inputs.t1 || 0) - (inputs.t2 || 0), 0),
+      epsilon,
+      optimalSpacing: optimalSpacing_mm,
+      count: needsStiffeners ? stiffenerCount : 0,
+      width: stiffenerWidth_mm,
+      thickness: stiffenerThickness_mm,
+      requiredInertia: stiffenerInertia_mm4,
+      positions: needsStiffeners ? stiffenerPositions_cm : [],
+      totalWeight: stiffenersTotalWeight_kg,
+    },
+  };
 };

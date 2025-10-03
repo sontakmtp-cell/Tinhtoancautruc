@@ -74,7 +74,7 @@ export interface CalculationResults extends GeometricProperties {
   buckling_check: 'pass' | 'fail';
 
   /** Calculation mode used for the run */
-  calculationMode: 'single-girder' | 'i-beam' | 'double-girder';
+  calculationMode: 'single-girder' | 'i-beam' | 'double-girder' | 'v-beam';
 
   /** Web stiffener recommendation and layout */
   stiffener: StiffenerRecommendation;

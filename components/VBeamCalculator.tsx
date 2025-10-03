@@ -26,13 +26,14 @@ import { DeflectedShapeDiagram } from './DeflectedShapeDiagram';
 import { PDFExportButton } from './PDFReport';
 import { VBeamCrossSection } from './VBeamCrossSection';
 import { multiplyForDisplay } from '../utils/display';
+import { calculateVBeamProperties, generateDiagramData } from '../services/calculationService';
 
 const MIN_LOADER_DURATION_MS = 4_000;
 
 // Helper function to convert VBeamInputs to BeamInputs for compatibility
 const convertVBeamToBeamInputs = (vBeamInputs: VBeamInputs): BeamInputs => ({
   b: vBeamInputs.b1, // Flange width
-  h: vBeamInputs.H || (vBeamInputs.h1 + vBeamInputs.h3), // Total height
+  h: Math.round(vBeamInputs.H || (vBeamInputs.h1 + vBeamInputs.h3)), // Total height
   t1: vBeamInputs.t1, // Bottom flange thickness
   t2: vBeamInputs.t2, // Top flange thickness (using body thickness as approximation)
   t3: vBeamInputs.t3, // Web thickness
@@ -92,9 +93,9 @@ const defaultVBeamInputs: VBeamInputs = {
   a: 150,       // Wheel center distance - mm
 
   // Material and Load properties
-  P_nang: 40000,    // Hoist load (kg)
-  P_thietbi: 12000, // Trolley weight (kg)
-  sigma_allow: 1650,
+  P_nang: 4000,    // Hoist load (kg)
+  P_thietbi: 500, // Trolley weight (kg)
+  sigma_allow: 1400,
   sigma_yield: 2450,
   E: 2.1e6,
   nu: 0.3,
@@ -282,67 +283,14 @@ export const VBeamCalculator: React.FC = () => {
     const loaderStart = Date.now();
 
     try {
-      // TODO: Implement V-beam calculation service
-      // For now, create mock results
-      const mockResults: CalculationResults = {
-        F: 245.6,
-        Yc: 68.2,
-        Xc: 25.0,
-        Jx: 1.2e6,
-        Jy: 3.8e5,
-        Wx: 17600,
-        Wy: 15200,
-        P: inputs.P_nang + inputs.P_thietbi,
-        M_bt: 0,
-        M_vn: 0,
-        M_x: 6.8e6,
-        M_y: 0,
-        beamSelfWeight: 245.6,
-        q: inputs.q,
-        Jx_top: 2.1e5,
-        Jx_bottom: 3.2e5,
-        Jx_webs: 6.7e5,
-        Jy_top: 1.8e5,
-        Jy_bottom: 2.1e5,
-        Jy_webs: -1.0e4,
-        sigma_u: 386.4,
-        sigma_top_compression: 386.4,
-        sigma_bottom_tension: 386.4,
-        f: 2.1,
-        f_allow: 2.4,
-        K_sigma: 4.27,
-        n_f: 1.14,
-        K_buckling: 1.8,
-        stress_check: 'pass',
-        deflection_check: 'pass',
-        buckling_check: 'pass',
-        calculationMode: 'single-girder',
-        stiffener: {
-          required: false,
-          effectiveWebHeight: inputs.h3,
-          epsilon: 1.2,
-          optimalSpacing: 1500,
-          count: 0,
-          width: 150,
-          thickness: 12,
-          requiredInertia: 2.5e6,
-          positions: [],
-          totalWeight: 0,
-        },
-      };
+      // Use specialized V-beam calculation
+      const calcResults = calculateVBeamProperties(inputs);
+      setResults(calcResults);
 
-      setResults(mockResults);
-      
-      // Generate mock diagram data
-      const mockDiagramData: DiagramData = [];
-      for (let i = 0; i <= 20; i++) {
-        const x = (i / 20) * inputs.L;
-        const shear = inputs.P_nang * (0.5 - x / inputs.L);
-        const moment = inputs.P_nang * x * (1 - x / inputs.L) / 2;
-        mockDiagramData.push({ x, shear, moment });
-      }
-      setDiagramData(mockDiagramData);
-      
+      // Generate diagrams using equivalent BeamInputs for rendering
+      const beamInputs = convertVBeamToBeamInputs(inputs);
+      const diag = generateDiagramData(beamInputs, calcResults);
+      setDiagramData(diag);
       setRecommendation('');
     } catch (error) {
       console.error('V-Beam Calculation Error:', error);
@@ -425,6 +373,12 @@ export const VBeamCalculator: React.FC = () => {
     ? (Object.keys(inputStrings) as (keyof VBeamInputs)[]).find((key) => document.activeElement?.id === key)
     : undefined;
 
+  // Filter active input to only supported keys for VBeamCrossSection
+  const supportedKeys = ['t3', 'h3', 't4', 'b1', 't1', 't2', 'h1'] as const;
+  const filteredActiveInput = activeInputKey && supportedKeys.includes(activeInputKey as any) 
+    ? activeInputKey as typeof supportedKeys[number]
+    : undefined;
+
   // Mock stiffener layout for display
   const stiffenerLayout = React.useMemo(() => {
     if (!results?.stiffener || !results.stiffener.required || results.stiffener.count <= 0) {
@@ -464,7 +418,7 @@ export const VBeamCalculator: React.FC = () => {
                 <div id="cross-section-diagram-mobile">
                   <VBeamCrossSection
                     inputs={inputs}
-                    activeInput={activeInputKey}
+                    activeInput={filteredActiveInput}
                   />
                 </div>
               </CollapsibleSection>
@@ -472,7 +426,9 @@ export const VBeamCalculator: React.FC = () => {
           )}
 
           {/* Input Sections */}
-          {getVBeamInputConfig(t).map(({ title, icon, fields }) => (
+          {getVBeamInputConfig(t).map((config) => {
+            const { title, icon, fields } = config;
+            return (
             <CollapsibleSection key={title} title={t(title)} icon={icon}>
               {/* Material selection radio buttons for Loading & material section */}
               {title === 'Loading & material' && (
@@ -526,7 +482,8 @@ export const VBeamCalculator: React.FC = () => {
                 })}
               </div>
             </CollapsibleSection>
-          ))}
+            );
+          })}
 
           {/* Action buttons */}
           <div className="flex items-center gap-4">
@@ -576,7 +533,7 @@ export const VBeamCalculator: React.FC = () => {
                 <div id="cross-section-diagram">
                   <VBeamCrossSection
                     inputs={inputs}
-                    activeInput={activeInputKey}
+                    activeInput={filteredActiveInput}
                   />
                 </div>
               </CollapsibleSection>
@@ -736,8 +693,8 @@ export const VBeamCalculator: React.FC = () => {
                       unit="kg"                          
                       stiffenerMarkers={stiffenerLayout && stiffenerLayout.required ? { positions: stiffenerLayout.positions, span: stiffenerLayout.span } : undefined}
                     />
-                    <StressDistributionDiagram inputs={convertVBeamToBeamInputs(inputs)} results={results} />
-                    <DeflectedShapeDiagram inputs={convertVBeamToBeamInputs(inputs)} results={results} />
+                    <StressDistributionDiagram inputs={convertVBeamToBeamInputs({ ...inputs, H: results.stiffener.effectiveWebHeight + inputs.t1 + inputs.t4 })} results={results} />
+                    <DeflectedShapeDiagram inputs={convertVBeamToBeamInputs({ ...inputs, H: results.stiffener.effectiveWebHeight + inputs.t1 + inputs.t4 })} results={results} />
                   </div>
                 </CollapsibleSection>
               )}

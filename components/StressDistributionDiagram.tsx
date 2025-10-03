@@ -15,6 +15,10 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
   const { h, b, t1, t2, t3, b1 } = inputs;
   const b3 = (inputs as any).b3 !== undefined ? ((inputs as any).b3 as number) : b; // fallback if missing
   const { Yc, sigma_top_compression, sigma_bottom_tension } = results;
+  // Note: For V-beam with load on bottom flange:
+  // - sigma_top_compression actually represents tension stress at top fiber
+  // - sigma_bottom_tension actually represents compression stress at bottom fiber
+  // This is corrected in calculateVBeamProperties return values
   const Yc_mm = Yc * 10;
   const isIBeam = (results as any)?.calculationMode === 'i-beam';
 

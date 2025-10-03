@@ -8,9 +8,9 @@ export type MaterialProps = {
 };
 
 export const MATERIAL_LIBRARY: Record<Exclude<MaterialType, 'CUSTOM'>, MaterialProps> = {
-  SS400: { sigma_yield: 2450, sigma_allow: 1650, E: 2.1e6, nu: 0.3 },
-  CT3:   { sigma_yield: 2350, sigma_allow: 1410, E: 2.1e6, nu: 0.3 },
-  A36:   { sigma_yield: 2550, sigma_allow: 1530, E: 2.1e6, nu: 0.3 },
+  SS400: { sigma_yield: 2450, sigma_allow: 1400, E: 2.1e6, nu: 0.3 },
+  CT3:   { sigma_yield: 2350, sigma_allow: 1400, E: 2.1e6, nu: 0.3 },
+  A36:   { sigma_yield: 2500, sigma_allow: 1500, E: 2.1e6, nu: 0.3 },
 };
 
 export const MATERIAL_LABELS: Record<MaterialType, string> = {
