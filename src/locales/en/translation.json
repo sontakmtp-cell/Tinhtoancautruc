@@ -131,6 +131,7 @@
                        "beamCenterDistance":  "Beam center distance Td",
                        "railCenterDistance":  "Rail center distance Tr",
                        "transversalLoad":  "Transversal load",
+                       "transversalLoadTooltip":  "Transversal load originates from components such as rail systems, bracing, handrails, connecting bars, or other auxiliary loads distributed evenly between the two beams.",
                        "topFlangeThicknessT2":  "Top flange thickness t2",
                        "webSpacingB2":  "Web spacing b3",
                        "webThicknessT3":  "Web thickness t3",

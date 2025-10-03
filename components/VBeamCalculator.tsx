@@ -254,6 +254,21 @@ export const VBeamCalculator: React.FC = () => {
         nu: mat.nu,
       };
     });
+    // Cập nhật inputStrings để hiển thị giá trị mới trong UI
+    setInputStrings((prev) => {
+      if (type === 'CUSTOM') {
+        return { ...prev, materialType: type };
+      }
+      const mat = MATERIAL_LIBRARY[type];
+      return {
+        ...prev,
+        materialType: type,
+        sigma_allow: String(mat.sigma_allow),
+        sigma_yield: String(mat.sigma_yield),
+        E: String(mat.E),
+        nu: String(mat.nu),
+      };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -119,6 +119,7 @@
                        "beamCenterDistance":  "Khoảng cách tâm dầm Td",
                        "railCenterDistance":  "Khoảng cách tâm ray Tr",
                        "transversalLoad":  "Tải trọng ngang",
+                       "transversalLoadTooltip":  "Tải trọng ngang xuất phát từ các thành phần như hệ thống ray, thanh giằng, lan can, thanh nối hoặc các tải trọng phụ khác phân bố đều giữa hai dầm.",
                        "flangeWidthB":  "Chiều rộng cánh b",
                        "flangeThicknessT1":  "Bề dày cánh t1",
                        "webThicknessT2":  "Bề dày bụng t2",

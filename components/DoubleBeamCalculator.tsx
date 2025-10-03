@@ -217,6 +217,21 @@ export const DoubleBeamCalculator: React.FC = () => {
         nu: mat.nu,
       };
     });
+    // Cập nhật inputStrings để hiển thị giá trị mới trong UI
+    setInputStrings((prev) => {
+      if (type === 'CUSTOM') {
+        return { ...prev, materialType: type };
+      }
+      const mat = MATERIAL_LIBRARY[type];
+      return {
+        ...prev,
+        materialType: type,
+        sigma_allow: String(mat.sigma_allow),
+        sigma_yield: String(mat.sigma_yield),
+        E: String(mat.E),
+        nu: String(mat.nu),
+      };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -403,10 +418,22 @@ export const DoubleBeamCalculator: React.FC = () => {
                 {fields.map(({ name, label, unit }) => {
                   const isMaterialField = ['sigma_allow','sigma_yield','E','nu'].includes(name as string);
                   const disabled = isMaterialField && materialType !== 'CUSTOM';
+                  const isTransversalLoad = name === 'transversalLoad';
                   return (
                     <div key={name} className="col-span-2 sm:col-span-1 calc-field">
                       <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {t(label)}
+                        <div className="flex items-center gap-2">
+                          <span>{t(label)}</span>
+                          {isTransversalLoad && (
+                            <div className="group relative">
+                              <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
+                              <div className="absolute left-0 top-6 w-80 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                                <div>{t('calculator.transversalLoadTooltip')}</div>
+                                <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </label>
                       <div className="relative">
                         <input
