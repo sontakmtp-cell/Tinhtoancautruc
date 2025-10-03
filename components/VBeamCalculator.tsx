@@ -50,6 +50,13 @@ const convertVBeamToBeamInputs = (vBeamInputs: VBeamInputs): BeamInputs => ({
   nu: vBeamInputs.nu,
   q: vBeamInputs.q,
   materialType: vBeamInputs.materialType,
+  vBeamParams: {
+    h1: vBeamInputs.h1 ?? 0,
+    h3: vBeamInputs.h3 ?? 0,
+    t4: vBeamInputs.t4 ?? 0,
+    webAngleDeg: vBeamInputs.a1 ?? 30,
+    roofAngleDeg: 10,
+  },
 });
 
 // --- Tính toán các giá trị mặc định dựa trên hình học ---
