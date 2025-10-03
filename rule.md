@@ -1,76 +1,148 @@
-Cải thiện logic tính toán trong VBeamCalculator.tsx và calculationService.ts
+Dưới đây là kế hoạch chi tiết để bổ sung “Tính toán dầm biên” (cụm truyền động dầm biên, gồm tải trọng – tốc độ – chọn động cơ/hộp số – bộ truyền bánh răng – bánh xe di chuyển). Kế hoạch bám sát cấu trúc repo hiện tại (React + Vite + TS), có phân rã kỹ thuật, công thức chính, và TODO rõ ràng.
 
-Mục tiêu
-Thay thế phương pháp tính toán xấp xỉ hiện tại (quy đổi dầm V về dầm I) bằng một hàm tính toán chuyên biệt, phân tích trực tiếp mặt cắt hình học phức tạp của dầm V để cho ra kết quả chính xác.
+Mục Tiêu & Phạm Vi
 
-Kế hoạch chi tiết
-Bước 1: Phân tích và Chuẩn bị
-Trước khi viết code, chúng ta cần hiểu rõ cấu trúc hình học của dầm V và công thức tính toán cho các mặt cắt phức hợp.
+Thêm module “Dầm biên” tính:
+Khả năng chịu tải và phân bố tải bánh xe.
+Tốc độ di chuyển và hệ số làm việc.
+Chọn động cơ – hộp số theo tải và tốc độ.
+Thiết kế/Chọn bộ truyền bánh răng (tỷ số, kiểm tra sơ bộ bền uốn/tiếp xúc).
+Tính toán bánh xe di chuyển (đường kính, tải bánh, ứng suất tiếp xúc, vòng bi).
+Bổ sung UI calculator, PDF report, i18n, cache PWA.
+Kiến Trúc & Phân Rã
 
-Mặt cắt dầm V được cấu thành từ các hình đơn giản:
+Types/domain: mở rộng tinh toan cau truc/types.ts cho input/output dầm biên.
+Services:
+services/endBeamDriveService.ts: tính lực cản, công suất, mô-men, chọn động cơ/hộp số.
+services/gearSelectionService.ts: chọn/záp tỷ số, module, kiểm tra sơ bộ.
+services/wheelSelectionService.ts: chọn bánh xe, kiểm tra tiếp xúc Hertz, vòng bi.
+Components:
+components/EndBeamDriveCalculator.tsx: UI chính, tab/steps.
+components/DriveTrainDiagram.tsx: sơ đồ truyền động (tùy chọn).
+Data chuẩn/lookup:
+data/standards/motors.json, gearboxes.json, gears.json, wheels.json, coefficients.json.
+Tích hợp:
+Route/entry trong App.tsx.
+Report: cập nhật components/PDFReport.tsx + components/LazyPDFExport.tsx.
+i18n: cập nhật src/locales/vi/translation.json và src/locales/en/translation.json.
+PWA: cập nhật public/service-worker.js nếu thêm asset lớn.
+Thông Số & Công Thức Chính
 
-Cánh dưới (Bottom Flange): 1 hình chữ nhật.
-Thân giữa (Central Web): 1 hình chữ nhật.
-Web nghiêng (V-Webs): 2 hình bình hành (hoặc hình chữ nhật nếu tính theo phương nghiêng).
-Mái nghiêng (Roofs): 2 hình bình hành.
-Chúng ta sẽ sử dụng phương pháp cộng gộp và định lý chuyển trục song song (Steiner) để tính các đặc trưng hình học của toàn bộ mặt cắt.
+Phân bố tải bánh xe dầm biên:
+Tổng tải di chuyển W gồm: tự trọng dầm biên + tải truyền từ dầm chính (nếu cần) + tải động (hệ số Kduty).
+Bánh xe: 2 hoặc 4 bánh/xe; tải bánh: Qi ≈ W/nb ± ảnh hưởng lệch tâm (xác định theo vị trí CG).
+Lực cản di chuyển F (N):
+F = μ·W + Fresist_phụ (ổ lăn, lệch đường ray, gió nếu ngoài trời).
+Dữ liệu μ theo ray/bánh (thép–thép điển hình 0.02–0.03), thêm hệ số an toàn Ks.
+Tốc độ v (m/min) → m/s: v_ms = v/60.
+Mô-men trục bánh xe: T_wheel = F·D_wheel/2.
+Tỷ số truyền tổng i_tot để đạt tốc độ:
+i_tot ≈ (n_motor · π · D_wheel)/(60 · v_ms) · (1/η_truyền).
+Công suất động cơ yêu cầu:
+P_req (kW) = F · v_ms /(η_truyền · 1000) · Kduty.
+Chọn P_motor ≥ P_req; n_motor gần chuẩn; i_hộp số ≈ i_tot.
+Kiểm tra hộp số:
+T2 ≥ T_wheel/η_stage · Ks, với T2 là mô-men trục ra hộp số.
+Bộ truyền bánh răng (thiết kế nhanh):
+Chọn z1,z2 theo i gần nhất; module m theo tải; kiểm tra nhanh Lewis (σF) và tiếp xúc (σH) với hệ số an toàn mục tiêu (≥1.3–1.5 cho M5/M6).
+Bánh xe:
+D_wheel theo yêu cầu ray và tốc độ; kiểm tra Hertz tiếp xúc bánh–ray; chọn vật liệu (45# thép tôi, gang cầu, polyamide tùy duty).
+Vòng bi: C ≥ feq dựa trên tải động và hệ số tuổi thọ.
+Phanh (tùy chọn):
+M_brake ≥ 1.5·T_wheel, thời gian dừng theo quy chuẩn.
+Luồng UI
 
-Công thức cốt lõi:
+Tab 1: Thông số đầu vào
+Trọng lượng + tải ~ W, số bánh/xe, đường kính bánh gợi ý hoặc chọn, điều kiện ray, môi trường, duty class (M4/M5/...).
+Tab 2: Tốc độ & Công suất
+Nhập v, tính F, P_req, i_tot, gợi ý list động cơ phù hợp.
+Tab 3: Hộp số & Bánh răng
+Chọn hộp số thương mại hoặc cấu hình gear pair; hiển thị kiểm tra sơ bộ.
+Tab 4: Bánh xe
+Chọn/thiết kế bánh xe, kiểm tra tiếp xúc và vòng bi.
+Tab 5: Kết quả & PDF
+Tổng hợp, cảnh báo, export PDF.
+Định Nghĩa Type (đề xuất)
 
-Tổng diện tích: F = Σ F_i
-Vị trí trọng tâm (Yc): Yc = (Σ (F_i * y_i)) / F
-Mô-men quán tính (Jx): Jx = Σ (Jx_i + F_i * d_i^2)
-y_i: Tọa độ trọng tâm của hình i so với trục tham chiếu (ví dụ: đáy dầm).
-Jx_i: Mô-men quán tính của hình i đối với trục đi qua trọng tâm của chính nó.
-d_i: Khoảng cách từ trọng tâm hình i đến trọng tâm chung Yc của cả mặt cắt (d_i = |y_i - Yc|).
-Bước 2: Tạo hàm tính toán mới cho Dầm V
-Chúng ta sẽ tạo một hàm mới trong calculationService.ts để xử lý riêng cho dầm V.
+types.ts
+EndBeamInputs { W, nWheels, wheelBase?, CGOffset?, v, dutyClass, mu, env, D_wheel?, railType, etaDrive }
+MotorOption { id, power, speed, efficiency, frame }
+GearboxOption { id, ratio, maxTorque, efficiency, stages }
+GearPairOption { z1, z2, module, width, material }
+WheelOption { id, D, width, material, bearingSet }
+EndBeamResults { F, v_ms, i_tot, P_req, motorSelected, gearboxSelected, gearPairSelected, wheelSelected, wheelLoads, checks }
+Giữ phong cách đặt tên và generic giống calculationService.ts.
+Service APIs (phác thảo)
 
-TODO List:
+services/endBeamDriveService.ts
+calcTravelResistance(inputs): { F, wheelLoads }
+calcSpeedAndPower(inputs, F): { v_ms, P_req, i_tot }
+suggestMotors(P_req, v, i_tot): MotorOption[]
+suggestGearboxes(i_tot, T_wheel): GearboxOption[]
+services/gearSelectionService.ts
+proposeGearPair(i_target, T2, constraints): GearPairOption[]
+quickCheckLewis(gearPair, T2): { sigmaF, ok }
+quickCheckContact(gearPair, T2): { sigmaH, ok }
+services/wheelSelectionService.ts
+proposeWheel(W, nWheels, railType, v): WheelOption[]
+checkHertz(wheel, load): { sigma, ok }
+checkBearing(load, life): { Creq, ok }
+Tích Hợp Giao Diện
 
-[ ] Tạo hàm calculateVBeamProperties trong services/calculationService.ts:
+components/EndBeamDriveCalculator.tsx
+Form + state + gọi services; hiển thị warning/kết quả theo pattern đang có ở VBeamCalculator.tsx và CraneBeamCalculator.tsx.
+Router/entry
+Thêm entry vào App.tsx để điều hướng đến “Dầm biên”.
+PDF
+Cập nhật components/PDFReport.tsx để in kết quả dầm biên (tối ưu: section riêng).
+components/LazyPDFExport.tsx: thêm case/prop cho EndBeam.
+i18n
+Thêm key mới trong src/locales/vi/translation.json và src/locales/en/translation.json.
+PWA cache
+Nếu thêm ảnh/sơ đồ: cập nhật public/service-worker.js và script scripts/update-cache-version.js.
+TODO Theo Giai Đoạn
 
-Hàm này sẽ nhận inputs: VBeamInputs làm đầu vào.
-Nó sẽ trả về một đối tượng có cấu trúc tương tự CalculationResults.
-[ ] Triển khai tính toán đặc trưng hình học bên trong calculateVBeamProperties:
+Giai đoạn 0 – Chuẩn bị
+ Xác nhận phạm vi: dầm biên cho cầu trục trong nhà/ngoài trời, số bánh/xe mặc định.
+ Định dạng đơn vị: kN/N, m/min, m/s, kW; hiển thị chuyển đổi.
+Giai đoạn 1 – Domain & Data
+ Mở rộng types.ts với EndBeamInputs, EndBeamResults, options mới.
+ Tạo data/standards/*.json (động cơ tiêu chuẩn, hộp số tỉ số, module bánh răng, bánh xe, hệ số μ/Kduty).
+Giai đoạn 2 – Services
+ Tạo services/endBeamDriveService.ts với hàm tính F, v_ms, P_req, i_tot.
+ Tạo services/gearSelectionService.ts với gợi ý i, module, kiểm tra sơ bộ.
+ Tạo services/wheelSelectionService.ts với chọn bánh xe + kiểm tra Hertz, vòng bi.
+ Unit test nhỏ cho các công thức cốt lõi (nếu repo có pattern test).
+Giai đoạn 3 – UI Components
+ Tạo components/EndBeamDriveCalculator.tsx gồm 4–5 tab.
+ (Tùy chọn) components/DriveTrainDiagram.tsx cho hình minh họa.
+ Kết nối vào App.tsx điều hướng/route.
+Giai đoạn 4 – Export & i18n
+ Cập nhật components/PDFReport.tsx để hỗ trợ EndBeam.
+ Cập nhật components/LazyPDFExport.tsx lấy dữ liệu EndBeam.
+ Bổ sung key mới trong src/locales/*/translation.json.
+Giai đoạn 5 – PWA & Hiệu Năng
+ Cập nhật public/service-worker.js nếu thêm asset tĩnh.
+ Dùng debounce cho input, memo hóa service nặng.
+ Lưu phiên bằng localStorage.
+Giai đoạn 6 – QA & Nghiệm Thu
+ So sánh kết quả với 1–2 case mẫu nội bộ.
+ Kiểm tra cảnh báo: quá tải bánh xe, i không khả thi, mô-đun quá nhỏ.
+ In PDF kiểm tra format và i18n.
+Tiêu Chí Hoàn Thành
 
-Xác định các hằng số: Góc nghiêng của V-web (a1) và mái (alpha). Dựa trên file VBeamCrossSection.tsx, các góc này đang được hardcode là 30° và 10°.
-Chia mặt cắt: Định nghĩa 5-6 hình học cơ bản (cánh dưới, thân giữa, 2 web nghiêng, 2 mái nghiêng).
-Tính toán cho từng hình:
-Tạo một mảng các đối tượng, mỗi đối tượng đại diện cho một hình đơn giản và chứa: area (diện tích), centroid_y (tọa độ y của trọng tâm), và inertia_x (mô-men quán tính riêng).
-Lưu ý quan trọng: Đối với các hình nghiêng (web và mái), công thức tính mô-men quán tính sẽ phức tạp hơn. Bạn cần sử dụng công thức cho hình bình hành hoặc chia chúng thành hình chữ nhật và tam giác.
-Tổng hợp kết quả:
-Tính tổng diện tích F.
-Tính vị trí trọng tâm chung Yc.
-Sử dụng định lý Steiner để tính tổng mô-men quán tính Jx.
-Tính mô-men kháng uốn Wx = Jx / (H - Yc) và Wx_bottom = Jx / Yc.
-[ ] Sao chép và điều chỉnh các phép tính còn lại:
+Nhập thông số tối thiểu → ra: F, v_ms, P_req, i_tot, đề xuất motor/hộp số/gear pair/bánh xe.
+Có cảnh báo khi không thỏa: công suất thiếu, i không khả thi, ứng suất vượt giới hạn.
+Export PDF đầy đủ, i18n đầy đủ VI/EN.
+Không làm chậm UI khi nhập liệu (đáp ứng <100ms cho thay đổi cơ bản).
+Rủi Ro & Giả Định
 
-Phần lớn các phép tính về tải trọng, mô-men uốn (M_x), ứng suất (sigma_u), độ võng (f), và các kiểm tra an toàn (stress_check, deflection_check...) từ hàm calculateBeamProperties có thể được tái sử dụng.
-Copy các logic này vào calculateVBeamProperties và đảm bảo chúng sử dụng các giá trị F, Jx, Wx... vừa được tính toán chính xác cho dầm V.
-Bước 3: Tích hợp hàm mới vào Component VBeamCalculator.tsx
-Sau khi đã có hàm tính toán chính xác, chúng ta cần cập nhật component UI để gọi nó.
+Hệ số μ, Kduty, η truyền động phụ thuộc tiêu chuẩn; tạm dùng giá trị mặc định bảo thủ và cho phép người dùng chỉnh.
+Kiểm tra bánh răng theo AGMA/ISO đầy đủ là phức tạp; giai đoạn đầu dùng kiểm tra sơ bộ + hệ số an toàn.
+Cần xác nhận loại ray, vật liệu bánh để tính Hertz chính xác.
+Mở Rộng Tương Lai
 
-TODO List:
-
-[ ] Import hàm mới:
-
-Trong components/VBeamCalculator.tsx, import calculateVBeamProperties từ calculationService.ts.
-[ ] Cập nhật hàm handleSubmit:
-
-Xóa bỏ hàm convertVBeamToBeamInputs và các lệnh gọi liên quan.
-Thay thế lời gọi calculateBeamProperties(beamInputs, 'single-girder') bằng calculateVBeamProperties(inputs).
-Hàm generateDiagramData có thể vẫn cần BeamInputs. Nếu vậy, hãy tạo một hàm chuyển đổi đơn giản chỉ để phục vụ cho việc vẽ biểu đồ, hoặc tốt hơn là tạo một generateVBeamDiagramData riêng.
-[ ] Cập nhật các component con (nếu cần):
-
-Các biểu đồ như StressDistributionDiagram và DeflectedShapeDiagram hiện đang nhận BeamInputs. Bạn cần điều chỉnh chúng để có thể hoạt động với VBeamInputs hoặc truyền các giá trị đã được tính toán một cách phù hợp. Cách đơn giản nhất là vẫn truyền một đối tượng BeamInputs đã được chuyển đổi (như convertVBeamToBeamInputs) cho các component con này để tránh phải viết lại chúng.
-
-Tóm tắt TODO List
-[ ] services/calculationService.ts:
-[ ] Tạo hàm calculateVBeamProperties(inputs: VBeamInputs): CalculationResults.
-[ ] Implement logic tính toán đặc trưng hình học (F, Yc, Jx) cho mặt cắt V.
-[ ] Tái sử dụng logic tính toán ứng suất, độ võng, kiểm tra an toàn.
-[ ] components/VBeamCalculator.tsx:
-[ ] Import calculateVBeamProperties.
-[ ] Trong handleSubmit, thay thế lời gọi hàm tính toán cũ bằng hàm mới.
-[ ] Xóa hoặc vô hiệu hóa convertVBeamToBeamInputs (trừ khi cần cho các component con).
+Thêm thư viện thiết bị chuẩn (Siemens/Nord/SEW…) để map thực tế.
+Tối ưu chọn đa mục tiêu (giảm công suất/khối lượng).
+Tính phanh và gia tốc/giảm tốc theo đồ thị thời gian.
+Lưu và so sánh phương án.

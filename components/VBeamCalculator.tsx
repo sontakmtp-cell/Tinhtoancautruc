@@ -363,7 +363,7 @@ export const VBeamCalculator: React.FC = () => {
 
     // V-beam specific geometric balance checks
     // 1) H = 1/16 .. 1/12 of L (similar to other beam types)
-    assess('H', t('Total height H'), H_cm, L_cm, 1 / 16, 1 / 12);
+    assess('H', t('calculator.totalHeightH'), H_cm, L_cm, 1 / 16, 1 / 12);
     // 2) b1 (flange width) = 1/3 .. 1/2 of H
     assess('b1', t('calculator.flangeWidthB1'), b1_cm, H_cm, 1 / 3, 1 / 2);
     // 3) h1 (I-height) = 1/2 .. 2/3 of H

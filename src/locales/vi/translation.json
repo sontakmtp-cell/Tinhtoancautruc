@@ -142,7 +142,7 @@
                        "stiffenerMarkersLabel":  "Sơ đồ bố trí sườn",
                        "stiffenerWidth":  "Bề rộng sườn bs",
                        "stiffenerLabel": "Sườn",
-                       "safetyChecksTooltip":  "<p class='font-medium mb-2'>Giải thích các hệ số an toàn (phải ≥ 1.0):</p><ul class='list-disc list-inside space-y-1'><li><b>K_sigma</b>: Hệ số an toàn về ứng suất, là tỷ số giữa ứng suất cho phép và ứng suất tính toán.</li><li><b>n_f</b>: Hệ số an toàn về độ võng, là tỷ số giữa độ võng cho phép và độ võng tính toán. Độ võng cho phép theo TCVN 5575:2024 là [f] ≤ L/1000 đối với dầm hộp và [f] ≤ L/800 đối với dầm I.</li><li><b>K_buckling</b>: Hệ số an toàn về ổn định cục bộ, là tỷ số giữa độ mảnh giới hạn và độ mảnh thực tế của bản cánh chịu nén. Tính theo tiêu chuẩn EN 1993-1-5.</li></ul>"
+                       "safetyChecksTooltip":  "<p class='font-medium mb-2'>Giải thích các hệ số an toàn (phải ≥ 1.0):</p><ul class='list-disc list-inside space-y-1'><li><b>K_sigma</b>: Hệ số an toàn về ứng suất, là tỷ số giữa ứng suất cho phép và ứng suất tính toán.</li><li><b>n_f</b>: Hệ số an toàn về độ võng, là tỷ số giữa độ võng cho phép và độ võng tính toán. Độ võng cho phép theo TCVN 5575:2024 là [f] ≤ L/1000 đối với dầm hộp, [f] ≤ L/800 đối với dầm I và [f] ≤ L/850 đối với dầm V.</li><li><b>K_buckling</b>: Hệ số an toàn về ổn định cục bộ, là tỷ số giữa độ mảnh giới hạn và độ mảnh thực tế của bản cánh chịu nén. Tính theo tiêu chuẩn EN 1993-1-5.</li></ul>"
                    },
     "deflectionDiagram":  {
                               "ariaLabel":  "Biểu đồ độ võng của dầm",
@@ -266,6 +266,7 @@
     "flangeWidthB1": "Chiều rộng cánh b1",
     "flangeThicknessT1": "Chiều dày cánh t1",
     "bodyThicknessT2": "Chiều dày thân t2",
+    "totalHeightH": "Tổng chiều cao H",
     "iHeightH1": "Chiều cao I h1",
     "calculator.webThicknessT3": "Độ dày bụng t3",
     "calculator.webHeightH3": "Chiều cao bụng h3",
@@ -273,5 +274,6 @@
     "calculator.flangeWidthB1": "Chiều rộng cánh b1",
     "calculator.flangeThicknessT1": "Chiều dày cánh t1",
     "calculator.bodyThicknessT2": "Chiều dày thân t2",
-    "calculator.iHeightH1": "Chiều cao I h1"
+    "calculator.iHeightH1": "Chiều cao I h1",
+    "calculator.totalHeightH": "Tổng chiều cao H"
 }

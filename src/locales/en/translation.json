@@ -156,7 +156,7 @@
                        "unitPieces":  "pcs",
                        "stiffenerRecommendationTitle":  "Recommended stiffeners",
                        "stiffenerSpacingLegend":  "~{{value}} mm spacing",
-                       "safetyChecksTooltip":  "<p class='font-medium mb-2'>Explaining the safety factors (must be ≥ 1.0):</p><ul class='list-disc list-inside space-y-1'><li><b>K_sigma</b>: Stress safety factor, the ratio of allowable stress to calculated stress.</li><li><b>n_f</b>: Deflection safety factor, the ratio of allowable deflection to calculated deflection. Allowable deflection is typically [f] ≤ L/1000 for box girders and [f] ≤ L/800 for I-beams.</li><li><b>K_buckling</b>: Local buckling safety factor, the ratio of the limiting slenderness to the actual slenderness of the compression flange. Calculated according to EN 1993-1-5.</li></ul>",
+                       "safetyChecksTooltip":  "<p class='font-medium mb-2'>Explaining the safety factors (must be ≥ 1.0):</p><ul class='list-disc list-inside space-y-1'><li><b>K_sigma</b>: Stress safety factor, the ratio of allowable stress to calculated stress.</li><li><b>n_f</b>: Deflection safety factor, the ratio of allowable deflection to calculated deflection. Allowable deflection is typically [f] ≤ L/1000 for box girders, [f] ≤ L/800 for I-beams and [f] ≤ L/850 for V-beams.</li><li><b>K_buckling</b>: Local buckling safety factor, the ratio of the limiting slenderness to the actual slenderness of the compression flange. Calculated according to EN 1993-1-5.</li></ul>",
                        "stiffenerMarkersLabel":  "Stiffener layout",
                        "stiffenerWidth":  "Stiffener width bs",
                        "stiffenerLabel": "Stiffener"
@@ -276,11 +276,14 @@
     "flangeThicknessT1": "Flange thickness t1",
     "bodyThicknessT2": "Body thickness t2",
     "iHeightH1": "I-height h1",
+    "totalHeightH": "Total height H",
     "calculator.webThicknessT3": "Web thickness t3",
     "calculator.webHeightH3": "Web height h3",
     "calculator.roofThicknessT4": "Roof thickness t4",
     "calculator.flangeWidthB1": "Flange width b1",
     "calculator.flangeThicknessT1": "Flange thickness t1",
     "calculator.bodyThicknessT2": "Body thickness t2",
-    "calculator.iHeightH1": "I-height h1"
+    "calculator.iHeightH1": "I-height h1",
+    "calculator.totalHeightH": "Total height H"
+
 }
