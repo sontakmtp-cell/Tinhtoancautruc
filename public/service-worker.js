@@ -1,5 +1,5 @@
 // Đặt tên cho cache và phiên bản
-const CACHE_VERSION = 1759480933; // <-- TĂNG SỐ NÀY MỖI KHI DEPLOY BẢN MỚI
+const CACHE_VERSION = 1759572277; // <-- TĂNG SỐ NÀY MỖI KHI DEPLOY BẢN MỚI
 const CACHE_NAME = `crane-beam-studio-v${CACHE_VERSION}`;
 
 // Danh sách các file cần cache để ứng dụng chạy offline

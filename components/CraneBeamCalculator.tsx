@@ -29,6 +29,7 @@ import { PDFExportButton } from './PDFReport';
 import { BeamCrossSection } from './BeamCrossSection';
 import { DoubleBeamCalculator } from './DoubleBeamCalculator';
 import { VBeamCalculator } from './VBeamCalculator';
+import { EdgeBeamCalculator } from './EdgeBeamCalculator';
 import { multiplyForDisplay } from '../utils/display';
 
 const MIN_LOADER_DURATION_MS = 4_000;
@@ -135,7 +136,7 @@ const getIBeamInputConfig = (t: (key: string, opts?: any) => string) => [
   },
 ] as const;
 
-type BeamType = 'single-girder' | 'double-girder' | 'i-beam' | 'v-beam';
+type BeamType = 'single-girder' | 'double-girder' | 'i-beam' | 'v-beam' | 'edge-beam';
 
 type PreviewSection = {
   title: string;
@@ -206,6 +207,20 @@ type BeamTab = {
         'V-beam specific geometry and parameters',
         'Stress, deflection, and buckling verification',
         'PDF reporting with diagrams',
+      ],
+    },
+    {
+      id: 'edge-beam',
+      label: 'Edge beam',
+      subLabel: 'Live module',
+      description: 'Calculate edge beam loads, contact stress, resistance force and motor power for crane travel mechanism.',
+      status: 'available',
+      icon: AreaChart,
+      highlights: [
+        'Wheel load distribution calculation',
+        'Contact stress verification',
+        'Drive motor power calculation',
+        'Wheel-rail adhesion check',
       ],
     },
   ];
@@ -624,6 +639,15 @@ export const CraneBeamCalculator: React.FC = () => {
       <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
         <BeamTypeTabs active={beamType} onChange={setBeamType} />
         <VBeamCalculator />
+      </div>
+    );
+  }
+
+  if (beamType === 'edge-beam') {
+    return (
+      <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+        <BeamTypeTabs active={beamType} onChange={setBeamType} />
+        <EdgeBeamCalculator />
       </div>
     );
   }
