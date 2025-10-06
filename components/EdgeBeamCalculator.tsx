@@ -10,33 +10,35 @@ import {
   ChevronsRight,
   RotateCcw,
   Settings,
-  Zap
+  Zap,
+  Cog,
+  HelpCircle
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 // Interface cho inputs của dầm biên
 interface EdgeBeamInputs {
   // Thông số cơ bản
   S: number;           // Khẩu độ cầu trục (m)
-  x: number;           // Vị trí tâm xe con (m)
+  x: number;           // Tâm xe con đến tâm ray dầm biên (m)
   Q: number;           // Tải nâng danh định (kg)
   Gx: number;          // Trọng lượng xe con (kg)
   Gc: number;          // Tự trọng dầm chính (kg)
   z: number;           // Số bánh ở mỗi đầu dầm chính
   b: number;           // Số bánh chủ động
   D: number;           // Đường kính bánh xe (m)
-  B: number;           // Bề rộng vành bánh tiếp xúc với ray (cm)
+  B: number;           // Bề rộng ray (cm)
   v: number;           // Tốc độ di chuyển (m/min)
   sigma_H_allow: number; // Ứng suất tiếp xúc cho phép (kg/cm^2)
   tau_allow: number;   // Ứng suất cắt cho phép của trục (MPa)
   n_dc: number;        // Tốc độ định mức động cơ (rpm)
-  i_cyclo: number;     // Tỉ số truyền động cơ hộp số Cyclo
+  i_cyclo: number;     // Tỉ số truyền động cơ hộp số
   
   // Hệ số truyền động
   eta: number;         // Hiệu suất truyền động tổng
   m: number;           // Hệ số cản ray/gờ nối
   f: number;           // Hệ số lăn
   a: number;           // Độ dốc ray
-  K_dyn: number;       // Hệ số động cho tải bánh
+  K_dyn: number;       // Hệ số khởi động cho tải bánh
 }
 
 // Interface cho kết quả tính toán
@@ -83,26 +85,26 @@ interface EdgeBeamResults {
 const defaultEdgeBeamInputs: EdgeBeamInputs = {
   // Thông số cơ bản
   S: 19.7,               // Khẩu độ cầu trục (m)
-  x: 2,                // Vị trí tâm xe con (m)
+  x: 2,                // Tâm xe con đến tâm ray dầm biên (m)
   Q: 35000,             // Tải nâng danh định (kg)
   Gx: 1800,             // Trọng lượng xe con (kg)
   Gc: 12000,            // Tự trọng dầm chính (kg)
   z: 2,                // Số bánh ở mỗi đầu dầm chính
   b: 2,                // Số bánh chủ động
-  D: 0.37,              // Đường kính bánh xe (m)
-  B: 0.8,               // Bề rộng vành bánh tiếp xúc với ray (cm)
+  D: 370,              // Đường kính bánh xe (mm)
+  B: 80,               // Bề rộng ray (mm)
   v: 40,               // Tốc độ di chuyển (m/min)
   sigma_H_allow: 4500, // Ứng suất tiếp xúc cho phép (kg/cm^2)
-  tau_allow: 80,       // Ứng suất cắt cho phép của trục (MPa)
+  tau_allow: 40,       // Ứng suất cắt cho phép của trục (MPa)
   n_dc: 1450,          // Tốc độ định mức động cơ (rpm)
-  i_cyclo: 20,         // Tỉ số truyền động cơ hộp số Cyclo
+  i_cyclo: 20,         // Tỉ số truyền động cơ hộp số
   
   // Hệ số truyền động
   eta: 0.9,            // Hiệu suất truyền động tổng
   m: 0.01,             // Hệ số cản ray/gờ nối
   f: 0.001,            // Hệ số lăn
   a: 0.003,            // Độ dốc ray
-  K_dyn: 1.1,          // Hệ số động cho tải bánh
+  K_dyn: 1.1,          // Hệ số khởi động cho tải bánh
 };
 
 type EdgeBeamInputField = {
@@ -133,9 +135,9 @@ const calculateEdgeBeam = (inputs: EdgeBeamInputs): EdgeBeamResults => {
   const span = inputs.S > 0 ? inputs.S : 1;
   const trolleyPosition = Math.max(0, Math.min(inputs.x, span));
   const wheelsPerEnd = inputs.z > 0 ? inputs.z : 1;
-  const wheelRadiusMeters = inputs.D > 0 ? inputs.D / 2 : 0;
+  const wheelRadiusMeters = inputs.D > 0 ? (inputs.D / 1000) / 2 : 0; // Convert mm to meters, then to radius
   const efficiency = inputs.eta > 0 ? inputs.eta : 1;
-  const contactWidthCm = Math.max(inputs.B, 0);
+  const contactWidthCm = Math.max(inputs.B / 10, 0); // Convert mm to cm
   const travelSpeed = Math.max(0, inputs.v);
   const motorSpeed = Math.abs(inputs.n_dc);
   const dynamicFactor = Math.max(inputs.K_dyn, 0);
@@ -151,9 +153,9 @@ const calculateEdgeBeam = (inputs: EdgeBeamInputs): EdgeBeamResults => {
   const N_max = Math.max(N_L, N_R);
   const N_t = dynamicFactor * N_max;
 
-  const wheelRadiusCm = wheelRadiusMeters * 100;
-  const contactFactor = contactWidthCm * wheelRadiusCm;
-  const sigma_H = contactFactor > 0 ? 600 * Math.sqrt(N_t / contactFactor) : 0;
+  const wheelDiameterCm = inputs.D / 10; // Convert mm to cm
+  const contactFactor = contactWidthCm * wheelDiameterCm;
+  const sigma_H = contactFactor > 0 ? 423 * Math.sqrt(N_t / contactFactor) : 0;
   const n_H = sigma_H > 0 ? inputs.sigma_H_allow / sigma_H : 0;
 
   // 3) Lực cản và tổng lực kéo (kgf) — CHUẨN
@@ -172,7 +174,7 @@ const calculateEdgeBeam = (inputs: EdgeBeamInputs): EdgeBeamResults => {
   const N_dc = (W * travelSpeed) / (60 * 102 * eta);   // kW
 
   // 5) Tốc độ bánh và tỉ số truyền
-  const n_wheel = inputs.D > 0 ? travelSpeed / (Math.PI * inputs.D) : 0; // rpm
+  const n_wheel = inputs.D > 0 ? travelSpeed / (Math.PI * (inputs.D / 1000)) : 0; // Convert mm to meters for calculation
   const i_total = n_wheel > 0 && motorSpeed > 0 ? motorSpeed / n_wheel : 0;
   const i_gear  = inputs.i_cyclo > 0 ? i_total / inputs.i_cyclo : 0;
 
@@ -198,7 +200,7 @@ const calculateEdgeBeam = (inputs: EdgeBeamInputs): EdgeBeamResults => {
       ? Math.pow((16 * T_design * 1000) / (Math.PI * inputs.tau_allow), 1/3)
       : 0;
 
-  const contact_stress_check = n_H >= 1.2 ? 'pass' : 'fail';
+  const contact_stress_check = n_H >= 1.1 ? 'pass' : 'fail';
   const minShaftDiameter = 20;
   const shaft_check = d_calculated >= minShaftDiameter ? 'pass' : 'fail';
   const torque_check = torque_ok ? 'pass' : 'fail';
@@ -243,11 +245,17 @@ const edgeBeamInputConfig: readonly EdgeBeamInputSection[] = [
       { name: 'x', label: 'Trolley position x', unit: 'm' },
       { name: 'Q', label: 'Rated load Q', unit: 'kg' },
       { name: 'Gx', label: 'Trolley weight Gx', unit: 'kg' },
-      { name: 'Gc', label: 'Main beam self-weight Gc', unit: 'kg' },
+      { name: 'Gc', label: 'Main beam self-weight Gc', unit: 'kg' }
+    ]
+  },
+  {
+    title: 'Drive parameters',
+    icon: Settings,
+    fields: [
       { name: 'z', label: 'Number of wheels per end z', unit: '-' },
       { name: 'b', label: 'Number of driving wheels b', unit: '-' },
-      { name: 'D', label: 'Wheel diameter D', unit: 'm' },
-      { name: 'B', label: 'Wheel rim width B', unit: 'cm' },
+      { name: 'D', label: 'Wheel diameter D', unit: 'mm' },
+      { name: 'B', label: 'Wheel rim width B', unit: 'mm' },
       { name: 'v', label: 'Travel speed v', unit: 'm/min' },
       { name: 'sigma_H_allow', label: 'Allowable contact stress', unit: 'kg/cm^2' },
       { name: 'tau_allow', label: 'Allowable shear stress', unit: 'MPa' },
@@ -257,7 +265,7 @@ const edgeBeamInputConfig: readonly EdgeBeamInputSection[] = [
   },
   {
     title: 'Drive system coefficients',
-    icon: Settings,
+    icon: Cog,
     fields: [
       { name: 'eta', label: 'Overall efficiency η', unit: '-' },
       { name: 'm', label: 'Rail resistance coefficient m', unit: '-' },
@@ -408,7 +416,22 @@ export const EdgeBeamCalculator: React.FC = () => {
                   return (
                     <div key={name} className="col-span-2 sm:col-span-1 calc-field">
                       <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {t(label)}
+                        <div className="flex items-center gap-2">
+                          <span>{t(label)}</span>
+                          {(name === 'm' || name === 'x' || name === 'i_cyclo' || name === 'f' || name === 'K_dyn') && (
+                            <div className="group relative">
+                              <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
+                              <div className="absolute left-0 top-6 w-80 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-pre-line">
+                                {name === 'm' && <div>{t('calculator.tooltip.m')}</div>}
+                                {name === 'x' && <div>{t('calculator.tooltip.x')}</div>}
+                                {name === 'i_cyclo' && <div>{t('calculator.tooltip.i_cyclo')}</div>}
+                                {name === 'f' && <div>{t('calculator.tooltip.f')}</div>}
+                                {name === 'K_dyn' && <div>{t('calculator.tooltip.K_dyn')}</div>}
+                                <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </label>
                       <div className="relative">
                         <input
@@ -474,21 +497,14 @@ export const EdgeBeamCalculator: React.FC = () => {
             <>
               {/* Kết luận */}
               <CollapsibleSection title={t('Conclusion')} icon={HardHat}>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <ResultItem label={t('Calculated shaft diameter d')} value={results.d_calculated.toFixed(1)} unit="mm" />
+                  <ResultItem label={t('Motor power N_dc')} value={results.N_dc.toFixed(2)} unit="kW" />
+                  <ResultItem label={t('Cyclo gearbox to wheel ratio i_gear')} value={results.i_gear.toFixed(2)} unit="-" />
                   <CheckBadge
                     status={results.contact_stress_check}
-                    label={t('Contact stress check')}
+                    label={t('Wheel strength check')}
                     value={`n_H = ${results.n_H.toFixed(2)}`}
-                  />
-                  <CheckBadge
-                    status={results.torque_check}
-                    label={t('Torque adequacy check')}
-                    value={`M_shaft ≥ T_req`}
-                  />
-                  <CheckBadge
-                    status={results.shaft_check}
-                    label={t('Shaft diameter check')}
-                    value={`d = ${results.d_calculated.toFixed(1)} mm`}
                   />
                 </div>
               </CollapsibleSection>
@@ -506,15 +522,11 @@ export const EdgeBeamCalculator: React.FC = () => {
                   <ResultItem label={t('Joint resistance W_joint')} value={results.W2.toFixed(1)} unit="kgf" />
                   <ResultItem label={t('Slope resistance W_slope')} value={results.W3.toFixed(1)} unit="kgf" />
                   <ResultItem label={t('Total resistance W')} value={results.W.toFixed(1)} unit="kgf" />
-                  <ResultItem label={t('Required force per drive wheel F_req')} value={results.F_req.toFixed(1)} unit="kgf" />
-                  <ResultItem label={t('Motor power N_dc')} value={results.N_dc.toFixed(2)} unit="kW" />
                   <ResultItem label={t('Wheel speed n_wheel')} value={results.n_wheel.toFixed(2)} unit="rpm" />
                   <ResultItem label={t('Total gear ratio i_total')} value={results.i_total.toFixed(2)} unit="-" />
-                  <ResultItem label={t('Cyclo gearbox to wheel ratio i_gear')} value={results.i_gear.toFixed(2)} unit="-" />
                   <ResultItem label={t('Motor torque M_dc')} value={results.M_dc.toFixed(1)} unit="N*m" />
                   <ResultItem label={t('Shaft torque M_shaft')} value={results.M_shaft.toFixed(1)} unit="N*m" />
                   <ResultItem label={t('Tangential force F_t')} value={results.F_t.toFixed(0)} unit="N" />
-                  <ResultItem label={t('Calculated shaft diameter d')} value={results.d_calculated.toFixed(1)} unit="mm" />
                 </div>
               </CollapsibleSection>
             </>
@@ -524,22 +536,3 @@ export const EdgeBeamCalculator: React.FC = () => {
     </>
   );
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
