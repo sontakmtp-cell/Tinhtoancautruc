@@ -15,6 +15,10 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { HamsterLoader } from './Loader';
+
+const MIN_LOADER_DURATION_MS = 4_000;
+
 // Interface cho inputs của dầm biên
 interface EdgeBeamInputs {
   // Thông số cơ bản
@@ -337,6 +341,8 @@ export const EdgeBeamCalculator: React.FC = () => {
   createInputStringsFromValues(defaultEdgeBeamInputs)
 );
   const [results, setResults] = useState<EdgeBeamResults | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isCallingAI, setIsCallingAI] = useState<boolean>(false);
 
   const { t } = useTranslation();
 
@@ -387,11 +393,22 @@ export const EdgeBeamCalculator: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    setIsLoading(true);
+    setResults(null);
+
+    const loaderStart = Date.now();
+    
     try {
       const calcResults = calculateEdgeBeam(inputs);
       setResults(calcResults);
     } catch (error) {
       console.error('Edge Beam Calculation Error:', error);
+    } finally {
+      const elapsed = Date.now() - loaderStart;
+      if (elapsed < MIN_LOADER_DURATION_MS) {
+        await new Promise((resolve) => setTimeout(resolve, MIN_LOADER_DURATION_MS - elapsed));
+      }
+      setIsLoading(false);
     }
   };
 
@@ -399,6 +416,8 @@ export const EdgeBeamCalculator: React.FC = () => {
   setInputs({ ...defaultEdgeBeamInputs });
   setInputStrings(createInputStringsFromValues(defaultEdgeBeamInputs));
   setResults(null);
+  setIsLoading(false);
+  setIsCallingAI(false);
 };
 
   return (
@@ -470,18 +489,29 @@ export const EdgeBeamCalculator: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="calc-button w-1/3 flex justify-center items-center py-3 px-4"
+              disabled={isLoading}
+              className="calc-button w-1/3 flex justify-center items-center py-3 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontSize: 'clamp(0.75rem, 2.5vw, 1rem)' }}
             >
-              {t('calculator.calculate')}
-              <ChevronsRight className="ml-2 h-5 w-5 flex-shrink-0" />
+              {isLoading ? t('calculator.calculating') : t('calculator.calculate')}
+              {!isLoading && <ChevronsRight className="ml-2 h-5 w-5 flex-shrink-0" />}
             </button>
           </div>
         </form>
 
         {/* Results Panel */}
         <div className="lg:col-span-2 space-y-8">
-          {!results && (
+          {isLoading && (
+            <div className="flex justify-center items-center h-96">
+              <HamsterLoader
+                status={isCallingAI ? 'warning' : 'default'}
+                messageKey="loader.default"
+                warningMessageKey="loader.warning"
+              />
+            </div>
+          )}
+
+          {!isLoading && !results && (
             <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-8 text-center">
               <Zap className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -493,7 +523,7 @@ export const EdgeBeamCalculator: React.FC = () => {
             </div>
           )}
 
-          {results && (
+          {!isLoading && results && (
             <>
               {/* Kết luận */}
               <CollapsibleSection title={t('Conclusion')} icon={HardHat}>
