@@ -16,11 +16,13 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { HamsterLoader } from './Loader';
+import { LoadDistributionChart } from './LoadDistributionChart';
+import { ResistanceBreakdownChart } from './ResistanceBreakdownChart';
 
 const MIN_LOADER_DURATION_MS = 4_000;
 
 // Interface cho inputs của dầm biên
-interface EdgeBeamInputs {
+export interface EdgeBeamInputs {
   // Thông số cơ bản
   S: number;           // Khẩu độ cầu trục (m)
   x: number;           // Tâm xe con đến tâm ray dầm biên (m)
@@ -559,6 +561,12 @@ export const EdgeBeamCalculator: React.FC = () => {
                   <ResultItem label={t('Tangential force F_t')} value={results.F_t.toFixed(0)} unit="N" />
                 </div>
               </CollapsibleSection>
+
+              {/* Biểu đồ Phân bố Tải trọng theo Vị trí Xe con */}
+              <LoadDistributionChart inputs={inputs} />
+
+              {/* Biểu đồ Phân rã Lực cản Tổng */}
+              <ResistanceBreakdownChart inputs={inputs} />
             </>
           )}
         </div>
