@@ -573,16 +573,6 @@ export const EdgeBeamCalculator: React.FC = () => {
                   </div>
                 </CollapsibleSection>
               </div>
-              
-              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-8 text-center">
-                <Zap className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  {t('Edge Beam Calculator')}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  {t('Enter parameters and click Calculate to analyze edge beam loads and motor power.')}
-                </p>
-              </div>
             </>
           )}
 
