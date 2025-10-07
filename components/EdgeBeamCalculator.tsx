@@ -419,7 +419,7 @@ export const EdgeBeamCalculator: React.FC = () => {
             <button
               type="button"
               onClick={handleReset}
-              className="calc-button w-1/4 flex justify-center items-center py-3 px-4"
+              className="calc-button w-1/3 flex justify-center items-center py-3 px-4"
               style={{ fontSize: 'clamp(0.75rem, 2.5vw, 1rem)' }}
             >
               <RotateCcw className="mr-2 h-5 w-5 flex-shrink-0" />
@@ -428,7 +428,7 @@ export const EdgeBeamCalculator: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="calc-button w-1/4 flex justify-center items-center py-3 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="calc-button w-1/3 flex justify-center items-center py-3 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontSize: 'clamp(0.75rem, 2.5vw, 1rem)' }}
             >
               {isLoading ? t('calculator.calculating') : t('calculator.calculate')}
@@ -438,7 +438,7 @@ export const EdgeBeamCalculator: React.FC = () => {
               inputs={inputs}
               results={results}
               isLoading={isLoading}
-              className="w-1/4"
+              className="w-1/3"
             />
           </div>
         </form>
