@@ -49,6 +49,18 @@ const defaultEdgeBeamInputs: EdgeBeamInputs = {
   K_dyn: 1.1,          // Hệ số khởi động cho tải bánh
 };
 
+// Ensure new optional shaft parameters have sensible defaults
+// (Using property assignment to avoid brittle diffs with comments/encoding)
+// These are used to incorporate bending moment effects in shaft sizing.
+// Defaults: no bending (M_b=0), no shock amplification (K_b=K_t=1)
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+defaultEdgeBeamInputs.M_b = 0;
+// @ts-ignore
+defaultEdgeBeamInputs.K_b = 1.0;
+// @ts-ignore
+defaultEdgeBeamInputs.K_t = 1.0;
+
 type EdgeBeamInputField = {
   name: keyof EdgeBeamInputs;
   label: string;
@@ -137,12 +149,19 @@ const calculateEdgeBeam = (inputs: EdgeBeamInputs): EdgeBeamResults => {
 
   // 9) Đường kính trục tính toán (mm) — dùng NHU CẦU để thiết kế
   const T_design = Math.max(T_wheel_req, 0);           // có thể nhân thêm K_start nếu cần
+  // Equivalent torque accounting for bending (ASME): Te = sqrt((Kt*T)^2 + (Kb*M_b)^2)
+  // Set Kb = Kt = K_dyn as requested (no separate inputs)
+  const K_dyn_factor = Math.max(inputs.K_dyn, 0);
+  const Kb = K_dyn_factor;
+  const Kt = K_dyn_factor;
+  const M_b = Math.max(inputs.M_b ?? 0, 0);
+  const T_eq = Math.sqrt((Kt * T_design) * (Kt * T_design) + (Kb * M_b) * (Kb * M_b));
   const d_calculated =
     inputs.tau_allow > 0
-      ? Math.pow((16 * T_design * 1000) / (Math.PI * inputs.tau_allow), 1/3)
+      ? Math.pow((16 * T_eq * 1000) / (Math.PI * inputs.tau_allow), 1/3)
       : 0;
 
-  const contact_stress_check = n_H >= 1.1 ? 'pass' : 'fail';
+  const contact_stress_check = n_H >= 1.2 ? 'pass' : 'fail';
   const minShaftDiameter = 20;
   const shaft_check = d_calculated >= minShaftDiameter ? 'pass' : 'fail';
   const torque_check = torque_ok ? 'pass' : 'fail';
@@ -169,6 +188,8 @@ const calculateEdgeBeam = (inputs: EdgeBeamInputs): EdgeBeamResults => {
     i_gear,
     M_dc,
     M_shaft,
+    T_eq,
+    M_b,
     F_t,
     d_calculated,
     shaft_check,
@@ -213,8 +234,7 @@ const edgeBeamInputConfig: readonly EdgeBeamInputSection[] = [
       { name: 'm', label: 'Rail resistance coefficient m', unit: '-' },
       { name: 'f', label: 'Rolling coefficient f', unit: '-' },
       { name: 'a', label: 'Rail slope a', unit: '-' },
-      { name: 'K_dyn', label: 'Dynamic factor K_dyn', unit: '-' }
-    ]
+      { name: 'K_dyn', label: 'Dynamic factor K_dyn', unit: '-' },    ]
   }
 ];
 
@@ -384,6 +404,7 @@ export const EdgeBeamCalculator: React.FC = () => {
                                 {name === 'i_cyclo' && <div>{t('calculator.tooltip.i_cyclo')}</div>}
                                 {name === 'f' && <div>{t('calculator.tooltip.f')}</div>}
                                 {name === 'K_dyn' && <div>{t('calculator.tooltip.K_dyn')}</div>}
+                                {/* no M_b tooltip as input removed */}
                                 <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
                               </div>
                             </div>
@@ -500,6 +521,7 @@ export const EdgeBeamCalculator: React.FC = () => {
                   <ResultItem label={t('Total gear ratio i_total')} value={results.i_total.toFixed(2)} unit="-" />
                   <ResultItem label={t('Motor torque M_dc')} value={results.M_dc.toFixed(1)} unit="N*m" />
                   <ResultItem label={t('Shaft torque M_shaft')} value={results.M_shaft.toFixed(1)} unit="N*m" />
+                  <ResultItem label={t('Equivalent torque T_e')} value={results.T_eq.toFixed(1)} unit="N*m" />
                   <ResultItem label={t('Tangential force F_t')} value={results.F_t.toFixed(0)} unit="N" />
                 </div>
               </CollapsibleSection>
@@ -516,3 +538,4 @@ export const EdgeBeamCalculator: React.FC = () => {
     </>
   );
 };
+

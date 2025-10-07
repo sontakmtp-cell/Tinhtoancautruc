@@ -195,7 +195,7 @@ class EdgeBeamPDFService {
       [this.t('Right reaction R_R'), results.R_R.toFixed(0), 'kg'],
       [this.t('Load per left wheel N_L'), results.N_L.toFixed(0), 'kg'],
       [this.t('Load per right wheel N_R'), results.N_R.toFixed(0), 'kg'],
-      [this.t('Maximum wheel load N_max'), results.N_max.toFixed(0), 'kg'],
+      [this.t('Max wheel load N_max'), results.N_max.toFixed(0), 'kg'],
       [this.t('Dynamic wheel load N_t'), results.N_t.toFixed(0), 'kg'],
     ];
 
@@ -210,7 +210,7 @@ class EdgeBeamPDFService {
       [this.t('Rolling resistance W_roll'), results.W1.toFixed(1), 'kgf'],
       [this.t('Joint resistance W_joint'), results.W2.toFixed(1), 'kgf'],
       [this.t('Slope resistance W_slope'), results.W3.toFixed(1), 'kgf'],
-      [this.t('Total driving force W'), results.W.toFixed(1), 'kgf'],
+      [this.t('Total resistance W'), results.W.toFixed(1), 'kgf'],
       [this.t('Required force per driving wheel'), results.F_req.toFixed(1), 'kgf'],
       [this.t('Motor power N_dc'), results.N_dc.toFixed(2), 'kW'],
     ];
@@ -219,8 +219,9 @@ class EdgeBeamPDFService {
       [this.t('Wheel speed n_wheel'), results.n_wheel.toFixed(2), 'rpm'],
       [this.t('Total gear ratio i_total'), results.i_total.toFixed(2), '-'],
       [this.t('Gearbox to wheel ratio i_gear'), results.i_gear.toFixed(2), '-'],
-      [this.t('Motor torque M_dc'), results.M_dc.toFixed(1), 'N*m'],
-      [this.t('Shaft torque M_shaft'), results.M_shaft.toFixed(1), 'N*m'],
+      [this.t('Motor torque M_dc'), results.M_dc.toFixed(1), 'N.m'],
+      [this.t('Shaft torque M_shaft'), results.M_shaft.toFixed(1), 'N.m'],
+      [this.t('Equivalent torque T_e'), results.T_eq.toFixed(1), 'N.m'],
       [this.t('Tangential force F_t'), results.F_t.toFixed(0), 'N'],
       [this.t('Calculated shaft diameter'), results.d_calculated.toFixed(1), 'mm'],
     ];
@@ -318,7 +319,7 @@ class EdgeBeamPDFService {
     const checks = [
       [this.t('Contact stress check'), results.contact_stress_check === 'pass' ? this.t('pass') : this.t('fail'), `n_H = ${results.n_H.toFixed(2)}`],
       [this.t('Shaft design check'), results.shaft_check === 'pass' ? this.t('pass') : this.t('fail'), `d = ${results.d_calculated.toFixed(1)} mm`],
-      [this.t('Torque capacity check'), results.torque_check === 'pass' ? this.t('pass') : this.t('fail'), `M = ${results.M_shaft.toFixed(1)} N*m`],
+      [this.t('Torque capacity check'), results.torque_check === 'pass' ? this.t('pass') : this.t('fail'), `M = ${results.M_shaft.toFixed(1)} N.m`],
     ];
 
     autoTable(this.pdf, {

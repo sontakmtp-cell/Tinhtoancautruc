@@ -422,7 +422,6 @@
     "SAFETY ANALYSIS & VERIFICATION": "SAFETY ANALYSIS & VERIFICATION",
     "Bending moment on shaft M_b": "Bending moment on shaft M_b",
     "Bending shock factor K_b": "Bending shock factor K_b",
-    "Torsion shock factor K_t": "Torsion shock factor K_t",
-    "Equivalent torque T_e": "Equivalent torque T_e"
+    "Torsion shock factor K_t": "Torsion shock factor K_t"
 
 }

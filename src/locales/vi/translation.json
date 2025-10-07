@@ -410,5 +410,9 @@
     "Load Distribution Analysis": "Phân tích Phân bố Tải trọng",
     "Resistance Force Analysis": "Phân tích Lực cản",
     "Included Charts": "Biểu đồ được bao gồm",
-    "SAFETY ANALYSIS & VERIFICATION": "PHÂN TÍCH VÀ KIỂM TRA AN TOÀN"
+    "SAFETY ANALYSIS & VERIFICATION": "PHÂN TÍCH VÀ KIỂM TRA AN TOÀN",
+    "Bending moment on shaft M_b": "Mô men uốn trên trục M_b",
+    "Bending shock factor K_b": "Hệ số xung kích uốn K_b", 
+    "Torsion shock factor K_t": "Hệ số xung kích xoắn K_t",
+    "Equivalent torque T_e": "Mô men tương đương T_e"
 }

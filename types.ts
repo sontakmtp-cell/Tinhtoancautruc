@@ -204,6 +204,15 @@ export interface EdgeBeamInputs {
   n_dc: number;        // Motor rated speed (rpm)
   i_cyclo: number;     // Cyclo gearbox ratio
   
+  /**
+   * Additional shaft loading parameters
+   * M_b: External bending moment acting on the shaft (N*m)
+   * K_b, K_t: Shock/combined loading factors for bending and torsion (ASME-style)
+   */
+  M_b?: number;        // External bending moment on shaft (N*m)
+  K_b?: number;        // Bending shock factor (-)
+  K_t?: number;        // Torsion shock factor (-)
+  
   // Drive system coefficients
   eta: number;         // Overall efficiency
   m: number;           // Rail resistance coefficient
@@ -244,6 +253,8 @@ export interface EdgeBeamResults {
   // Shaft checks
   M_dc: number;        // Motor torque (N*m)
   M_shaft: number;     // Shaft torque at wheel (N*m)
+  T_eq: number;        // Equivalent torque incl. bending (N*m)
+  M_b: number;         // Bending moment on shaft used (N*m)
   F_t: number;         // Tangential force (N)
   d_calculated: number; // Calculated shaft diameter (mm)
   shaft_check: 'pass' | 'fail';
