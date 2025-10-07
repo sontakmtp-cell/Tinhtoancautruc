@@ -19,6 +19,7 @@ import { HamsterLoader } from './Loader';
 import { LoadDistributionChart } from './LoadDistributionChart';
 import { ResistanceBreakdownChart } from './ResistanceBreakdownChart';
 import { EdgeBeamPDFExportButton } from './EdgeBeamPDFReport';
+import { EdgeBeamCrossSection } from './EdgeBeamCrossSection';
 import type { EdgeBeamInputs, EdgeBeamResults } from '../types';
 
 const MIN_LOADER_DURATION_MS = 4_000;
@@ -305,6 +306,11 @@ export const EdgeBeamCalculator: React.FC = () => {
 
   const { t } = useTranslation();
 
+  // Track active input for highlighting in diagram
+  const activeInputKey = !results && typeof document !== 'undefined'
+    ? (Object.keys(inputStrings) as (keyof EdgeBeamInputs)[]).find((key) => document.activeElement?.id === key)
+    : undefined;
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   const { name, value } = e.target;
   if (!isEdgeBeamInputKey(name)) {
@@ -383,6 +389,20 @@ export const EdgeBeamCalculator: React.FC = () => {
     <>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <form onSubmit={handleSubmit} className="lg:col-span-1">
+          {/* Mobile-only Crane Diagram */}
+          {!isLoading && !results && (
+            <div className="block lg:hidden">
+              <CollapsibleSection title={t('Crane reference diagram')} icon={Scale}>
+                <div id="crane-diagram-mobile">
+                  <EdgeBeamCrossSection
+                    inputs={inputs}
+                    activeInput={activeInputKey}
+                  />
+                </div>
+              </CollapsibleSection>
+            </div>
+          )}
+
           {/* Input Sections */}
           {getEdgeBeamInputConfig().map((config) => {
             const { title, icon, fields } = config;
@@ -542,15 +562,28 @@ export const EdgeBeamCalculator: React.FC = () => {
           )}
 
           {!isLoading && !results && (
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-8 text-center">
-              <Zap className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                {t('Edge Beam Calculator')}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                {t('Enter parameters and click Calculate to analyze edge beam loads and motor power.')}
-              </p>
-            </div>
+            <>
+              <div className="hidden lg:block">
+                <CollapsibleSection title={t('Crane reference diagram')} icon={Scale}>
+                  <div id="crane-diagram">
+                    <EdgeBeamCrossSection
+                      inputs={inputs}
+                      activeInput={activeInputKey}
+                    />
+                  </div>
+                </CollapsibleSection>
+              </div>
+              
+              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-8 text-center">
+                <Zap className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  {t('Edge Beam Calculator')}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {t('Enter parameters and click Calculate to analyze edge beam loads and motor power.')}
+                </p>
+              </div>
+            </>
           )}
 
           {!isLoading && results && (
@@ -647,4 +680,3 @@ export const EdgeBeamCalculator: React.FC = () => {
     </>
   );
 };
-

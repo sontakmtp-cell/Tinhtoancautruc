@@ -105,7 +105,7 @@
     "Elastic modulus E":  "Elastic modulus E",
     "Poisson ratio (nu)":  "Poisson ratio (nu)",
     "app":  {
-                "title":  "Crane beam design studio",
+                "title":  "Crane Beam Design Studio",
                 "toggleTheme":  "Toggle dark mode",
                 "footer":  "Developed by React experts using the Gemini API."
             },
