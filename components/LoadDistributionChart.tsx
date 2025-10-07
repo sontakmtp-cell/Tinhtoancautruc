@@ -10,7 +10,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { useTranslation } from 'react-i18next';
-import type { EdgeBeamInputs } from './EdgeBeamCalculator';
+import type { EdgeBeamInputs } from '../types';
 
 interface LoadDistributionChartProps {
   inputs: EdgeBeamInputs;
@@ -89,7 +89,7 @@ export const LoadDistributionChart: React.FC<LoadDistributionChartProps> = ({ in
   const data = generateLoadData(inputs);
 
   return (
-    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+    <div id="load-distribution-chart" className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
         {t('Load Distribution by Trolley Position')}
       </h3>

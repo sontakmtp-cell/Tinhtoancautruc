@@ -147,15 +147,15 @@ export interface DoubleBeamInputs extends BeamInputs {
 // V-beam specific inputs based on the engineering drawing
 export interface VBeamInputs {
   // V-beam specific geometric parameters from the image
-  t3: number; // Ð? dày b?ng (Web thickness) - mm
+  t3: number; // ï¿½? dï¿½y b?ng (Web thickness) - mm
   h3: number; // Chi?u cao b?ng (Web height) - mm  
-  t4: number; // Ð? dày mái (Roof thickness) - mm
-  b1: number; // Chi?u r?ng cánh (Flange width) - mm
-  t1: number; // Chi?u dày cánh (Flange thickness) - mm
-  t2: number; // Chi?u dày thân (Body thickness) - mm
+  t4: number; // ï¿½? dï¿½y mï¿½i (Roof thickness) - mm
+  b1: number; // Chi?u r?ng cï¿½nh (Flange width) - mm
+  t1: number; // Chi?u dï¿½y cï¿½nh (Flange thickness) - mm
+  t2: number; // Chi?u dï¿½y thï¿½n (Body thickness) - mm
   h1: number; // Chi?u cao I (I-height) - mm
   L: number;  // Kh?u d? d?m (Beam span) - cm
-  A: number;  // Tâm bánh xe d?m biên A (Edge beam wheel center A) - mm
+  A: number;  // Tï¿½m bï¿½nh xe d?m biï¿½n A (Edge beam wheel center A) - mm
   
   // Additional dimensions from the image (optional, with defaults)
   H?: number; // Total height - mm
@@ -184,4 +184,69 @@ export interface VBeamInputs {
 
   // Selected material type (optional; for UI/reporting)
   materialType?: MaterialType;
+}
+
+// Edge beam inputs for crane edge beam calculations
+export interface EdgeBeamInputs {
+  // Basic parameters
+  S: number;           // Crane span (m)
+  x: number;           // Trolley position from center rail to edge beam (m)
+  Q: number;           // Rated load (kg)
+  Gx: number;          // Trolley weight (kg)
+  Gc: number;          // Main beam self-weight (kg)
+  z: number;           // Number of wheels per end
+  b: number;           // Number of driving wheels
+  D: number;           // Wheel diameter (mm)
+  B: number;           // Wheel rim width (mm)
+  v: number;           // Travel speed (m/min)
+  sigma_H_allow: number; // Allowable contact stress (kg/cm^2)
+  tau_allow: number;   // Allowable shear stress (MPa)
+  n_dc: number;        // Motor rated speed (rpm)
+  i_cyclo: number;     // Cyclo gearbox ratio
+  
+  // Drive system coefficients
+  eta: number;         // Overall efficiency
+  m: number;           // Rail resistance coefficient
+  f: number;           // Rolling coefficient
+  a: number;           // Rail slope
+  K_dyn: number;       // Dynamic factor
+}
+
+// Edge beam calculation results
+export interface EdgeBeamResults {
+  // Wheel loads
+  P: number;           // Concentrated load (kg)
+  R_L: number;         // Left reaction (kg)
+  R_R: number;         // Right reaction (kg)
+  N_L: number;         // Load per left wheel (kg)
+  N_R: number;         // Load per right wheel (kg)
+  N_max: number;       // Maximum wheel load (kg)
+  N_t: number;         // Dynamic wheel load (kg)
+  
+  // Contact stress
+  sigma_H: number;     // Contact stress wheel-rail (kg/cm^2)
+  n_H: number;         // Contact stress safety factor
+  
+  // Resistance forces and power
+  G_tot: number;       // Total weight (kg)
+  W1: number;          // Rolling resistance (kgf)
+  W2: number;          // Joint resistance (kgf)
+  W3: number;          // Slope resistance (kgf)
+  W: number;           // Total driving force (kgf)
+  F_req: number;       // Required force per driving wheel (kgf)
+  N_dc: number;        // Motor power (kW)
+  
+  // Speed and gear ratios
+  n_wheel: number;     // Wheel speed (rpm)
+  i_total: number;     // Total gear ratio
+  i_gear: number;      // Gearbox to wheel ratio
+  
+  // Shaft checks
+  M_dc: number;        // Motor torque (N*m)
+  M_shaft: number;     // Shaft torque at wheel (N*m)
+  F_t: number;         // Tangential force (N)
+  d_calculated: number; // Calculated shaft diameter (mm)
+  shaft_check: 'pass' | 'fail';
+  torque_check: 'pass' | 'fail';
+  contact_stress_check: 'pass' | 'fail';
 }

@@ -10,7 +10,7 @@ import {
   Cell
 } from 'recharts';
 import { useTranslation } from 'react-i18next';
-import type { EdgeBeamInputs } from './EdgeBeamCalculator';
+import type { EdgeBeamInputs } from '../types';
 
 interface ResistanceBreakdownChartProps {
   inputs: EdgeBeamInputs;
@@ -110,7 +110,7 @@ export const ResistanceBreakdownChart: React.FC<ResistanceBreakdownChartProps> =
   const totalResistance = data.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+    <div id="resistance-breakdown-chart" className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
         {t('Total Resistance Breakdown')}
       </h3>

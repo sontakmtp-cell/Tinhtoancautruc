@@ -18,74 +18,10 @@ import { useTranslation } from 'react-i18next';
 import { HamsterLoader } from './Loader';
 import { LoadDistributionChart } from './LoadDistributionChart';
 import { ResistanceBreakdownChart } from './ResistanceBreakdownChart';
+import { EdgeBeamPDFExportButton } from './EdgeBeamPDFReport';
+import type { EdgeBeamInputs, EdgeBeamResults } from '../types';
 
 const MIN_LOADER_DURATION_MS = 4_000;
-
-// Interface cho inputs của dầm biên
-export interface EdgeBeamInputs {
-  // Thông số cơ bản
-  S: number;           // Khẩu độ cầu trục (m)
-  x: number;           // Tâm xe con đến tâm ray dầm biên (m)
-  Q: number;           // Tải nâng danh định (kg)
-  Gx: number;          // Trọng lượng xe con (kg)
-  Gc: number;          // Tự trọng dầm chính (kg)
-  z: number;           // Số bánh ở mỗi đầu dầm chính
-  b: number;           // Số bánh chủ động
-  D: number;           // Đường kính bánh xe (m)
-  B: number;           // Bề rộng ray (cm)
-  v: number;           // Tốc độ di chuyển (m/min)
-  sigma_H_allow: number; // Ứng suất tiếp xúc cho phép (kg/cm^2)
-  tau_allow: number;   // Ứng suất cắt cho phép của trục (MPa)
-  n_dc: number;        // Tốc độ định mức động cơ (rpm)
-  i_cyclo: number;     // Tỉ số truyền động cơ hộp số
-  
-  // Hệ số truyền động
-  eta: number;         // Hiệu suất truyền động tổng
-  m: number;           // Hệ số cản ray/gờ nối
-  f: number;           // Hệ số lăn
-  a: number;           // Độ dốc ray
-  K_dyn: number;       // Hệ số khởi động cho tải bánh
-}
-
-// Interface cho kết quả tính toán
-interface EdgeBeamResults {
-  // Tải trọng bánh xe
-  P: number;           // Tải tập trung (kg)
-  R_L: number;         // Phản lực đầu trái (kg)
-  R_R: number;         // Phản lực đầu phải (kg)
-  N_L: number;         // Tải mỗi bánh trái (kg)
-  N_R: number;         // Tải mỗi bánh phải (kg)
-  N_max: number;       // Bánh chịu tải lớn nhất (kg)
-  N_t: number;         // Tải với hệ số động (kg)
-  
-  // Ứng suất tiếp xúc
-  sigma_H: number;     // Ứng suất tiếp xúc bánh–ray (kg/cm^2)
-  n_H: number;         // Hệ số an toàn ứng suất tiếp xúc
-  
-  // Lực cản và công suất
-  G_tot: number;       // Tổng trọng lượng (kg)
-  W1: number;          // Lực cản lăn (kgf)
-  W2: number;          // Lực cản gờ nối/ray (kgf)
-  W3: number;          // Lực cản độ dốc (kgf)
-  W: number;           // Tổng lực kéo (kgf)
-  F_req: number;       // Lực kéo yêu cầu mỗi bánh chủ động (kgf)
-  N_dc: number;        // Công suất động cơ (kW)
-  
-  // Tốc độ và tỉ số truyền
-  n_wheel: number;     // Tốc độ bánh (rpm)
-  i_total: number;     // Tỉ số truyền tổng
-  i_gear: number;      // Tỉ số truyền động cơ hộp số - bánh xe
-  
-  // Kiểm tra trục
-  M_dc: number;        // Mô men động cơ (N*m)
-  M_shaft: number;     // Mô men tại trục bánh xe (N*m)
-  F_t: number;         // Lực tiếp tuyến (N)
-  d_calculated: number; // Đường kính trục tính toán (mm)
-  shaft_check: 'pass' | 'fail';
-  torque_check: 'pass' | 'fail';
-  
-  contact_stress_check: 'pass' | 'fail';
-}
 
 // Giá trị mặc định
 const defaultEdgeBeamInputs: EdgeBeamInputs = {
@@ -483,7 +419,7 @@ export const EdgeBeamCalculator: React.FC = () => {
             <button
               type="button"
               onClick={handleReset}
-              className="calc-button w-1/3 flex justify-center items-center py-3 px-4"
+              className="calc-button w-1/4 flex justify-center items-center py-3 px-4"
               style={{ fontSize: 'clamp(0.75rem, 2.5vw, 1rem)' }}
             >
               <RotateCcw className="mr-2 h-5 w-5 flex-shrink-0" />
@@ -492,12 +428,18 @@ export const EdgeBeamCalculator: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="calc-button w-1/3 flex justify-center items-center py-3 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="calc-button w-1/4 flex justify-center items-center py-3 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontSize: 'clamp(0.75rem, 2.5vw, 1rem)' }}
             >
               {isLoading ? t('calculator.calculating') : t('calculator.calculate')}
               {!isLoading && <ChevronsRight className="ml-2 h-5 w-5 flex-shrink-0" />}
             </button>
+            <EdgeBeamPDFExportButton
+              inputs={inputs}
+              results={results}
+              isLoading={isLoading}
+              className="w-1/4"
+            />
           </div>
         </form>
 
