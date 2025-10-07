@@ -322,7 +322,7 @@
     "Slope resistance W_slope": "Lực cản độ dốc W_slope",
     "Total resistance W": "Tổng lực kéo W",
     "Required force per drive wheel F_req": "Lực yêu cầu mỗi bánh chủ động F_req",
-    "Motor power N_dc": "Công suất động cơ tối thiểu N_dc",
+    "Motor power N_dc": "Tổng công suất động cơ tối thiểu N_dc",
     "Wheel speed n_wheel": "Tốc độ bánh n_wheel",
     "Total gear ratio i_total": "Tỉ số truyền tổng i_total",
     "Enter parameters and click Calculate to analyze edge beam loads and motor power.": "Nhập tham số và nhấn Tính toán để phân tích tải trọng dầm biên và công suất động cơ.",

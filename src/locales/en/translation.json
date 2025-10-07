@@ -331,7 +331,7 @@
     "Slope resistance W_slope": "Slope resistance W_slope",
     "Total resistance W": "Total resistance W",
     "Required force per drive wheel F_req": "Required force per drive wheel F_req",
-    "Motor power N_dc": "Minimum Motor power N_dc",
+    "Motor power N_dc": "Total Minimum Motor power N_dc",
     "Wheel speed n_wheel": "Wheel speed n_wheel",
     "Total gear ratio i_total": "Total gear ratio i_total",
     "Enter parameters and click Calculate to analyze edge beam loads and motor power.": "Enter parameters and click Calculate to analyze edge beam loads and motor power.",

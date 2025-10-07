@@ -301,6 +301,7 @@ export const EdgeBeamCalculator: React.FC = () => {
   const [results, setResults] = useState<EdgeBeamResults | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isCallingAI, setIsCallingAI] = useState<boolean>(false);
+  const [showTableModal, setShowTableModal] = useState<boolean>(false);
 
   const { t } = useTranslation();
 
@@ -390,18 +391,82 @@ export const EdgeBeamCalculator: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   {fields.map(({ name, label, unit }) => {
                   const inputValue = inputStrings[name];
+                  
+                  // Nếu là trường i_cyclo, render cả input và nút Bảng tra cùng hàng
+                  if (name === 'i_cyclo') {
+                    return (
+                      <React.Fragment key={name}>
+                        <div className="col-span-2 sm:col-span-1 calc-field">
+                          <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <div className="flex items-center gap-2">
+                              <span>{t(label)}</span>
+                              <div className="group relative">
+                                <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
+                                <div className="absolute left-0 top-6 w-80 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-pre-line">
+                                  <div>{t('calculator.tooltip.i_cyclo')}</div>
+                                  <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              id={name}
+                              name={name}
+                              value={inputValue}
+                              onChange={handleChange}
+                              onBlur={handleBlur}
+                              className="input mb-2"
+                              step="any"
+                              inputMode="decimal"
+                            />
+                            <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-300 pointer-events-none">
+                              {unit}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="col-span-2 sm:col-span-1 calc-field">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Bảng tra cứu
+                          </label>
+                          <div className="group relative -mt-5">
+                            <button
+                              type="button"
+                              onClick={() => setShowTableModal(true)}
+                              className="w-full h-[42px] inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg border border-blue-200 dark:border-blue-700 transition-colors duration-200 cursor-pointer"
+                            >
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              Bảng tra
+                            </button>
+                            {/* Desktop hover tooltip */}
+                            <div className="hidden md:block absolute left-1/2 top-full mt-2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                              <img 
+                                src="/bang tra.png" 
+                                alt="Bảng tra cứu"
+                                className="max-w-2xl max-h-[768px] object-contain shadow-2xl rounded-lg border border-gray-300 dark:border-gray-600"
+                              />
+                              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white dark:bg-gray-800 border-l border-t border-gray-300 dark:border-gray-600 rotate-45"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </React.Fragment>
+                    );
+                  }
+                  
                   return (
                     <div key={name} className="col-span-2 sm:col-span-1 calc-field">
                       <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         <div className="flex items-center gap-2">
                           <span>{t(label)}</span>
-                          {(name === 'm' || name === 'x' || name === 'i_cyclo' || name === 'f' || name === 'K_dyn') && (
+                          {(name === 'm' || name === 'x' || name === 'f' || name === 'K_dyn') && (
                             <div className="group relative">
                               <HelpCircle className="w-4 h-4 text-gray-400 hover:text-blue-500 cursor-help" />
                               <div className="absolute left-0 top-6 w-80 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-pre-line">
                                 {name === 'm' && <div>{t('calculator.tooltip.m')}</div>}
                                 {name === 'x' && <div>{t('calculator.tooltip.x')}</div>}
-                                {name === 'i_cyclo' && <div>{t('calculator.tooltip.i_cyclo')}</div>}
                                 {name === 'f' && <div>{t('calculator.tooltip.f')}</div>}
                                 {name === 'K_dyn' && <div>{t('calculator.tooltip.K_dyn')}</div>}
                                 {/* no M_b tooltip as input removed */}
@@ -535,6 +600,50 @@ export const EdgeBeamCalculator: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Mobile Modal for Table Display */}
+      {showTableModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4"
+          onClick={(e) => {
+            // Close modal when clicking outside the content
+            if (e.target === e.currentTarget) {
+              setShowTableModal(false);
+            }
+          }}
+        >
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-full max-h-full overflow-hidden">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center z-10">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Bảng tra cứu</h3>
+              <button
+                onClick={() => setShowTableModal(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4 overflow-auto" style={{ maxHeight: 'calc(100vh - 8rem)' }}>
+              <img 
+                src="/bang tra.png" 
+                alt="Bảng tra cứu"
+                className="w-full h-auto object-contain select-none"
+                style={{ 
+                  maxWidth: 'calc(100vw - 2rem)', 
+                  minWidth: '320px',
+                  touchAction: 'pinch-zoom'
+                }}
+                draggable={false}
+              />
+              <div className="mt-4 text-sm text-gray-500 dark:text-gray-400 text-center">
+                <span className="inline-block md:hidden">Pinch to zoom • Scroll to navigate</span>
+                <span className="hidden md:inline-block">Click outside or press × to close</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
