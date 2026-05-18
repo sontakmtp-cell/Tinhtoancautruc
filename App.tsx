@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { CraneBeamCalculator } from './components/CraneBeamCalculator';
+import { TiktokFollowOverlay, TiktokFollowPreview } from './components/TiktokFollowPreview';
 
 const App: React.FC = () => {
   const [isDark, setIsDark] = useState(() => {
@@ -10,6 +11,7 @@ const App: React.FC = () => {
     const saved = localStorage.getItem('theme');
     return saved ? saved === 'dark' : true;
   });
+  const [showTiktokFollow, setShowTiktokFollow] = useState(false);
 
   useEffect(() => {
     // Set theme based on state changes
@@ -31,6 +33,42 @@ const App: React.FC = () => {
 
   const { t, i18n } = useTranslation();
   const currentLanguage = (i18n.resolvedLanguage || i18n.language || 'vi').split('-')[0];
+  const isTiktokPreview =
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('preview') === 'tiktok-follow';
+
+  useEffect(() => {
+    const handleCalculationSubmit = (event: SubmitEvent) => {
+      const form = event.target instanceof HTMLFormElement ? event.target : null;
+      if (!form?.querySelector('.calc-button[type="submit"]')) {
+        return;
+      }
+
+      setShowTiktokFollow(true);
+    };
+
+    document.addEventListener('submit', handleCalculationSubmit, true);
+
+    return () => {
+      document.removeEventListener('submit', handleCalculationSubmit, true);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!showTiktokFollow) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setShowTiktokFollow(false);
+    }, 6_000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [showTiktokFollow]);
+
+  if (isTiktokPreview) {
+    return <TiktokFollowPreview onClose={() => window.history.back()} />;
+  }
+
   const handleLanguageChange = (lang: 'en' | 'vi') => {
     i18n.changeLanguage(lang);
   };
@@ -78,6 +116,7 @@ const App: React.FC = () => {
       <main>
         <CraneBeamCalculator />
       </main>
+      {showTiktokFollow && <TiktokFollowOverlay onClose={() => setShowTiktokFollow(false)} />}
       <footer className="text-center py-4 text-sm text-gray-500 dark:text-gray-400">
         <p>{t('app.footer')}</p>
       </footer>
