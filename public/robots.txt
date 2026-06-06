@@ -13,7 +13,16 @@ Allow: /
 User-agent: ClaudeBot
 Allow: /
 
+User-agent: Claude-SearchBot
+Allow: /
+
 User-agent: Google-Extended
+Allow: /
+
+User-agent: GoogleOther
+Allow: /
+
+User-agent: OAI-SearchBot
 Allow: /
 
 User-agent: PerplexityBot
@@ -32,6 +41,15 @@ User-agent: meta-externalagent
 Allow: /
 
 User-agent: Applebot-Extended
+Allow: /
+
+User-agent: xAI-Bot
+Allow: /
+
+User-agent: xAI-SearchBot
+Allow: /
+
+User-agent: GrokBot
 Allow: /
 
 Sitemap: https://cautruc.kythuatvang.com/sitemap.xml
