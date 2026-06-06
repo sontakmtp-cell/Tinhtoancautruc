@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { DiagramData } from '../types';
+import { useChartTheme } from './chartTheme';
 
 // Make sure Plotly is available in the global scope
 declare const Plotly: any;
@@ -16,6 +17,7 @@ interface DiagramProps {
 export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey, unit, stiffenerMarkers }) => {
   const { t } = useTranslation();
   const chartRef = useRef<HTMLDivElement>(null);
+  const theme = useChartTheme();
 
   useEffect(() => {
     if (!chartRef.current || !data || data.length === 0 || typeof Plotly === 'undefined') {
@@ -27,9 +29,13 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
     const desktopMargin = { l: 60, r: 20, b: 50, t: 50, pad: 4 };
     const mobileFontSize = 10;
     const desktopFontSize = 12;
-    const isDarkMode = document.documentElement.classList.contains('dark');
+    const isDarkMode = theme.isDarkMode;
     const xValues = data.map(d => d.x);
     const yValues = data.map(d => d[yKey]);
+    const peakIndex = yValues.reduce(
+      (best, value, index) => Math.abs(value) > Math.abs(yValues[best]) ? index : best,
+      0,
+    );
 
     const trace = {
       x: xValues,
@@ -38,10 +44,11 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
       mode: 'lines',
       fill: 'tozeroy',
       line: {
-        color: isDarkMode ? '#3b82f6' : '#2563eb', // blue-500 dark / blue-600 light
-        width: 2,
+        color: theme.primary,
+        width: 2.5,
       },
       fillcolor: isDarkMode ? 'rgba(59, 130, 246, 0.2)' : 'rgba(37, 99, 235, 0.1)',
+      hovertemplate: `x = %{x:.1f} cm<br>${title}: %{y:.2f} ${unit}<extra></extra>`,
     };
 
     const shapes: any[] = [];
@@ -59,7 +66,7 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
             y0: Math.min(...yValues),
             y1: Math.max(...yValues),
             line: {
-              color: isDarkMode ? '#f87171' : '#ef4444', // red-400 dark / red-500 light
+              color: theme.warning,
               width: 1,
               dash: 'dot',
             },
@@ -77,7 +84,7 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
             ax: isMobile ? 0 : 0,
             ay: isMobile ? -30 : -40,
             font: { 
-              color: isDarkMode ? '#f87171' : '#ef4444',
+              color: theme.warning,
               size: isMobile ? mobileFontSize : desktopFontSize
             }
           });
@@ -85,24 +92,41 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
       });
     }
 
+    annotations.push({
+      x: xValues[peakIndex],
+      y: yValues[peakIndex],
+      text: `${Math.abs(yValues[peakIndex]).toFixed(2)} ${unit}`,
+      showarrow: true,
+      arrowhead: 0,
+      arrowwidth: 1,
+      arrowcolor: theme.primary,
+      ax: 0,
+      ay: yValues[peakIndex] >= 0 ? -34 : 34,
+      bgcolor: isDarkMode ? '#111827' : '#ffffff',
+      bordercolor: theme.primary,
+      borderpad: 4,
+      font: { color: theme.text, size: isMobile ? mobileFontSize : desktopFontSize },
+    });
+
     const layout = {
       title: {
         text: title,
         font: {
-          color: isDarkMode ? '#e5e7eb' : '#374151',
+          color: theme.text,
           size: 16,
         },
       },
       xaxis: {
         title: `L (cm)`,
-        color: isDarkMode ? '#9ca3af' : '#4b5563',
-        gridcolor: isDarkMode ? '#374151' : '#e5e7eb',
+        color: theme.mutedText,
+        gridcolor: theme.grid,
+        zerolinecolor: theme.grid,
       },
       yaxis: {
         title: unit,
-        color: isDarkMode ? '#9ca3af' : '#4b5563',
-        gridcolor: isDarkMode ? '#374151' : '#e5e7eb',
-        zerolinecolor: isDarkMode ? '#4b5563' : '#d1d5db',
+        color: theme.mutedText,
+        gridcolor: theme.grid,
+        zerolinecolor: theme.comparison,
       },
       margin: isMobile ? mobileMargin : desktopMargin,
       paper_bgcolor: 'transparent',
@@ -112,7 +136,11 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
       annotations: annotations,
     };
 
-    Plotly.newPlot(chartRef.current, [trace], layout, { responsive: true, displayModeBar: false });
+    Plotly.react(chartRef.current, [trace], layout, {
+      responsive: true,
+      displayModeBar: false,
+      scrollZoom: false,
+    });
 
     const handleResize = () => {
       if (chartRef.current) {
@@ -121,9 +149,12 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (chartRef.current) Plotly.purge(chartRef.current);
+    };
 
-  }, [data, title, yKey, unit, stiffenerMarkers, t]);
+  }, [data, title, yKey, unit, stiffenerMarkers, t, theme]);
 
   // Generate unique ID for PDF capture
   const diagramId = yKey === 'moment' ? 'moment-diagram' : 'shear-diagram';

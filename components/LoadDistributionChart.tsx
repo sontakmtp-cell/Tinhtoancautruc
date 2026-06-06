@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
-  LineChart,
+  CartesianGrid,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer
 } from 'recharts';
 import { useTranslation } from 'react-i18next';
 import type { EdgeBeamInputs } from '../types';
+import { ChartFrame } from './ChartFrame';
+import { useChartTheme } from './chartTheme';
 
 interface LoadDistributionChartProps {
   inputs: EdgeBeamInputs;
@@ -23,171 +24,118 @@ interface LoadData {
   N_max: number;
 }
 
-// Hàm tính toán phản lực tại một vị trí x cụ thể
 const calculateLoadAtPosition = (inputs: EdgeBeamInputs, x: number) => {
   const span = inputs.S > 0 ? inputs.S : 1;
   const wheelsPerEnd = inputs.z > 0 ? inputs.z : 1;
-  const P = inputs.Q + inputs.Gx;
-  
-  // Tính phản lực
-  const R_L = inputs.Gc / 2 + (P * (span - x)) / span;
-  const R_R = inputs.Gc / 2 + (P * x) / span;
-  
-  // Tính tải trọng bánh xe
-  const N_L = R_L / wheelsPerEnd;
-  const N_R = R_R / wheelsPerEnd;
-  const N_max = Math.max(N_L, N_R);
-  
-  return { R_L, R_R, N_max };
+  const liftedLoad = inputs.Q + inputs.Gx;
+  const R_L = inputs.Gc / 2 + (liftedLoad * (span - x)) / span;
+  const R_R = inputs.Gc / 2 + (liftedLoad * x) / span;
+
+  return { R_L, R_R, N_max: Math.max(R_L, R_R) / wheelsPerEnd };
 };
 
-// Tạo dữ liệu cho biểu đồ
 const generateLoadData = (inputs: EdgeBeamInputs): LoadData[] => {
-  const span = inputs.S;
-  const numberOfPoints = 50; // Số điểm để vẽ đường mượt
+  const span = Math.max(inputs.S, 0);
+  const numberOfPoints = 51;
   const step = span / (numberOfPoints - 1);
-  
-  const data: LoadData[] = [];
-  
-  for (let i = 0; i < numberOfPoints; i++) {
-    const x = i * step;
+
+  return Array.from({ length: numberOfPoints }, (_, index) => {
+    const x = index * step;
     const loads = calculateLoadAtPosition(inputs, x);
-    data.push({
-      x: Math.round(x * 100) / 100, // Làm tròn 2 chữ số
+    return {
+      x: Math.round(x * 100) / 100,
       R_L: Math.round(loads.R_L * 10) / 10,
       R_R: Math.round(loads.R_R * 10) / 10,
-      N_max: Math.round(loads.N_max * 10) / 10
-    });
-  }
-  
-  return data;
+      N_max: Math.round(loads.N_max * 10) / 10,
+    };
+  });
 };
 
-// Custom tooltip component
-const CustomTooltip = ({ active, payload, label }: any) => {
-  const { t } = useTranslation();
-  
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white dark:bg-gray-800 p-3 border border-gray-300 dark:border-gray-600 rounded shadow-lg">
-        <p className="text-sm font-medium text-gray-900 dark:text-white">
-          {t('Trolley position')}: {label} m
-        </p>
-        {payload.map((entry: any, index: number) => (
-          <p key={index} className="text-sm" style={{ color: entry.color }}>
-            {entry.name}: {entry.value} kg
-          </p>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
+const formatValue = (value: number) =>
+  new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value);
 
 export const LoadDistributionChart: React.FC<LoadDistributionChartProps> = ({ inputs }) => {
   const { t } = useTranslation();
-  const data = generateLoadData(inputs);
+  const theme = useChartTheme();
+  const data = useMemo(() => generateLoadData(inputs), [inputs]);
+  const critical = data.reduce((max, point) => (point.N_max > max.N_max ? point : max), data[0]);
+
+  const tooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload?.length) return null;
+    return (
+      <div
+        className="rounded-lg border px-3 py-2 text-xs shadow-lg"
+        style={{ background: theme.tooltipBackground, borderColor: theme.grid, color: theme.text }}
+      >
+        <p className="mb-1 font-semibold">{t('Trolley position')}: {label} m</p>
+        {payload.map((entry: any) => (
+          <div key={entry.dataKey} className="flex min-w-52 items-center justify-between gap-4 py-0.5">
+            <span style={{ color: entry.color }}>{entry.name}</span>
+            <span className="font-mono font-semibold">{formatValue(entry.value)} kg</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
-    <div id="load-distribution-chart" className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        {t('Load Distribution by Trolley Position')}
-      </h3>
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-        {t('This diagram shows how reactions and wheel loads change as the trolley moves along the main beam')}
-      </p>
-      
-      <div className="h-96 w-full">
+    <ChartFrame
+      id="load-distribution-chart"
+      title={t('Load Distribution by Trolley Position')}
+      description={t('This diagram shows how reactions and wheel loads change as the trolley moves along the main beam')}
+      insight={(
+        <span>
+          <strong className="font-mono">{formatValue(critical.N_max)} kg</strong>
+          {' · '}{t('Max Wheel Load (N_max)')}
+        </span>
+      )}
+      footer={(
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-600 dark:text-slate-300">
+          {[
+            [theme.comparison, t('Left Reaction (R_L)'), false],
+            [theme.primary, t('Right Reaction (R_R)'), false],
+            [theme.critical, t('Max Wheel Load (N_max)'), true],
+          ].map(([color, label, dashed]) => (
+            <span key={String(label)} className="flex items-center gap-2">
+              <span
+                className="block w-7 border-t-2"
+                style={{ borderColor: String(color), borderStyle: dashed ? 'dashed' : 'solid' }}
+              />
+              {label}
+            </span>
+          ))}
+        </div>
+      )}
+    >
+      <div className="h-[320px] w-full sm:h-[380px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={data}
-            margin={{
-              top: 20,
-              right: 30,
-              left: 20,
-              bottom: 60,
-            }}
-          >
-            <CartesianGrid 
-              strokeDasharray="3 3" 
-              stroke="currentColor" 
-              className="text-gray-300 dark:text-gray-600" 
-            />
+          <LineChart data={data} margin={{ top: 16, right: 18, left: 0, bottom: 12 }}>
+            <CartesianGrid stroke={theme.grid} vertical={false} strokeDasharray="3 4" />
             <XAxis
               dataKey="x"
-              stroke="currentColor"
-              className="text-gray-600 dark:text-gray-400"
-              label={{
-                value: t('Trolley Position (m)'),
-                position: 'insideBottom',
-                offset: -5,
-                style: { textAnchor: 'middle' }
-              }}
+              stroke={theme.mutedText}
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={{ stroke: theme.grid }}
+              minTickGap={32}
+              label={{ value: t('Trolley Position (m)'), position: 'insideBottom', offset: -8 }}
             />
             <YAxis
-              stroke="currentColor"
-              className="text-gray-600 dark:text-gray-400"
-              label={{
-                value: t('Load (kg)'),
-                angle: -90,
-                position: 'insideLeft',
-                style: { textAnchor: 'middle' }
-              }}
+              stroke={theme.mutedText}
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+              width={52}
+              tickFormatter={formatValue}
+              label={{ value: t('Load (kg)'), angle: -90, position: 'insideLeft' }}
             />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend 
-              wrapperStyle={{ paddingTop: '20px' }}
-              iconType="line"
-            />
-            
-            {/* Phản lực đầu trái - màu xanh lá */}
-            <Line
-              type="monotone"
-              dataKey="R_L"
-              name={t('Left Reaction (R_L)')}
-              stroke="#10b981"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4, stroke: '#10b981', strokeWidth: 2 }}
-            />
-            
-            {/* Phản lực đầu phải - màu xanh dương */}
-            <Line
-              type="monotone"
-              dataKey="R_R"
-              name={t('Right Reaction (R_R)')}
-              stroke="#3b82f6"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4, stroke: '#3b82f6', strokeWidth: 2 }}
-            />
-            
-            {/* Tải trọng bánh xe lớn nhất - màu đỏ */}
-            <Line
-              type="monotone"
-              dataKey="N_max"
-              name={t('Max Wheel Load (N_max)')}
-              stroke="#ef4444"
-              strokeWidth={3}
-              dot={false}
-              activeDot={{ r: 5, stroke: '#ef4444', strokeWidth: 2 }}
-              strokeDasharray="5 5"
-            />
+            <Tooltip content={tooltip} cursor={{ stroke: theme.mutedText, strokeDasharray: '3 3' }} />
+            <Line type="linear" dataKey="R_L" name={t('Left Reaction (R_L)')} stroke={theme.comparison} strokeWidth={2} dot={false} />
+            <Line type="linear" dataKey="R_R" name={t('Right Reaction (R_R)')} stroke={theme.primary} strokeWidth={2} dot={false} />
+            <Line type="linear" dataKey="N_max" name={t('Max Wheel Load (N_max)')} stroke={theme.critical} strokeWidth={2.5} strokeDasharray="7 5" dot={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
-      
-      {/* Ghi chú giải thích */}
-      <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">
-          {t('Chart Interpretation')}:
-        </h4>
-        <ul className="text-sm text-blue-800 dark:text-blue-400 space-y-1">
-          <li>• <span className="font-medium text-green-600">{t('Left Reaction (R_L)')}</span>: {t('Decreases as trolley moves right')}</li>
-          <li>• <span className="font-medium text-blue-600">{t('Right Reaction (R_R)')}</span>: {t('Increases as trolley moves right')}</li>
-          <li>• <span className="font-medium text-red-600">{t('Max Wheel Load (N_max)')}</span>: {t('Critical load for structural verification')}</li>
-        </ul>
-      </div>
-    </div>
+    </ChartFrame>
   );
 };

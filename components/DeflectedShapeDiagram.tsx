@@ -1,7 +1,8 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { BeamInputs, CalculationResults } from '../types';
+import { useChartTheme } from './chartTheme';
 
 declare const Plotly: any;
 
@@ -15,25 +16,7 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
   const chartRef = useRef<HTMLDivElement>(null);
   const { L } = inputs;
   const { f, f_allow } = results;
-  const [isDarkMode, setIsDarkMode] = useState(document.documentElement.classList.contains('dark'));
-
-  // Listen for dark mode changes
-  useEffect(() => {
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === 'class') {
-          setIsDarkMode(document.documentElement.classList.contains('dark'));
-        }
-      });
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-
-    return () => observer.disconnect();
-  }, []);
+  const theme = useChartTheme();
 
   useEffect(() => {
     if (!chartRef.current || typeof Plotly === 'undefined') return;
@@ -51,19 +34,20 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
       // Undeflected
       {
         x: [0, L], y: [0, 0], mode: 'lines',
-        line: { color: isDarkMode ? '#6b7280' : '#9ca3af', width: 1.5, dash: 'dash' },
+        line: { color: theme.comparison, width: 1.5, dash: 'dash' },
         hoverinfo: 'none',
       },
       // Deflected
       {
         x: x, y: y_deflected, mode: 'lines',
-        line: { color: isDarkMode ? '#60a5fa' : '#3b82f6', width: 2.5 },
+        line: { color: theme.primary, width: 2.5 },
         name: `${t('deflectionDiagram.actual', { value: f.toPrecision(3) })}`,
+        hovertemplate: 'x = %{x:.1f} cm<br>f = %{y:.3f} cm<extra></extra>',
       },
       // Allowable
       {
         x: [0, L], y: [-f_allow, -f_allow], mode: 'lines',
-        line: { color: isDarkMode ? '#4ade80' : '#22c55e', width: 1.5, dash: 'dot' },
+        line: { color: theme.critical, width: 1.5, dash: 'dot' },
         name: `${t('deflectionDiagram.allowable', { value: f_allow.toPrecision(3) })}`,
       }
     ];
@@ -71,25 +55,25 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
     const layout = {
       title: {
         text: t('deflectionDiagram.ariaLabel'),
-        font: { color: isDarkMode ? '#e5e7eb' : '#374151', size: 16 },
+        font: { color: theme.text, size: 16 },
       },
       xaxis: {
         title: `L = ${L.toFixed(0)} cm`,
         showgrid: false, zeroline: false, showticklabels: false,
-        color: isDarkMode ? '#9ca3af' : '#4b5563',
+        color: theme.mutedText,
       },
       yaxis: {
         title: 'Deflection (cm)',
         showgrid: false, zeroline: false, showticklabels: false,
         range: [-f_allow * 1.5, f_allow * 0.5],
-        color: isDarkMode ? '#9ca3af' : '#4b5563',
+        color: theme.mutedText,
       },
       showlegend: true,
       legend: {
         orientation: 'h',
         yanchor: 'bottom', y: 1.02,
         xanchor: 'right', x: 1,
-        font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: isMobile ? mobileFontSize : desktopFontSize }
+        font: { color: theme.mutedText, size: isMobile ? mobileFontSize : desktopFontSize }
       },
       paper_bgcolor: 'transparent',
       plot_bgcolor: 'transparent',
@@ -106,7 +90,10 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
           arrowwidth: 1.5,
           ax: 0,
           ay: -30,
-          font: { color: isDarkMode ? '#60a5fa' : '#3b82f6', size: mobileFontSize }
+          bgcolor: theme.isDarkMode ? '#111827' : '#ffffff',
+          bordercolor: theme.primary,
+          borderpad: 3,
+          font: { color: theme.primary, size: mobileFontSize }
         },
         // Left support annotation
         {
@@ -119,7 +106,7 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
           arrowwidth: 1.5,
           ax: 0,
           ay: 30,
-          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 11 }
+          font: { color: theme.mutedText, size: 11 }
         },
         // Right support annotation
         {
@@ -132,7 +119,7 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
           arrowwidth: 1.5,
           ax: 0,
           ay: 30,
-          font: { color: isDarkMode ? '#9ca3af' : '#4b5563', size: 11 }
+          font: { color: theme.mutedText, size: 11 }
         },
         // Allowable deflection annotation
         {
@@ -145,17 +132,17 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
           arrowwidth: 1.5,
           ax: 0,
           ay: -30,
-          font: { color: isDarkMode ? '#4ade80' : '#22c55e', size: mobileFontSize }
+          font: { color: theme.critical, size: mobileFontSize }
         }
       ],
       shapes: [
         // Support triangles
-        { type: 'path', path: `M 0,0 L -${L*0.02},-${f_allow*0.2} L ${L*0.02},-${f_allow*0.2} Z`, fillcolor: isDarkMode ? '#9ca3af' : '#4b5563', line: {width: 0} },
-        { type: 'path', path: `M ${L},0 L ${L-L*0.02},-${f_allow*0.2} L ${L+L*0.02},-${f_allow*0.2} Z`, fillcolor: isDarkMode ? '#9ca3af' : '#4b5563', line: {width: 0} }
+        { type: 'path', path: `M 0,0 L -${L*0.02},-${f_allow*0.2} L ${L*0.02},-${f_allow*0.2} Z`, fillcolor: theme.comparison, line: {width: 0} },
+        { type: 'path', path: `M ${L},0 L ${L-L*0.02},-${f_allow*0.2} L ${L+L*0.02},-${f_allow*0.2} Z`, fillcolor: theme.comparison, line: {width: 0} }
       ]
     };
 
-    Plotly.newPlot(chartRef.current, traces, layout, { responsive: true, displayModeBar: false });
+    Plotly.react(chartRef.current, traces, layout, { responsive: true, displayModeBar: false, scrollZoom: false });
     
     const handleResize = () => {
       if (chartRef.current) {
@@ -164,9 +151,12 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (chartRef.current) Plotly.purge(chartRef.current);
+    };
 
-  }, [inputs, results, isDarkMode, t]);
+  }, [inputs, results, theme, t]);
 
   return (
     <div id="deflection-diagram" ref={chartRef} className="w-full h-[250px]" />

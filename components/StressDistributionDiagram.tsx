@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { BeamInputs, CalculationResults } from '../types';
 import { buildCrossSectionGeometry } from './crossSectionGeometry';
+import { useChartTheme } from './chartTheme';
 
 declare const Plotly: any;
 
@@ -16,6 +17,7 @@ const VERTICAL_PADDING_MM = 20;
 export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, results }) => {
   const { t } = useTranslation();
   const chartRef = useRef<HTMLDivElement>(null);
+  const theme = useChartTheme();
 
   const {
     h,
@@ -42,7 +44,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
     }
 
     const isMobile = window.innerWidth < 768;
-    const isDarkMode = document.documentElement.classList.contains('dark');
+    const isDarkMode = theme.isDarkMode;
     const horizontalGap = isMobile ? 32 : 64;
     const stressGap = isMobile ? 40 : 60;
     const mobileMargin = { l: 35, r: 10, b: 40, t: 40, pad: 2 };
@@ -105,9 +107,9 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
       type: 'scatter',
       mode: 'lines',
       fill: 'toself',
-      fillcolor: 'rgba(239, 68, 68, 0.2)',
-      line: { color: isDarkMode ? '#f87171' : '#ef4444', width: 1.5 },
-      hoverinfo: 'none',
+      fillcolor: isDarkMode ? 'rgba(248, 113, 113, 0.18)' : 'rgba(220, 38, 38, 0.12)',
+      line: { color: theme.critical, width: 2 },
+      hovertemplate: `${t('stressDiagram.compression')}: %{x:.1f} MPa<extra></extra>`,
     };
 
     const tensionTrace = {
@@ -116,9 +118,9 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
       type: 'scatter',
       mode: 'lines',
       fill: 'toself',
-      fillcolor: 'rgba(59, 130, 246, 0.2)',
-      line: { color: isDarkMode ? '#60a5fa' : '#3b82f6', width: 1.5 },
-      hoverinfo: 'none',
+      fillcolor: isDarkMode ? 'rgba(96, 165, 250, 0.18)' : 'rgba(37, 99, 235, 0.12)',
+      line: { color: theme.primary, width: 2 },
+      hovertemplate: `${t('stressDiagram.tension')}: %{x:.1f} MPa<extra></extra>`,
     };
 
     const shapes = [
@@ -155,7 +157,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
         yanchor: 'bottom',
         ax: isMobile ? -16 : -28,
         ay: -6,
-        font: { color: isDarkMode ? '#f87171' : '#ef4444' },
+        font: { color: theme.critical },
       },
       {
         x: stressOffset + sigma_bottom_tension,
@@ -168,7 +170,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
         yanchor: 'top',
         ax: 28,
         ay: 6,
-        font: { color: isDarkMode ? '#60a5fa' : '#3b82f6' },
+        font: { color: theme.primary },
       },
       {
         x: crossSectionLeft - horizontalGap / 2,
@@ -386,7 +388,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
     const layout = {
       title: {
         text: t('stressDiagram.ariaLabel'),
-        font: { color: isDarkMode ? '#e5e7eb' : '#374151', size: 16 },
+        font: { color: theme.text, size: 16 },
       },
       xaxis: {
         title: `${t('stressDiagram.unit')}`,
@@ -394,14 +396,14 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
         showgrid: false,
         zeroline: false,
         showticklabels: false,
-        color: isDarkMode ? '#9ca3af' : '#4b5563',
+        color: theme.mutedText,
       },
       yaxis: {
         title: `${t('Height')} (mm)`,
         range: [bottomDisplay - yPadding, topDisplay + yPadding],
         showgrid: false,
         zeroline: false,
-        color: isDarkMode ? '#9ca3af' : '#4b5563',
+        color: theme.mutedText,
         tickmode: 'array',
         tickvals,
         ticktext,
@@ -414,9 +416,10 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
       annotations,
     };
 
-    Plotly.newPlot(chartRef.current, [compressionTrace, tensionTrace], layout, {
+    Plotly.react(chartRef.current, [compressionTrace, tensionTrace], layout, {
       responsive: true,
       displayModeBar: false,
+      scrollZoom: false,
     });
 
     const handleResize = () => {
@@ -426,8 +429,11 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [inputs, results, t, calculationMode]);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (chartRef.current) Plotly.purge(chartRef.current);
+    };
+  }, [inputs, results, t, calculationMode, theme]);
 
   return (
     <div id="stress-diagram" ref={chartRef} className="w-full h-[400px]" />
