@@ -62,6 +62,97 @@
     <meta name="author" content="Crane Beam Design Studio" />
     <meta name="robots" content="index, follow" />
     <meta name="language" content="Vietnamese" />
+
+    <!-- GEO baseline Schema.org markup for static crawlers -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Crane Beam Design Studio",
+      "alternateName": "Công cụ tính toán dầm cầu trục online",
+      "url": "https://cautruc.kythuatvang.com/",
+      "description": "Công cụ tính toán dầm cầu trục trực tuyến miễn phí cho kỹ sư kết cấu và sinh viên xây dựng tại Việt Nam.",
+      "inLanguage": "vi-VN",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Kỹ Thuật Vàng",
+        "url": "https://cautruc.kythuatvang.com/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://cautruc.kythuatvang.com/icon-512x512.png"
+        }
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://cautruc.kythuatvang.com/?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Crane Beam Design Studio",
+      "operatingSystem": "Web Browser",
+      "applicationCategory": "EngineeringApplication",
+      "applicationSubCategory": "Structural Engineering Calculator",
+      "url": "https://cautruc.kythuatvang.com/",
+      "description": "Công cụ tính toán dầm cầu trục chuyên nghiệp miễn phí cho kỹ sư kết cấu và sinh viên xây dựng Việt Nam. Hỗ trợ kiểm tra theo TCVN 5575:2024 và tải trọng theo TCVN 2737:2023.",
+      "featureList": [
+        "Tính toán tải trọng cầu trục theo dữ liệu thiết bị",
+        "Kiểm tra ứng suất uốn và ứng suất cắt",
+        "Kiểm tra ổn định tổng thể và cục bộ",
+        "Kiểm tra độ võng đứng và ngang",
+        "Xuất báo cáo PDF"
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "VND"
+      },
+      "inLanguage": "vi-VN",
+      "availableLanguage": "Vietnamese",
+      "keywords": "dầm cầu trục, TCVN 5575:2024, TCVN 2737:2023, tính toán kết cấu thép, crane beam calculator"
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Dầm cầu trục là gì?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Dầm cầu trục là cấu kiện kết cấu thép nằm ngang, đỡ ray chạy của cầu trục trong nhà xưởng và truyền tải trọng từ bánh xe cầu trục xuống vai cột, console hoặc hệ khung chính. Khi thiết kế, dầm cần được kiểm tra tải đứng, tải ngang, ứng suất, ổn định và độ võng."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Công cụ tính toán dầm cầu trục này áp dụng tiêu chuẩn nào?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Crane Beam Design Studio được xây dựng để hỗ trợ kiểm tra dầm cầu trục theo định hướng TCVN 5575:2024 về kết cấu thép và TCVN 2737:2023 về tải trọng và tác động. Với công trình thật, người dùng cần đối chiếu tiêu chuẩn gốc, catalogue thiết bị và hồ sơ dự án."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Công cụ tính toán này có miễn phí không?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Có. Crane Beam Design Studio tại cautruc.kythuatvang.com là công cụ tính toán dầm cầu trục trực tuyến miễn phí, chạy trực tiếp trên trình duyệt và có thể xuất báo cáo PDF để phục vụ kiểm tra sơ bộ."
+          }
+        }
+      ]
+    }
+    </script>
     
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
@@ -121,7 +212,6 @@
     <link rel="manifest" href="/manifest.json" />
     <!-- Theme color for browser UI -->
     <meta name="theme-color" content="#1f2937" />
-    <script src="https://cdn.plot.ly/plotly-2.33.0.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap&subset=vietnamese,latin-ext" rel="stylesheet">
@@ -164,6 +254,127 @@
           <li>Kiểm tra độ võng đứng và độ võng ngang trong quá trình làm việc.</li>
           <li>Kiểm tra mỏi theo nhóm chế độ làm việc của cầu trục.</li>
           <li>Xuất báo cáo tính toán PDF để lưu trữ hoặc rà soát thiết kế.</li>
+        </ul>
+
+        <h2>Form nhập liệu của công cụ tính dầm cầu trục</h2>
+        <p>
+          Khi JavaScript được bật, trang chủ hiển thị một form calculator đầy đủ. Người dùng nhập kích
+          thước tiết diện, vật liệu, nhịp dầm, tải trọng nâng và tải thiết bị; sau đó bấm nút tính để
+          nhận kết quả kiểm tra ứng suất, độ võng, ổn định và biểu đồ kỹ thuật. Phần form tĩnh dưới đây
+          giúp crawler hiểu rõ các trường nhập liệu chính của công cụ.
+        </p>
+
+        <form action="/" method="get" aria-label="Form minh họa công cụ tính dầm cầu trục">
+          <fieldset>
+            <legend>Hình học tiết diện dầm</legend>
+            <label>
+              Chiều rộng cánh dưới b:
+              <input type="number" name="b" value="600" min="1" step="any" /> mm
+            </label>
+            <label>
+              Chiều cao dầm h:
+              <input type="number" name="h" value="900" min="1" step="any" /> mm
+            </label>
+            <label>
+              Chiều dày cánh dưới t1:
+              <input type="number" name="t1" value="30" min="1" step="any" /> mm
+            </label>
+            <label>
+              Chiều dày cánh trên t2:
+              <input type="number" name="t2" value="30" min="1" step="any" /> mm
+            </label>
+            <label>
+              Chiều dày bụng t3:
+              <input type="number" name="t3" value="15" min="1" step="any" /> mm
+            </label>
+            <label>
+              Nhịp dầm L:
+              <input type="number" name="L" value="800" min="1" step="any" /> cm
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Tải trọng và vật liệu</legend>
+            <label>
+              Tải nâng P_nang:
+              <input type="number" name="P_nang" value="15000" min="0" step="any" /> kg
+            </label>
+            <label>
+              Trọng lượng thiết bị P_thietbi:
+              <input type="number" name="P_thietbi" value="5000" min="0" step="any" /> kg
+            </label>
+            <label>
+              Ứng suất cho phép sigma_allow:
+              <input type="number" name="sigma_allow" value="1650" min="0" step="any" /> kg/cm2
+            </label>
+            <label>
+              Mô đun đàn hồi E:
+              <input type="number" name="E" value="2100000" min="0" step="any" /> kg/cm2
+            </label>
+            <label>
+              Vật liệu thép:
+              <select name="materialType">
+                <option value="SS400">SS400</option>
+                <option value="CT3">CT3</option>
+                <option value="A36">A36</option>
+                <option value="CUSTOM">Tùy chỉnh</option>
+              </select>
+            </label>
+          </fieldset>
+
+          <button type="submit">Tính toán dầm cầu trục</button>
+          <button type="reset">Nhập lại</button>
+        </form>
+
+        <h2>Bảng dữ liệu đầu vào và kết quả công cụ đang tính</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Nhóm dữ liệu</th>
+              <th>Trường hoặc kết quả</th>
+              <th>Ý nghĩa trong phép tính</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Hình học tiết diện</td>
+              <td>b, h, t1, t2, t3, b1, b3, L</td>
+              <td>Tính diện tích, mô men quán tính Jx/Jy, mô đun chống uốn Wx/Wy và độ cứng dầm.</td>
+            </tr>
+            <tr>
+              <td>Tải trọng</td>
+              <td>P_nang, P_thietbi, q</td>
+              <td>Tính mô men uốn, lực cắt, ứng suất và độ võng do tải nâng và tải thiết bị.</td>
+            </tr>
+            <tr>
+              <td>Vật liệu</td>
+              <td>SS400, CT3, A36, sigma_allow, sigma_yield, E, nu</td>
+              <td>Xác định giới hạn kiểm tra bền, độ cứng đàn hồi và điều kiện an toàn.</td>
+            </tr>
+            <tr>
+              <td>Kết quả kỹ thuật</td>
+              <td>K_sigma, n_f, K_buckling, f, Mx, Jx, Jy</td>
+              <td>Cho biết dầm đạt hay không đạt theo ứng suất, độ võng, ổn định và thông số tiết diện.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>Quy trình sử dụng máy tính dầm cầu trục</h2>
+        <ol>
+          <li>Chọn loại dầm: dầm đơn, dầm đôi, thép I cán nóng, dầm V hoặc dầm biên.</li>
+          <li>Nhập kích thước tiết diện và nhịp dầm theo bản vẽ hoặc phương án sơ bộ.</li>
+          <li>Nhập tải nâng, trọng lượng xe con, tải thiết bị và vật liệu thép.</li>
+          <li>Bấm nút tính để công cụ trả về ứng suất, độ võng, ổn định và thông số tiết diện.</li>
+          <li>Đọc trạng thái đạt hoặc không đạt, xem biểu đồ và xuất báo cáo PDF nếu cần lưu hồ sơ.</li>
+        </ol>
+
+        <h2>Các kiểm tra kỹ thuật mà công cụ hiển thị sau khi tính</h2>
+        <ul>
+          <li>Kiểm tra ứng suất uốn và ứng suất cắt của dầm cầu trục.</li>
+          <li>Kiểm tra độ võng đứng theo nhịp dầm và độ cứng tiết diện.</li>
+          <li>Kiểm tra ổn định tổng thể và ổn định cục bộ cho tiết diện thép.</li>
+          <li>Gợi ý sườn tăng cứng khi tiết diện cần kiểm soát bản bụng hoặc tải tập trung.</li>
+          <li>Hiển thị biểu đồ mô men, biểu đồ lực cắt, phân bố ứng suất và hình dạng võng.</li>
         </ul>
 
         <h2>Câu hỏi thường gặp</h2>

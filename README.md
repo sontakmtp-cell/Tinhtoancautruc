@@ -2,10 +2,6 @@
 
 Ứng dụng web hiện đại để tính toán và phân tích dầm cầu trục với khả năng tạo báo cáo PDF chuyên nghiệp.
 
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
 ## Tính Năng Chính
 
 ### 🔧 Tính Toán Kỹ Thuật
@@ -113,7 +109,3 @@
 - ✅ Kiểm tra an toàn với màu sắc
 - ✅ Thông tin chi tiết đầy đủ
 
-View your app in AI Studio: https://ai.studio/apps/drive/1VBNgzTkxjGHc-jsQ_yiUzfeIhoC3O_1a
-
-## Updates
-- Added stiffener recommendation module with spacing, quantity, thickness/width outputs and synchronized diagrams/visual overlays.

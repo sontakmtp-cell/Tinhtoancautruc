@@ -325,8 +325,8 @@ export const EdgeBeamCrossSection: React.FC<EdgeBeamCrossSectionProps> = ({ inpu
           <line x1={VIEW.leftRailX} y1="442" x2={VIEW.leftRailX} y2="486" className="stroke-slate-400 dark:stroke-slate-500 stroke-1 stroke-dasharray-4" />
           <line x1={VIEW.rightRailX} y1="442" x2={VIEW.rightRailX} y2="486" className="stroke-slate-400 dark:stroke-slate-500 stroke-1 stroke-dasharray-4" />
           <HighlightableText
-            x="400"
-            y="458"
+            x={400}
+            y={458}
             label={`S = ${span.toFixed(1)} m`}
             paramName="S"
             activeInput={activeInput}
@@ -349,7 +349,7 @@ export const EdgeBeamCrossSection: React.FC<EdgeBeamCrossSectionProps> = ({ inpu
           <line x1={trolleyX} y1="58" x2={trolleyX} y2={VIEW.mainBeamY - 44} className="stroke-indigo-400 dark:stroke-indigo-300 stroke-1 stroke-dasharray-4" />
           <HighlightableText
             x={(VIEW.leftRailX + trolleyX) / 2}
-            y="55"
+            y={55}
             label={`x = ${trolleyPosition.toFixed(1)} m`}
             paramName="x"
             activeInput={activeInput}
@@ -360,7 +360,7 @@ export const EdgeBeamCrossSection: React.FC<EdgeBeamCrossSectionProps> = ({ inpu
           <line x1={VIEW.leftRailX - 11} y1="438" x2={VIEW.leftRailX + 11} y2="438" className={`stroke-slate-600 dark:stroke-slate-300 stroke-[1.4] ${getHighlightClass('B')}`} markerStart="url(#edge-arrow)" markerEnd="url(#edge-arrow)" />
           <HighlightableText
             x={VIEW.leftRailX}
-            y="455"
+            y={455}
             label={`B = ${wheelRimWidth} mm`}
             paramName="B"
             activeInput={activeInput}

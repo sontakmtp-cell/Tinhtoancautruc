@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { BeamInputs, CalculationResults } from '../types';
 import { buildCrossSectionGeometry } from './crossSectionGeometry';
 import { useChartTheme } from './chartTheme';
+import { usePlotlyReady } from '../utils/loadPlotly';
 
 declare const Plotly: any;
 
@@ -37,9 +38,10 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
   } = results;
 
   const Yc_mm = Yc * 10;
+  const plotlyReady = usePlotlyReady();
 
   useEffect(() => {
-    if (!chartRef.current || typeof Plotly === 'undefined') {
+    if (!chartRef.current || !plotlyReady || typeof Plotly === 'undefined') {
       return;
     }
 
@@ -433,7 +435,7 @@ export const StressDistributionDiagram: React.FC<DiagramProps> = ({ inputs, resu
       window.removeEventListener('resize', handleResize);
       if (chartRef.current) Plotly.purge(chartRef.current);
     };
-  }, [inputs, results, t, calculationMode, theme]);
+  }, [inputs, results, t, calculationMode, theme, plotlyReady]);
 
   return (
     <div id="stress-diagram" ref={chartRef} className="w-full h-[400px]" />

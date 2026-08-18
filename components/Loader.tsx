@@ -22,7 +22,7 @@ const cubeStyles = offsets.flatMap((x) =>
             '--y': `${y}`,
             '--z': `${z}`,
             ...variant,
-          } as React.CSSProperties)
+          } as unknown as React.CSSProperties)
       )
     )
   )

@@ -15,7 +15,10 @@ export type JsonLdObject = { [key: string]: JsonLdValue };
 export type RoutePath =
   | '/'
   | '/faq'
+  | '/huong-dan/dam-cau-truc-la-gi'
+  | '/huong-dan/tai-trong-dam-cau-truc'
   | '/huong-dan/tinh-toan-dam-cau-truc'
+  | '/huong-dan/cong-thuc-tinh-dam-cau-truc'
   | '/huong-dan/chon-tiet-dien-dam-cau-truc'
   | '/huong-dan/kiem-tra-do-vong-dam-cau-truc';
 
@@ -104,6 +107,46 @@ export const routeMetadata: RouteMetadata[] = [
     },
   },
   {
+    path: '/huong-dan/dam-cau-truc-la-gi',
+    title: 'Dầm cầu trục là gì? Cấu tạo và phân loại',
+    description:
+      'Giải thích dầm cầu trục, cấu tạo chính, các dạng tiết diện phổ biến và dữ liệu cần có trước khi tính toán theo TCVN.',
+    canonicalUrl: `${SITE_URL}/huong-dan/dam-cau-truc-la-gi`,
+    changefreq: 'monthly',
+    priority: 0.9,
+    type: 'article',
+    breadcrumb: [
+      { name: 'Trang chủ', path: '/' },
+      { name: 'Hướng dẫn', path: '/huong-dan' },
+      { name: 'Dầm cầu trục là gì', path: '/huong-dan/dam-cau-truc-la-gi' },
+    ],
+    sitemap: {
+      loc: `${SITE_URL}/huong-dan/dam-cau-truc-la-gi`,
+      changefreq: 'monthly',
+      priority: 0.9,
+    },
+  },
+  {
+    path: '/huong-dan/tai-trong-dam-cau-truc',
+    title: 'Cách tính tải trọng dầm cầu trục theo TCVN 2737:2023',
+    description:
+      'Hướng dẫn xác định tải đứng, tải ngang, tải động và dữ liệu bánh xe khi tính dầm cầu trục nhà xưởng.',
+    canonicalUrl: `${SITE_URL}/huong-dan/tai-trong-dam-cau-truc`,
+    changefreq: 'monthly',
+    priority: 0.9,
+    type: 'article',
+    breadcrumb: [
+      { name: 'Trang chủ', path: '/' },
+      { name: 'Hướng dẫn', path: '/huong-dan' },
+      { name: 'Tải trọng dầm cầu trục', path: '/huong-dan/tai-trong-dam-cau-truc' },
+    ],
+    sitemap: {
+      loc: `${SITE_URL}/huong-dan/tai-trong-dam-cau-truc`,
+      changefreq: 'monthly',
+      priority: 0.9,
+    },
+  },
+  {
     path: '/huong-dan/tinh-toan-dam-cau-truc',
     title: 'Cách tính toán dầm cầu trục theo TCVN 5575:2024',
     description:
@@ -119,6 +162,26 @@ export const routeMetadata: RouteMetadata[] = [
     ],
     sitemap: {
       loc: `${SITE_URL}/huong-dan/tinh-toan-dam-cau-truc`,
+      changefreq: 'monthly',
+      priority: 0.9,
+    },
+  },
+  {
+    path: '/huong-dan/cong-thuc-tinh-dam-cau-truc',
+    title: 'Công thức tính toán dầm cầu trục chi tiết',
+    description:
+      'Tổng hợp công thức tính tải trọng, nội lực, ứng suất, độ võng và thông số tiết diện khi kiểm tra dầm cầu trục.',
+    canonicalUrl: `${SITE_URL}/huong-dan/cong-thuc-tinh-dam-cau-truc`,
+    changefreq: 'monthly',
+    priority: 0.9,
+    type: 'article',
+    breadcrumb: [
+      { name: 'Trang chủ', path: '/' },
+      { name: 'Hướng dẫn', path: '/huong-dan' },
+      { name: 'Công thức tính dầm cầu trục', path: '/huong-dan/cong-thuc-tinh-dam-cau-truc' },
+    ],
+    sitemap: {
+      loc: `${SITE_URL}/huong-dan/cong-thuc-tinh-dam-cau-truc`,
       changefreq: 'monthly',
       priority: 0.9,
     },
@@ -190,13 +253,44 @@ export function buildOrganizationJsonLd(): JsonLdObject {
   };
 }
 
+export function buildWebSiteJsonLd(): JsonLdObject {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: APP_NAME,
+    alternateName: 'Công cụ tính toán dầm cầu trục online',
+    url: `${SITE_URL}/`,
+    description:
+      'Công cụ tính toán dầm cầu trục trực tuyến miễn phí cho kỹ sư kết cấu và sinh viên xây dựng tại Việt Nam.',
+    inLanguage: 'vi-VN',
+    publisher: {
+      '@type': 'Organization',
+      name: ORGANIZATION_NAME,
+      url: SITE_URL,
+      logo: {
+        '@type': 'ImageObject',
+        url: organization.logo,
+      },
+    },
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${SITE_URL}/?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+}
+
 export function buildWebApplicationJsonLd(): JsonLdObject {
   return {
     '@context': 'https://schema.org',
-    '@type': 'WebApplication',
+    '@type': 'SoftwareApplication',
     name: APP_NAME,
     url: SITE_URL,
     applicationCategory: 'EngineeringApplication',
+    applicationSubCategory: 'Structural Engineering Calculator',
     operatingSystem: 'Web',
     inLanguage: 'vi-VN',
     isAccessibleForFree: true,
@@ -209,9 +303,16 @@ export function buildWebApplicationJsonLd(): JsonLdObject {
       'Tính toán tải trọng dầm cầu trục',
       'Kiểm tra bền và ổn định dầm thép',
       'Kiểm tra độ võng dầm cầu trục',
+      'Kiểm tra mỏi theo nhóm chế độ làm việc khi có dữ liệu đầu vào',
       'Xuất báo cáo tính toán dạng PDF',
       'Hỗ trợ thiết kế theo TCVN 5575:2024',
     ],
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'VND',
+    },
+    keywords: 'dầm cầu trục, TCVN 5575:2024, TCVN 2737:2023, tính toán kết cấu thép, crane beam calculator',
   };
 }
 
@@ -288,10 +389,11 @@ export function buildBreadcrumbListJsonLd(items: RouteMetadata['breadcrumb']): J
 
 export function buildRouteJsonLd(route: RouteMetadata, options?: {
   faqItems?: FaqItem[];
-  article?: Partial<Omit<TechArticleInput, 'path'>>;
+  article?: Partial<Omit<TechArticleInput, 'path'>> & { faqItems?: FaqItem[] };
 }): JsonLdObject[] {
   const schemas = [
     buildOrganizationJsonLd(),
+    buildWebSiteJsonLd(),
     buildWebApplicationJsonLd(),
     buildBreadcrumbListJsonLd(route.breadcrumb),
   ];
@@ -313,6 +415,10 @@ export function buildRouteJsonLd(route: RouteMetadata, options?: {
         sections: options?.article?.sections,
       }),
     );
+
+    if (options?.article?.faqItems?.length) {
+      schemas.push(buildFAQPageJsonLd(options.article.faqItems));
+    }
   }
 
   return schemas;

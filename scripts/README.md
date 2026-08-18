@@ -83,11 +83,8 @@ Sửa trong `public/service-worker.js`:
 - Thêm/bớt files trong `urlsToCache`
 - Thay đổi caching strategy trong fetch handler
 
-### Sử dụng Git-based version
-```bash
-# Thay đổi trong package.json
-"build": "node scripts/update-cache-version-git.js && vite build"
-```
+### Script duy nhất
+Mọi lệnh build/update-cache đều dùng chung `scripts/update-cache-version.cjs`.
 
 ## Troubleshooting
 

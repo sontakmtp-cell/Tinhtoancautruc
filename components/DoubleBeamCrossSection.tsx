@@ -23,10 +23,11 @@ const Dimension: React.FC<{
   y2: number; 
   label: string; 
   isHighlighted?: boolean; 
+  isDimmed?: boolean; 
   position?: 'left' | 'right' | 'top' | 'bottom'; 
   onMouseEnter?: () => void; 
   onMouseLeave?: () => void; 
-}> = ({ x1, y1, x2, y2, label, isHighlighted, position = 'bottom', onMouseEnter, onMouseLeave }) => {
+}> = ({ x1, y1, x2, y2, label, isHighlighted, isDimmed, position = 'bottom', onMouseEnter, onMouseLeave }) => {
   const offset = 10;
   const tickSize = 3;
   const textColor = isHighlighted ? '#22c55e' : '#94a3b8';
@@ -46,7 +47,7 @@ const Dimension: React.FC<{
   }
 
   return (
-    <g className="text-xs" fill={textColor} stroke={textColor} strokeWidth="1" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+    <g className="text-xs" fill={textColor} stroke={textColor} strokeWidth="1" opacity={isDimmed ? 0.35 : 1} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       {/* Main dimension line */}
       <line 
         x1={position === 'left' || position === 'right' ? textPos.x : x1} 

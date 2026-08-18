@@ -7,6 +7,7 @@ interface DimensionProps {
   y2: number;
   label: string;
   isHighlighted?: boolean;
+  isDimmed?: boolean;
   position?: "left" | "right" | "top" | "bottom";
   offset?: number; // Khoảng cách từ đối tượng đến đường kích thước
   textOrientation?: "horizontal" | "vertical"; // Hướng của chữ
@@ -17,7 +18,7 @@ interface DimensionProps {
 export const Dimension: React.FC<DimensionProps> = (props) => {
   const {
     x1, y1, x2, y2, label,
-    isHighlighted, position = "bottom",
+    isHighlighted, isDimmed, position = "bottom",
     offset = 20,
     textOrientation = "horizontal",
     onMouseEnter, onMouseLeave
@@ -41,7 +42,7 @@ export const Dimension: React.FC<DimensionProps> = (props) => {
   }
 
   return (
-    <g stroke={c} fill={c} strokeWidth={1} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+    <g stroke={c} fill={c} strokeWidth={1} opacity={isDimmed ? 0.35 : 1} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       {/* Dimension line */}
       <line
         x1={position === "left" || position === "right" ? textPos.x : x1}

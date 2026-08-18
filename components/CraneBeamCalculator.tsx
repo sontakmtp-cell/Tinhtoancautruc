@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
   Bot,
@@ -27,10 +27,18 @@ import { DeflectedShapeDiagram } from './DeflectedShapeDiagram';
 import { PDFExportButton } from './PDFReport';
 
 import { BeamCrossSection } from './BeamCrossSection';
-import { DoubleBeamCalculator } from './DoubleBeamCalculator';
-import { VBeamCalculator } from './VBeamCalculator';
-import { EdgeBeamCalculator } from './EdgeBeamCalculator';
 import { multiplyForDisplay } from '../utils/display';
+
+// Lazy-load bộ tính chuyên biệt để giữ bundle ban đầu nhẹ
+const DoubleBeamCalculator = lazy(() =>
+  import('./DoubleBeamCalculator').then((m) => ({ default: m.DoubleBeamCalculator }))
+);
+const VBeamCalculator = lazy(() =>
+  import('./VBeamCalculator').then((m) => ({ default: m.VBeamCalculator }))
+);
+const EdgeBeamCalculator = lazy(() =>
+  import('./EdgeBeamCalculator').then((m) => ({ default: m.EdgeBeamCalculator }))
+);
 
 const MIN_LOADER_DURATION_MS = 4_000;
 
@@ -629,7 +637,9 @@ export const CraneBeamCalculator: React.FC = () => {
     return (
       <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
         <BeamTypeTabs active={beamType} onChange={setBeamType} />
-        <DoubleBeamCalculator />
+        <Suspense fallback={<HamsterLoader />}>
+          <DoubleBeamCalculator />
+        </Suspense>
       </div>
     );
   }
@@ -638,7 +648,9 @@ export const CraneBeamCalculator: React.FC = () => {
     return (
       <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
         <BeamTypeTabs active={beamType} onChange={setBeamType} />
-        <VBeamCalculator />
+        <Suspense fallback={<HamsterLoader />}>
+          <VBeamCalculator />
+        </Suspense>
       </div>
     );
   }
@@ -647,7 +659,9 @@ export const CraneBeamCalculator: React.FC = () => {
     return (
       <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
         <BeamTypeTabs active={beamType} onChange={setBeamType} />
-        <EdgeBeamCalculator />
+        <Suspense fallback={<HamsterLoader />}>
+          <EdgeBeamCalculator />
+        </Suspense>
       </div>
     );
   }

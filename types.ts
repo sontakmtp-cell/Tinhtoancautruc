@@ -147,15 +147,15 @@ export interface DoubleBeamInputs extends BeamInputs {
 // V-beam specific inputs based on the engineering drawing
 export interface VBeamInputs {
   // V-beam specific geometric parameters from the image
-  t3: number; // �? d�y b?ng (Web thickness) - mm
-  h3: number; // Chi?u cao b?ng (Web height) - mm  
-  t4: number; // �? d�y m�i (Roof thickness) - mm
-  b1: number; // Chi?u r?ng c�nh (Flange width) - mm
-  t1: number; // Chi?u d�y c�nh (Flange thickness) - mm
-  t2: number; // Chi?u d�y th�n (Body thickness) - mm
-  h1: number; // Chi?u cao I (I-height) - mm
-  L: number;  // Kh?u d? d?m (Beam span) - cm
-  A: number;  // T�m b�nh xe d?m bi�n A (Edge beam wheel center A) - mm
+  t3: number; // Độ dày bụng (Web thickness) - mm
+  h3: number; // Chiều cao bụng (Web height) - mm
+  t4: number; // Độ dày mái (Roof thickness) - mm
+  b1: number; // Chiều rộng cánh (Flange width) - mm
+  t1: number; // Chiều dày cánh (Flange thickness) - mm
+  t2: number; // Chiều dày thân (Body thickness) - mm
+  h1: number; // Chiều cao I (I-height) - mm
+  L: number;  // Khẩu độ dầm (Beam span) - cm
+  A: number;  // Tâm bánh xe dầm biên A (Edge beam wheel center A) - mm
   
   // Additional dimensions from the image (optional, with defaults)
   H?: number; // Total height - mm

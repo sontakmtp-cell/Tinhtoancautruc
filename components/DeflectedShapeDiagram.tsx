@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { BeamInputs, CalculationResults } from '../types';
 import { useChartTheme } from './chartTheme';
+import { usePlotlyReady } from '../utils/loadPlotly';
 
 declare const Plotly: any;
 
@@ -17,9 +18,10 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
   const { L } = inputs;
   const { f, f_allow } = results;
   const theme = useChartTheme();
+  const plotlyReady = usePlotlyReady();
 
   useEffect(() => {
-    if (!chartRef.current || typeof Plotly === 'undefined') return;
+    if (!chartRef.current || !plotlyReady || typeof Plotly === 'undefined') return;
 
     const isMobile = window.innerWidth < 768;
     const mobileMargin = { l: 30, r: 15, b: 40, t: 40, pad: 2 };
@@ -156,7 +158,7 @@ export const DeflectedShapeDiagram: React.FC<DiagramProps> = ({ inputs, results 
       if (chartRef.current) Plotly.purge(chartRef.current);
     };
 
-  }, [inputs, results, theme, t]);
+  }, [inputs, results, theme, t, plotlyReady]);
 
   return (
     <div id="deflection-diagram" ref={chartRef} className="w-full h-[250px]" />

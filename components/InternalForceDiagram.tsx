@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { DiagramData } from '../types';
 import { useChartTheme } from './chartTheme';
+import { usePlotlyReady } from '../utils/loadPlotly';
 
 // Make sure Plotly is available in the global scope
 declare const Plotly: any;
@@ -18,9 +19,10 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
   const { t } = useTranslation();
   const chartRef = useRef<HTMLDivElement>(null);
   const theme = useChartTheme();
+  const plotlyReady = usePlotlyReady();
 
   useEffect(() => {
-    if (!chartRef.current || !data || data.length === 0 || typeof Plotly === 'undefined') {
+    if (!chartRef.current || !data || data.length === 0 || !plotlyReady || typeof Plotly === 'undefined') {
       return;
     }
 
@@ -154,7 +156,7 @@ export const InternalForceDiagram: React.FC<DiagramProps> = ({ data, title, yKey
       if (chartRef.current) Plotly.purge(chartRef.current);
     };
 
-  }, [data, title, yKey, unit, stiffenerMarkers, t, theme]);
+  }, [data, title, yKey, unit, stiffenerMarkers, t, theme, plotlyReady]);
 
   // Generate unique ID for PDF capture
   const diagramId = yKey === 'moment' ? 'moment-diagram' : 'shear-diagram';

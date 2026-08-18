@@ -10,6 +10,13 @@ export type GuideSubsection = {
   paragraphs: string[];
 };
 
+export type GuideFormula = {
+  title: string;
+  equation: string;
+  note: string;
+  variables?: string[];
+};
+
 export type GuideSection = {
   heading: string;
   bluf?: string;
@@ -17,6 +24,7 @@ export type GuideSection = {
   bullets?: string[];
   orderedSteps?: string[];
   subsections?: GuideSubsection[];
+  formulas?: GuideFormula[];
   table?: GuideTable;
 };
 
@@ -43,6 +51,217 @@ export type GuideArticle = {
 };
 
 export const guideArticles: GuideArticle[] = [
+  {
+    title: 'Dầm cầu trục là gì? Cấu tạo và phân loại theo thiết kế nhà xưởng',
+    slug: '/huong-dan/dam-cau-truc-la-gi',
+    description:
+      'Giải thích dầm cầu trục là gì, dầm gồm những bộ phận nào, thường dùng dạng tiết diện nào và khi nào cần tính toán kiểm tra.',
+    summary:
+      'BLUF: Dầm cầu trục là dầm thép đỡ ray để cầu trục di chuyển trong nhà xưởng và truyền tải bánh xe xuống hệ cột hoặc khung chính. Khi thiết kế, cần kiểm tra tải đứng, tải ngang, ứng suất, ổn định và độ võng theo TCVN 5575:2024, đồng thời xác định tải trọng theo TCVN 2737:2023 và dữ liệu thiết bị.',
+    updatedAt: '2026-06-05',
+    readingTime: '7 phút đọc',
+    sections: [
+      {
+        heading: 'Dầm cầu trục là gì?',
+        bluf:
+          'Dầm cầu trục là cấu kiện thép nằm dọc nhà xưởng, đỡ ray chạy của cầu trục và nhận tải từ bánh xe cầu trục.',
+        paragraphs: [
+          'Trong nhà xưởng công nghiệp, cầu trục di chuyển trên ray để nâng hạ vật nặng. Ray đó không đặt trực tiếp lên tường hoặc mái, mà thường đặt trên dầm cầu trục. Dầm này nhận tải bánh xe, tải va đập, lực ngang khi cầu trục phanh hoặc lệch tải, rồi truyền xuống vai cột, console hoặc hệ khung chính.',
+          'Với thiết kế kết cấu thép, TCVN 5575:2024 là tiêu chuẩn cần tham chiếu khi kiểm tra cấu kiện thép. TCVN 2737:2023 là tài liệu cần tham chiếu khi xác định tải trọng và tác động. Hai tiêu chuẩn này không thay thế catalogue cầu trục; dữ liệu bánh xe và chế độ vận hành vẫn phải lấy từ hồ sơ thiết bị.'
+        ],
+      },
+      {
+        heading: 'Cấu tạo chính của dầm cầu trục gồm những bộ phận nào?',
+        bluf:
+          'Một dầm cầu trục thường gồm bản cánh, bản bụng, ray, sườn tăng cứng, liên kết gối và có thể có dầm hãm nếu tải ngang lớn.',
+        bullets: [
+          'Bản cánh trên: vị trí thường đỡ ray, chịu nén uốn và tải tập trung từ bánh xe.',
+          'Bản bụng: phần truyền lực cắt, giữ chiều cao dầm và cần kiểm tra ổn định cục bộ.',
+          'Bản cánh dưới: làm việc cùng bản cánh trên để tạo khả năng chịu uốn của tiết diện.',
+          'Sườn tăng cứng: bố trí tại gối, vị trí tải tập trung hoặc vùng cần chống ổn định bản bụng.',
+          'Ray và liên kết ray: truyền tải bánh xe xuống dầm, đồng thời ảnh hưởng đến vận hành cầu trục.',
+          'Liên kết vào cột: truyền tải từ dầm sang vai cột, console hoặc khung chính.'
+        ],
+      },
+      {
+        heading: 'Các dạng dầm cầu trục phổ biến trong nhà xưởng',
+        bluf:
+          'Dầm thép hình phù hợp tải nhẹ đến vừa; dầm tổ hợp hàn phù hợp khi cần tối ưu theo nhịp và tải bánh xe; dầm hộp phù hợp khi cần tăng độ cứng xoắn.',
+        table: {
+          caption: 'Bảng phân loại sơ bộ dầm cầu trục theo dạng tiết diện',
+          note:
+            'Bảng này dùng để định hướng lựa chọn ban đầu. Không dùng bảng này để chốt kích thước thi công nếu chưa có tính toán chi tiết.',
+          headers: ['Dạng dầm', 'Tình huống thường gặp', 'Điểm cần kiểm tra'],
+          rows: [
+            ['Thép hình I/H cán nóng', 'Cầu trục tải nhẹ đến vừa, nhịp không quá lớn, cần thi công nhanh', 'Độ võng, ổn định cánh nén, ép cục bộ dưới ray'],
+            ['Dầm I tổ hợp hàn', 'Nhịp vừa đến lớn hoặc tải bánh xe lớn cần tiết diện riêng', 'Mối hàn, sườn tăng cứng, ổn định bản bụng và bản cánh'],
+            ['Dầm hộp', 'Trường hợp có xoắn hoặc lực ngang đáng kể', 'Chế tạo, kiểm tra mối hàn kín, bảo trì bên trong hộp'],
+            ['Dầm kèm dầm hãm', 'Cầu trục có tải ngang lớn hoặc yêu cầu ổn định ray cao', 'Đường truyền lực ngang, liên kết với cột và hệ giằng']
+          ],
+        },
+      },
+      {
+        heading: 'Ví dụ thực tế khi nhận dữ liệu cầu trục',
+        bluf:
+          'Nếu chỉ biết sức nâng 5 tấn thì chưa đủ để chọn dầm; cần thêm nhịp, tải bánh xe, khoảng cách bánh và chế độ làm việc.',
+        paragraphs: [
+          'Ví dụ một nhà xưởng có cầu trục 5 tấn, bước cột 6 m và ray chạy dọc nhà. Người thiết kế cần biết dầm cầu trục đặt trên từng bước cột hay liên tục qua nhiều cột, tải bánh xe lớn nhất là bao nhiêu, khoảng cách bánh xe thế nào và có lực ngang do phanh hay không.',
+          'Nếu chỉ chọn thép I theo kinh nghiệm, dầm có thể đủ bền nhưng võng lớn, ray chạy không êm hoặc bản cánh trên bị ép cục bộ. Cách làm tốt hơn là nhập dữ liệu vào công cụ tính, kiểm tra ứng suất, độ võng, ổn định rồi mới so sánh phương án tiết diện.'
+        ],
+      },
+      {
+        heading: 'Khi nào cần kỹ sư kết cấu kiểm tra dầm cầu trục?',
+        bluf:
+          'Bất kỳ dầm cầu trục dùng cho vận hành thật đều cần người có chuyên môn kiểm tra trước khi thi công hoặc nghiệm thu.',
+        bullets: [
+          'Khi cầu trục có tải nâng lớn, vận hành thường xuyên hoặc làm việc trong môi trường khắc nghiệt.',
+          'Khi phải sửa đổi dầm hiện hữu, nâng tải cầu trục hoặc thay đổi ray.',
+          'Khi kết quả tính nhanh cho thấy ứng suất, độ võng hoặc ổn định gần giới hạn.',
+          'Khi hồ sơ cần nộp cho chủ đầu tư, đơn vị kiểm định hoặc cơ quan quản lý.'
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: 'Dầm cầu trục có giống dầm sàn thông thường không?',
+        answer:
+          'Không giống hoàn toàn. Dầm cầu trục chịu tải bánh xe di động, tải động và lực ngang khi thiết bị vận hành. Vì vậy ngoài kiểm tra uốn và cắt, cần xem thêm độ võng, ổn định, ép cục bộ dưới ray và chi tiết liên kết.'
+      },
+      {
+        question: 'Có thể chọn dầm cầu trục chỉ theo sức nâng không?',
+        answer:
+          'Không nên. Sức nâng chỉ là một phần dữ liệu. Cùng sức nâng nhưng nhịp, số bánh xe, khoảng cách bánh, tự trọng xe con và chế độ làm việc khác nhau sẽ cho tải lên dầm khác nhau.'
+      },
+      {
+        question: 'Dầm cầu trục nên dùng thép hình hay dầm tổ hợp hàn?',
+        answer:
+          'Thép hình phù hợp khi tải và nhịp không lớn, còn dầm tổ hợp hàn phù hợp khi cần tối ưu chiều cao, bản cánh và bản bụng. Quyết định cuối cùng phải dựa trên tính toán bền, độ võng, ổn định và khả năng chế tạo.'
+      },
+    ],
+    references: [
+      {
+        label: 'TCVN 5575:2024',
+        note: 'Tiêu chuẩn thiết kế kết cấu thép, dùng để kiểm tra cấu kiện thép của dầm cầu trục.'
+      },
+      {
+        label: 'TCVN 2737:2023',
+        note: 'Tiêu chuẩn tải trọng và tác động, dùng khi xác định tải đưa vào bài toán thiết kế.'
+      },
+      {
+        label: 'Catalogue cầu trục',
+        note: 'Nguồn cần có để xác định phản lực bánh xe, khoảng cách bánh xe và điều kiện vận hành.'
+      },
+    ],
+  },
+  {
+    title: 'Cách tính tải trọng dầm cầu trục theo TCVN 2737:2023',
+    slug: '/huong-dan/tai-trong-dam-cau-truc',
+    description:
+      'Hướng dẫn xác định tải đứng, tải ngang, tải động và dữ liệu bánh xe cần chuẩn bị trước khi tính dầm cầu trục.',
+    summary:
+      'BLUF: Tải trọng dầm cầu trục không chỉ là sức nâng danh nghĩa. Cần quy đổi hàng nâng, tự trọng xe con, tự trọng cầu trục, tải bánh xe, tải động và lực ngang thành các trường hợp tác dụng bất lợi; TCVN 2737:2023 dùng để đối chiếu nguyên tắc tải trọng, còn TCVN 5575:2024 dùng cho kiểm tra cấu kiện thép.',
+    updatedAt: '2026-06-05',
+    readingTime: '8 phút đọc',
+    sections: [
+      {
+        heading: 'Tải trọng dầm cầu trục gồm những thành phần nào?',
+        bluf:
+          'Tải trên dầm cầu trục thường gồm tải đứng từ bánh xe, tải ngang do vận hành, tải động và tự trọng các cấu kiện liên quan.',
+        bullets: [
+          'Tải nâng danh nghĩa: khối lượng hàng lớn nhất mà cầu trục được phép nâng.',
+          'Tự trọng xe con hoặc pa lăng: tải đi cùng hàng nâng và thay đổi vị trí theo xe con.',
+          'Tự trọng cầu trục: tải của dầm chính cầu trục, dầm đầu, cơ cấu di chuyển và phụ kiện.',
+          'Tải bánh xe: phản lực truyền xuống ray và dầm cầu trục tại từng bánh xe.',
+          'Tải động: phần tăng thêm do nâng hạ, khởi động, phanh hoặc rung động.',
+          'Lực ngang và lực dọc: tác động do phanh, lệch ray, xô ngang hoặc chuyển động của cầu trục.'
+        ],
+      },
+      {
+        heading: 'Quy trình xác định tải trọng theo từng bước',
+        bluf:
+          'Cách làm dễ kiểm soát là đi từ dữ liệu thiết bị, tính tải bánh xe, rồi tổ hợp các trường hợp bất lợi trước khi kiểm tra dầm.',
+        orderedSteps: [
+          'Thu thập catalogue hoặc hồ sơ cầu trục: sức nâng, tự trọng cầu, tự trọng xe con, số bánh xe, khoảng cách bánh xe và tốc độ vận hành.',
+          'Xác định phản lực bánh xe lớn nhất khi xe con ở vị trí bất lợi. Không dùng tải trung bình nếu bài toán yêu cầu kiểm tra vị trí nguy hiểm nhất.',
+          'Tách tải đứng và tải ngang để tránh nhầm lẫn giữa kiểm tra uốn đứng, uốn ngang và liên kết ray.',
+          'Áp dụng nguyên tắc tải trọng và tổ hợp tải theo TCVN 2737:2023, đồng thời đối chiếu yêu cầu riêng của thiết bị nâng.',
+          'Đưa nội lực bất lợi sang bước kiểm tra cấu kiện thép theo TCVN 5575:2024.',
+          'Ghi rõ giả thiết và nguồn dữ liệu trong thuyết minh để người kiểm tra biết số nào đã xác nhận, số nào chỉ là tạm tính.'
+        ],
+      },
+      {
+        heading: 'Bảng dữ liệu đầu vào cần chuẩn bị',
+        bluf:
+          'Thiếu dữ liệu bánh xe là nguyên nhân rất thường làm kết quả tính dầm cầu trục sai hướng.',
+        table: {
+          caption: 'Bảng dữ liệu tải trọng nên có trước khi tính dầm cầu trục',
+          note:
+            'Nếu chưa có catalogue thiết bị, chỉ nên dùng số liệu ước tính để so sánh sơ bộ, không dùng làm hồ sơ thiết kế cuối cùng.',
+          headers: ['Dữ liệu', 'Đơn vị thường dùng', 'Nguồn nên lấy', 'Ảnh hưởng đến tính toán'],
+          rows: [
+            ['Sức nâng', 'tấn hoặc kN', 'Yêu cầu thiết bị, catalogue cầu trục', 'Tạo tải chính khi nâng hàng'],
+            ['Tự trọng xe con/pa lăng', 'kN', 'Catalogue nhà sản xuất', 'Làm tăng phản lực bánh xe bất lợi'],
+            ['Tải bánh xe lớn nhất', 'kN/bánh', 'Catalogue hoặc bảng phân phối tải', 'Quyết định mô men, lực cắt và ép cục bộ'],
+            ['Khoảng cách bánh xe', 'mm hoặc m', 'Bản vẽ thiết bị', 'Quyết định vị trí nội lực lớn nhất'],
+            ['Lực ngang khi phanh/lệch ray', 'kN', 'Tiêu chuẩn và dữ liệu thiết bị', 'Ảnh hưởng dầm hãm, liên kết ray và cột'],
+            ['Chế độ làm việc', 'A1-A8 hoặc mô tả vận hành', 'Yêu cầu khai thác, hồ sơ thiết bị', 'Ảnh hưởng kiểm tra mỏi và cấu tạo']
+          ],
+        },
+      },
+      {
+        heading: 'Ví dụ sơ bộ về cách đọc tải bánh xe',
+        bluf:
+          'Nếu catalogue ghi tải bánh xe lớn nhất 65 kN/bánh, người tính nên dùng hệ bánh xe và khoảng cách bánh để tìm vị trí nội lực bất lợi trên dầm.',
+        paragraphs: [
+          'Giả sử cầu trục có hai bánh trên một ray, tải bánh xe lớn nhất là 65 kN/bánh và khoảng cách hai bánh là 2.500 mm. Khi kiểm tra dầm theo phương đứng, không nên cộng đơn giản thành 130 kN đặt giữa nhịp nếu vị trí thực tế của bánh xe có thể tạo mô men hoặc lực cắt khác.',
+          'Người tính nên quét vị trí cụm bánh xe dọc theo nhịp dầm để tìm mô men và lực cắt lớn nhất. Sau đó mới dùng kết quả nội lực để kiểm tra ứng suất, ổn định và độ võng theo TCVN 5575:2024. Cách này giúp tránh trường hợp kết quả nhìn có vẻ hợp lý nhưng bỏ sót vị trí bất lợi.'
+        ],
+      },
+      {
+        heading: 'Những lỗi cần tránh khi tính tải trọng',
+        bluf:
+          'Sai tải trọng đầu vào thường nguy hiểm hơn sai vài phần trăm trong công thức kiểm tra vì toàn bộ kết quả phía sau đều phụ thuộc tải.',
+        bullets: [
+          'Chỉ lấy sức nâng mà bỏ qua tự trọng xe con và tự trọng cầu trục.',
+          'Dùng tải bánh xe trung bình thay cho tải bánh xe lớn nhất.',
+          'Không xét lực ngang khi cầu trục phanh hoặc di chuyển lệch.',
+          'Nhầm đơn vị tấn, kN, kg hoặc kgf trong quá trình nhập liệu.',
+          'Không ghi rõ nguồn dữ liệu nên người kiểm tra không biết tải nào đã được xác nhận.'
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: 'Có thể tự tính tải bánh xe nếu không có catalogue không?',
+        answer:
+          'Có thể ước tính sơ bộ để so sánh phương án, nhưng không nên dùng làm hồ sơ cuối cùng. Tải bánh xe phụ thuộc bố trí cầu trục, xe con, dầm đầu và nhà sản xuất, nên cần catalogue hoặc xác nhận của đơn vị thiết bị.'
+      },
+      {
+        question: 'TCVN 2737:2023 có đủ để tính hết tải cầu trục không?',
+        answer:
+          'TCVN 2737:2023 là cơ sở quan trọng về tải trọng và tác động, nhưng dữ liệu thiết bị vẫn phải lấy từ catalogue, bản vẽ cầu trục và yêu cầu vận hành. Không nên thay dữ liệu nhà sản xuất bằng giả định chung.'
+      },
+      {
+        question: 'Tải ngang có quan trọng với dầm cầu trục nhỏ không?',
+        answer:
+          'Vẫn cần xem xét. Với cầu trục nhỏ, tải ngang có thể không chi phối tiết diện chính nhưng ảnh hưởng đến ray, liên kết, dầm hãm và cột. Bỏ qua tải ngang có thể làm chi tiết liên kết thiếu an toàn.'
+      },
+    ],
+    references: [
+      {
+        label: 'TCVN 2737:2023',
+        note: 'Tiêu chuẩn tải trọng và tác động, dùng để đối chiếu nguyên tắc xác định và tổ hợp tải.'
+      },
+      {
+        label: 'TCVN 5575:2024',
+        note: 'Tiêu chuẩn thiết kế kết cấu thép, dùng sau khi đã xác định nội lực từ tải trọng.'
+      },
+      {
+        label: 'Catalogue cầu trục và hồ sơ thiết bị',
+        note: 'Nguồn chính cho tải bánh xe, khoảng cách bánh xe, tự trọng và tốc độ vận hành.'
+      },
+    ],
+  },
   {
     title: 'Cách tính toán dầm cầu trục theo TCVN 5575:2024',
     slug: '/huong-dan/tinh-toan-dam-cau-truc',
@@ -157,6 +376,158 @@ export const guideArticles: GuideArticle[] = [
       {
         label: 'Catalogue nhà sản xuất cầu trục',
         note: 'Nguồn chính xác cho tải bánh xe, khoảng cách bánh xe, tự trọng cầu và xe con.'
+      }
+    ]
+  },
+  {
+    title: 'Công thức tính toán dầm cầu trục chi tiết',
+    slug: '/huong-dan/cong-thuc-tinh-dam-cau-truc',
+    description:
+      'Tổng hợp các công thức cốt lõi để tính tải trọng, nội lực, ứng suất, độ võng, đặc trưng tiết diện và hệ số kiểm tra dầm cầu trục.',
+    summary:
+      'BLUF: Công thức tính dầm cầu trục thường đi theo chuỗi: xác định tải bánh xe, tính nội lực bất lợi, tính đặc trưng tiết diện, kiểm tra ứng suất, kiểm tra độ võng và kiểm tra ổn định. Các công thức dưới đây dùng cho kiểm tra sơ bộ; khi lập hồ sơ thật cần đối chiếu TCVN 5575:2024, TCVN 2737:2023 và dữ liệu cầu trục của nhà sản xuất.',
+    updatedAt: '2026-06-05',
+    readingTime: '9 phút đọc',
+    sections: [
+      {
+        heading: 'Các ký hiệu chính trong công thức dầm cầu trục',
+        bluf:
+          'Trước khi thay số, cần thống nhất đơn vị. Sai đơn vị giữa mm, cm, kg và kN là nguyên nhân rất thường làm kết quả sai.',
+        table: {
+          caption: 'Bảng ký hiệu thường dùng trong tính dầm cầu trục',
+          note:
+            'Bảng dùng cho cách đọc công thức sơ bộ. Khi dùng trong hồ sơ thiết kế, hãy ghi rõ hệ đơn vị đang áp dụng.',
+          headers: ['Ký hiệu', 'Ý nghĩa', 'Đơn vị hay dùng'],
+          rows: [
+            ['L', 'Nhịp tính toán của dầm cầu trục', 'm, cm hoặc mm'],
+            ['P_nang', 'Tải nâng danh nghĩa của cầu trục', 'kg hoặc kN'],
+            ['P_thietbi', 'Tự trọng xe con, pa lăng hoặc thiết bị nâng', 'kg hoặc kN'],
+            ['q', 'Tải phân bố do tự trọng dầm hoặc tải phụ', 'kg/m, kN/m'],
+            ['Mmax', 'Mô men uốn lớn nhất tại tiết diện nguy hiểm', 'kg.cm hoặc kN.m'],
+            ['Qmax', 'Lực cắt lớn nhất tại tiết diện nguy hiểm', 'kg hoặc kN'],
+            ['Jx, Jy', 'Mô men quán tính tiết diện theo trục x và y', 'cm4 hoặc mm4'],
+            ['Wx, Wy', 'Mô đun chống uốn của tiết diện', 'cm3 hoặc mm3'],
+            ['sigma', 'Ứng suất uốn tính toán', 'kg/cm2 hoặc MPa'],
+            ['f', 'Độ võng lớn nhất của dầm', 'cm hoặc mm']
+          ],
+        },
+      },
+      {
+        heading: 'Công thức tải trọng và nội lực dùng để tính dầm cầu trục',
+        bluf:
+          'Tải trọng đưa vào dầm cần gồm tải nâng, tải thiết bị, tự trọng dầm và các hệ số động hoặc lực ngang khi có yêu cầu.',
+        table: {
+          caption: 'Nhóm công thức tải trọng và nội lực sơ bộ',
+          note:
+            'Các công thức này dùng để kiểm tra nhanh dầm đơn giản. Với tải bánh xe di động, cần quét vị trí bánh xe để tìm Mmax và Qmax bất lợi.',
+          headers: ['Nội dung', 'Công thức sơ bộ', 'Ghi chú sử dụng'],
+          rows: [
+            ['Tải đứng quy đổi', 'P = P_nang + P_thietbi', 'Cần cộng thêm hệ số động nếu tiêu chuẩn hoặc hồ sơ thiết bị yêu cầu.'],
+            ['Tải phân bố do tự trọng', 'q = gamma_thep x A', 'A là diện tích tiết diện; gamma_thep thường lấy theo trọng lượng riêng thép.'],
+            ['Mô men do tải tập trung giữa nhịp', 'Mmax = P x L / 4', 'Dùng cho dầm đơn giản có một tải tập trung ở giữa nhịp.'],
+            ['Lực cắt do tải tập trung giữa nhịp', 'Qmax = P / 2', 'Dùng cho kiểm tra cắt sơ bộ ở gối.'],
+            ['Mô men do tải phân bố đều', 'Mmax = q x L^2 / 8', 'Dùng cho tự trọng dầm hoặc tải phân bố đều.'],
+            ['Lực cắt do tải phân bố đều', 'Qmax = q x L / 2', 'Dùng cho dầm đơn giản chịu tải phân bố đều.']
+          ],
+        },
+        paragraphs: [
+          'Với cầu trục thật, tải bánh xe không đứng yên ở giữa nhịp. Cụm bánh xe di chuyển dọc dầm nên vị trí tạo mô men lớn nhất và vị trí tạo lực cắt lớn nhất có thể khác nhau.',
+          'Cách làm thận trọng là đặt cụm bánh xe tại nhiều vị trí, tính M và Q cho từng vị trí, sau đó lấy giá trị bất lợi nhất để kiểm tra tiết diện.'
+        ],
+      },
+      {
+        heading: 'Công thức đặc trưng tiết diện dầm thép',
+        bluf:
+          'Ứng suất và độ võng phụ thuộc mạnh vào Jx, Jy, Wx và Wy. Dầm đủ bền nhưng thiếu Jx vẫn có thể không đạt độ võng.',
+        table: {
+          caption: 'Công thức đặc trưng tiết diện thường dùng',
+          note:
+            'Với dầm tổ hợp hàn hoặc tiết diện phức tạp, nên chia tiết diện thành các hình chữ nhật nhỏ rồi dùng định lý chuyển trục.',
+          headers: ['Đại lượng', 'Công thức', 'Ý nghĩa'],
+          rows: [
+            ['Diện tích tiết diện', 'A = tổng Ai', 'Tổng diện tích các bản cánh, bản bụng và chi tiết tham gia chịu lực.'],
+            ['Trọng tâm tiết diện', 'yc = tổng(Ai x yi) / tổng Ai', 'Dùng để xác định khoảng cách từ trọng tâm đến mép chịu kéo/nén.'],
+            ['Mô men quán tính chuyển trục', 'Jx = tổng(Jxi + Ai x di^2)', 'di là khoảng cách từ trọng tâm phần tử đến trọng tâm toàn tiết diện.'],
+            ['Mô đun chống uốn trên', 'Wx_tren = Jx / y_tren', 'Dùng kiểm tra ứng suất mép trên.'],
+            ['Mô đun chống uốn dưới', 'Wx_duoi = Jx / y_duoi', 'Dùng kiểm tra ứng suất mép dưới.'],
+            ['Bán kính quán tính', 'i = sqrt(J / A)', 'Dùng trong một số kiểm tra ổn định và độ mảnh.']
+          ],
+        },
+      },
+      {
+        heading: 'Công thức kiểm tra ứng suất, độ võng và hệ số an toàn',
+        bluf:
+          'Ba chỉ số cần đọc cùng nhau là ứng suất, độ võng và ổn định; không nên kết luận dầm đạt chỉ vì một chỉ số đạt.',
+        table: {
+          caption: 'Bảng công thức kiểm tra chính',
+          note:
+            'Ký hiệu sigma_allow, f_allow và các điều kiện ổn định phải lấy theo tiêu chuẩn, yêu cầu dự án hoặc dữ liệu thiết bị phù hợp.',
+          headers: ['Kiểm tra', 'Công thức', 'Cách đọc kết quả'],
+          rows: [
+            ['Ứng suất uốn', 'sigma_u = Mmax / Wx', 'So sánh sigma_u với sigma_allow.'],
+            ['Ứng suất cắt sơ bộ', 'tau = Qmax / A_web', 'A_web là diện tích chịu cắt chính của bản bụng.'],
+            ['Hệ số ứng suất', 'K_sigma = sigma_allow / sigma_u', 'K_sigma >= 1 thường nghĩa là đạt theo kiểm tra ứng suất sơ bộ.'],
+            ['Độ võng do tải tập trung giữa nhịp', 'f = P x L^3 / (48 x E x Jx)', 'Dùng cho dầm đơn giản, tải tập trung giữa nhịp.'],
+            ['Độ võng do tải phân bố đều', 'f = 5 x q x L^4 / (384 x E x Jx)', 'Dùng cho dầm đơn giản chịu tải phân bố đều.'],
+            ['Hệ số độ võng', 'n_f = f_allow / f', 'n_f >= 1 thường nghĩa là đạt theo điều kiện độ võng sơ bộ.'],
+            ['Kiểm tra ổn định sơ bộ', 'K_buckling = sigma_cr / sigma_u', 'Cần đối chiếu công thức ổn định theo TCVN 5575:2024 cho trường hợp cụ thể.']
+          ],
+        },
+      },
+      {
+        heading: 'Ví dụ tính nhanh để hiểu cách thay số',
+        bluf:
+          'Ví dụ dưới đây chỉ minh họa cách đọc công thức; không dùng để chốt thiết kế thi công.',
+        orderedSteps: [
+          'Giả sử dầm đơn giản có nhịp L = 6 m, tải tập trung quy đổi P = 50 kN đặt gần giữa nhịp để ước tính nhanh.',
+          'Mô men uốn sơ bộ: Mmax = P x L / 4 = 50 x 6 / 4 = 75 kN.m.',
+          'Nếu tiết diện có Wx = 800 cm3, cần đổi đơn vị nhất quán trước khi tính sigma_u = Mmax / Wx.',
+          'Nếu ứng suất gần giới hạn cho phép, không nên chỉ tăng mác thép; cần kiểm tra thêm độ võng vì f phụ thuộc E và Jx.',
+          'Nếu độ võng không đạt, hướng xử lý thường là tăng chiều cao dầm hoặc chọn tiết diện có Jx lớn hơn.'
+        ],
+      },
+      {
+        heading: 'Những lỗi thường gặp khi dùng công thức',
+        bluf:
+          'Công thức đúng nhưng đơn vị sai hoặc tải đầu vào sai vẫn cho kết quả sai.',
+        bullets: [
+          'Dùng kg, kN, cm, mm lẫn lộn nhưng không đổi đơn vị trước khi thay số.',
+          'Lấy tải nâng P_nang mà quên tự trọng xe con, tự trọng cầu trục và hệ số động.',
+          'Dùng công thức tải giữa nhịp cho trường hợp cụm bánh xe thực tế không nằm giữa nhịp.',
+          'Chỉ kiểm tra sigma_u mà bỏ qua tau, độ võng, ổn định và cấu tạo sườn tăng cứng.',
+          'Dùng bảng tra tiết diện nhưng không kiểm tra lại trọng tâm, Jx, Wx theo kích thước thực tế.'
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: 'Có thể dùng một công thức duy nhất để tính dầm cầu trục không?',
+        answer:
+          'Không nên. Dầm cầu trục cần nhiều nhóm công thức: tải trọng, nội lực, đặc trưng tiết diện, ứng suất, độ võng và ổn định. Một công thức đơn lẻ không đủ để kết luận dầm đạt.'
+      },
+      {
+        question: 'Công thức M = P x L / 4 có dùng được cho mọi cầu trục không?',
+        answer:
+          'Không. Công thức này chỉ phù hợp kiểm tra sơ bộ dầm đơn giản với một tải tập trung ở giữa nhịp. Cầu trục thật có tải bánh xe di động nên phải xét vị trí bất lợi của cụm bánh xe.'
+      },
+      {
+        question: 'Vì sao dầm đủ ứng suất nhưng vẫn không đạt?',
+        answer:
+          'Vì dầm còn phải đạt độ võng, ổn định và cấu tạo ray. Ứng suất phụ thuộc Wx, còn độ võng phụ thuộc Jx; hai điều kiện này không thay thế cho nhau.'
+      },
+    ],
+    references: [
+      {
+        label: 'TCVN 5575:2024',
+        note: 'Cơ sở kiểm tra cấu kiện thép, ứng suất, ổn định và điều kiện cấu tạo.'
+      },
+      {
+        label: 'TCVN 2737:2023',
+        note: 'Cơ sở xác định tải trọng, tác động và nguyên tắc tổ hợp tải.'
+      },
+      {
+        label: 'Cơ học kết cấu và sức bền vật liệu',
+        note: 'Nguồn nền tảng cho công thức nội lực, ứng suất, độ võng và đặc trưng tiết diện.'
       }
     ]
   },

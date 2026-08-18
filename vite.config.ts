@@ -23,6 +23,12 @@ export default defineConfig(({ mode }) => {
       assetsDir: 'assets',
       sourcemap: false,
       reportCompressedSize: true,
+      modulePreload: {
+        resolveDependencies: (filename, deps) =>
+          // Không preload chunk PDF nặng (~620 kB) ở lần tải đầu; nó chỉ được
+          // tải khi người dùng mở dialog xuất báo cáo (dynamic import).
+          deps.filter((dep) => !dep.includes('pdf-')),
+      },
       rollupOptions: {
         output: {
           manualChunks: {
