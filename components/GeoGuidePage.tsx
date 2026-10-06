@@ -8,6 +8,7 @@ import {
   type GuideSection,
   type GuideTable
 } from '../src/geo/guideContent';
+import RouteLink from './RouteLink';
 import GeoStructuredData from './GeoStructuredData';
 import { buildFAQPageJsonLd, buildTechArticleJsonLd, getRouteMetadata } from '../src/geo/seo';
 
@@ -33,18 +34,18 @@ const formulaPageSlug = '/huong-dan/cong-thuc-tinh-dam-cau-truc';
 const calculationProofPoints = [
   {
     label: 'Đầu vào',
-    value: '9 nhóm dữ liệu',
-    note: 'Tải bánh xe, nhịp dầm, vật liệu, tiết diện và chế độ vận hành.',
+    value: 'Hồ sơ cầu trục',
+    note: 'Tải bánh xe, sơ đồ gối, tiết diện, vật liệu và điều kiện vận hành.',
   },
   {
     label: 'Kiểm tra',
-    value: '5 lớp an toàn',
-    note: 'Bền, ổn định, độ võng, cấu tạo ray và chi tiết liên kết.',
+    value: 'Các mục cần rà soát',
+    note: 'Ứng suất, độ võng, ổn định, ray và liên kết cần mô hình dầm đỡ ray riêng.',
   },
   {
     label: 'Đầu ra',
-    value: 'PDF + biểu đồ',
-    note: 'Nội lực, ứng suất, độ võng và bảng thông số để rà soát.',
+    value: 'Thuyết minh tính toán',
+    note: 'Ghi giả thiết, sơ đồ tải và kết quả kiểm tra để đối chiếu.',
   },
 ];
 
@@ -309,7 +310,7 @@ const ArticleAside: React.FC<{ article: GuideArticle; sectionIds: string[] }> = 
 export const GeoGuidePage: React.FC<GeoGuidePageProps> = ({ slug, article, onBack, onNavigate }) => {
   const currentSlug =
     slug || (typeof window !== 'undefined' ? window.location.pathname : guideArticles[0]?.slug);
-  const selectedArticle = article || getGuideArticleBySlug(currentSlug || '') || guideArticles[0];
+  const selectedArticle = article || getGuideArticleBySlug(currentSlug || '');
 
   if (!selectedArticle) {
     return (
@@ -334,7 +335,6 @@ export const GeoGuidePage: React.FC<GeoGuidePageProps> = ({ slug, article, onBac
           headline: selectedArticle.title,
           description: selectedArticle.description,
           path: routeMeta.path,
-          datePublished: selectedArticle.updatedAt,
           dateModified: selectedArticle.updatedAt,
           sections: selectedArticle.sections.map((section) => section.heading),
         }),
@@ -343,7 +343,7 @@ export const GeoGuidePage: React.FC<GeoGuidePageProps> = ({ slug, article, onBac
     : [];
 
   return (
-    <main className="bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-200">
+    <div className="bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-200">
       <GeoStructuredData schemas={articleSchemas} />
       <article>
         <header className="relative overflow-hidden border-b border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
@@ -357,16 +357,14 @@ export const GeoGuidePage: React.FC<GeoGuidePageProps> = ({ slug, article, onBac
           />
           <div className="relative mx-auto grid max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_25rem] lg:px-8 lg:py-12">
             <div>
-              {onBack && (
-                <button
-                  type="button"
-                  onClick={onBack}
+              <RouteLink
+                  href="/"
+                  onNavigate={onBack ? () => onBack() : onNavigate}
                   className="mb-6 inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:text-slate-950 focus:outline-none focus:ring-2 focus:ring-blue-500 active:translate-y-0 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700 dark:hover:text-white"
                 >
                   <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                  Quay lại
-                </button>
-              )}
+                  Mở công cụ tính toán
+                </RouteLink>
               <div className="mb-5 flex flex-wrap gap-3 text-sm text-slate-600 dark:text-slate-400">
                 <span className="inline-flex items-center gap-2 rounded-md bg-white px-3 py-1.5 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
                   <BookOpen className="h-4 w-4 text-blue-500" aria-hidden="true" />
@@ -454,13 +452,13 @@ export const GeoGuidePage: React.FC<GeoGuidePageProps> = ({ slug, article, onBac
                     Mở trang công thức để xem cách tính tải trọng, mô men, lực cắt, đặc trưng tiết diện,
                     ứng suất, độ võng và hệ số kiểm tra theo từng nhóm công thức.
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => (onNavigate ? onNavigate(formulaPageSlug) : (window.location.href = formulaPageSlug))}
+                  <RouteLink
+                    href={formulaPageSlug}
+                    onNavigate={onNavigate}
                     className="mt-4 inline-flex items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 active:translate-y-0 dark:bg-blue-500 dark:hover:bg-blue-400"
                   >
                     Xem công thức tính chi tiết
-                  </button>
+                  </RouteLink>
                 </div>
               </section>
             )}
@@ -485,10 +483,19 @@ export const GeoGuidePage: React.FC<GeoGuidePageProps> = ({ slug, article, onBac
               </div>
             </section>
 
+            <nav aria-label="Hướng dẫn liên quan" className="rounded-md bg-white p-5 dark:bg-slate-900">
+              <h2 className="text-xl font-bold">Hướng dẫn liên quan</h2>
+              <ul className="mt-4 space-y-3">
+                {guideArticles.filter((item) => item.slug !== selectedArticle.slug).map((item) => (
+                  <li key={item.slug}><RouteLink href={item.slug} onNavigate={onNavigate} className="text-blue-600 underline dark:text-blue-400">{item.title}</RouteLink></li>
+                ))}
+                <li><RouteLink href="/faq" onNavigate={onNavigate} className="text-blue-600 underline dark:text-blue-400">Câu hỏi thường gặp về dầm cầu trục</RouteLink></li>
+              </ul>
+            </nav>
             <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
               <section aria-labelledby="references" className="rounded-md bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
                 <h2 id="references" className="text-xl font-bold text-slate-950 dark:text-white">
-                  Nguồn tham khảo
+                  Tài liệu cần tham khảo
                 </h2>
                 <ul className="mt-4 space-y-3">
                   {selectedArticle.references.map((reference) => (
@@ -513,7 +520,7 @@ export const GeoGuidePage: React.FC<GeoGuidePageProps> = ({ slug, article, onBac
           </div>
         </div>
       </article>
-    </main>
+    </div>
   );
 };
 

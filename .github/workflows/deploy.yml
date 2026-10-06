@@ -44,9 +44,11 @@ jobs:
           # Inject Gemini API key for Vite define
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-      - name: Add SPA fallback and nojekyll
+      - name: Validate SEO output
+        run: npm run check:seo
+
+      - name: Add nojekyll
         run: |
-          cp dist/index.html dist/404.html
           touch dist/.nojekyll
 
       - name: Upload artifact

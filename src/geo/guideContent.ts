@@ -52,26 +52,26 @@ export type GuideArticle = {
 
 export const guideArticles: GuideArticle[] = [
   {
-    title: 'Dầm cầu trục là gì? Cấu tạo và phân loại theo thiết kế nhà xưởng',
+    title: 'Dầm cầu trục là gì? Dầm chính, dầm biên và dầm đỡ ray',
     slug: '/huong-dan/dam-cau-truc-la-gi',
     description:
-      'Giải thích dầm cầu trục là gì, dầm gồm những bộ phận nào, thường dùng dạng tiết diện nào và khi nào cần tính toán kiểm tra.',
+      'Phân biệt dầm chính, dầm biên và dầm đỡ ray cầu trục; hiểu đường truyền tải và dữ liệu cần chuẩn bị trước khi tính toán.',
     summary:
-      'BLUF: Dầm cầu trục là dầm thép đỡ ray để cầu trục di chuyển trong nhà xưởng và truyền tải bánh xe xuống hệ cột hoặc khung chính. Khi thiết kế, cần kiểm tra tải đứng, tải ngang, ứng suất, ổn định và độ võng theo TCVN 5575:2024, đồng thời xác định tải trọng theo TCVN 2737:2023 và dữ liệu thiết bị.',
-    updatedAt: '2026-06-05',
+      'Dầm chính đỡ pa lăng hoặc xe con và đi cùng cầu trục; dầm biên nối với dầm chính và mang bánh xe di chuyển; dầm đỡ ray cố định dọc nhà xưởng nhận phản lực bánh xe. Phần hướng dẫn kết cấu nhà xưởng dưới đây tập trung vào dầm đỡ ray. Công cụ trang chủ tính sơ bộ dầm chính và có mô đun dầm biên.',
+    updatedAt: '2026-10-06',
     readingTime: '7 phút đọc',
     sections: [
       {
-        heading: 'Dầm cầu trục là gì?',
+        heading: 'Dầm đỡ ray cầu trục là gì?',
         bluf:
-          'Dầm cầu trục là cấu kiện thép nằm dọc nhà xưởng, đỡ ray chạy của cầu trục và nhận tải từ bánh xe cầu trục.',
+          'Dầm đỡ ray là cấu kiện cố định nằm dọc nhà xưởng, đỡ ray chạy của cầu trục và nhận tải từ bánh xe cầu trục.',
         paragraphs: [
           'Trong nhà xưởng công nghiệp, cầu trục di chuyển trên ray để nâng hạ vật nặng. Ray đó không đặt trực tiếp lên tường hoặc mái, mà thường đặt trên dầm cầu trục. Dầm này nhận tải bánh xe, tải va đập, lực ngang khi cầu trục phanh hoặc lệch tải, rồi truyền xuống vai cột, console hoặc hệ khung chính.',
           'Với thiết kế kết cấu thép, TCVN 5575:2024 là tiêu chuẩn cần tham chiếu khi kiểm tra cấu kiện thép. TCVN 2737:2023 là tài liệu cần tham chiếu khi xác định tải trọng và tác động. Hai tiêu chuẩn này không thay thế catalogue cầu trục; dữ liệu bánh xe và chế độ vận hành vẫn phải lấy từ hồ sơ thiết bị.'
         ],
       },
       {
-        heading: 'Cấu tạo chính của dầm cầu trục gồm những bộ phận nào?',
+        heading: 'Cấu tạo chính của dầm đỡ ray gồm những bộ phận nào?',
         bluf:
           'Một dầm cầu trục thường gồm bản cánh, bản bụng, ray, sườn tăng cứng, liên kết gối và có thể có dầm hãm nếu tải ngang lớn.',
         bullets: [
@@ -101,12 +101,12 @@ export const guideArticles: GuideArticle[] = [
         },
       },
       {
-        heading: 'Ví dụ thực tế khi nhận dữ liệu cầu trục',
+        heading: 'Ví dụ minh họa khi nhận dữ liệu cầu trục',
         bluf:
           'Nếu chỉ biết sức nâng 5 tấn thì chưa đủ để chọn dầm; cần thêm nhịp, tải bánh xe, khoảng cách bánh và chế độ làm việc.',
         paragraphs: [
-          'Ví dụ một nhà xưởng có cầu trục 5 tấn, bước cột 6 m và ray chạy dọc nhà. Người thiết kế cần biết dầm cầu trục đặt trên từng bước cột hay liên tục qua nhiều cột, tải bánh xe lớn nhất là bao nhiêu, khoảng cách bánh xe thế nào và có lực ngang do phanh hay không.',
-          'Nếu chỉ chọn thép I theo kinh nghiệm, dầm có thể đủ bền nhưng võng lớn, ray chạy không êm hoặc bản cánh trên bị ép cục bộ. Cách làm tốt hơn là nhập dữ liệu vào công cụ tính, kiểm tra ứng suất, độ võng, ổn định rồi mới so sánh phương án tiết diện.'
+          'Ví dụ giả định, không phải dữ liệu dự án: một nhà xưởng có cầu trục 5 tấn, bước cột 6 m và ray chạy dọc nhà. Người thiết kế cần biết dầm cầu trục đặt trên từng bước cột hay liên tục qua nhiều cột, tải bánh xe lớn nhất là bao nhiêu, khoảng cách bánh xe thế nào và có lực ngang do phanh hay không.',
+          'Nếu chỉ chọn thép I theo kinh nghiệm, dầm có thể đủ bền nhưng võng lớn, ray chạy không êm hoặc bản cánh trên bị ép cục bộ. Cần dùng mô hình dầm đỡ ray có xét hệ bánh xe di động để kiểm tra và so sánh tiết diện; công cụ dầm chính trên trang chủ không thực hiện bước này.'
         ],
       },
       {
@@ -154,13 +154,13 @@ export const guideArticles: GuideArticle[] = [
     ],
   },
   {
-    title: 'Cách tính tải trọng dầm cầu trục theo TCVN 2737:2023',
+    title: 'Tải trọng dầm đỡ ray cầu trục: dữ liệu cần chuẩn bị',
     slug: '/huong-dan/tai-trong-dam-cau-truc',
     description:
-      'Hướng dẫn xác định tải đứng, tải ngang, tải động và dữ liệu bánh xe cần chuẩn bị trước khi tính dầm cầu trục.',
+      'Hướng dẫn chuẩn bị tải bánh xe, tải ngang và tải động cho dầm đỡ ray cố định của nhà xưởng; các dữ liệu này khác tải nâng và xe con nhập vào mô hình dầm chính.',
     summary:
-      'BLUF: Tải trọng dầm cầu trục không chỉ là sức nâng danh nghĩa. Cần quy đổi hàng nâng, tự trọng xe con, tự trọng cầu trục, tải bánh xe, tải động và lực ngang thành các trường hợp tác dụng bất lợi; TCVN 2737:2023 dùng để đối chiếu nguyên tắc tải trọng, còn TCVN 5575:2024 dùng cho kiểm tra cấu kiện thép.',
-    updatedAt: '2026-06-05',
+      'Bài này xét dầm đỡ ray, nhận phản lực từ bánh xe cầu trục. Công cụ trang chủ dùng tải nâng và xe con quy đổi giữa nhịp cho dầm chính; chưa nhận hệ bánh xe di động hoặc tải ngang riêng. Tải trọng dầm đỡ ray không chỉ là sức nâng danh nghĩa. Cần quy đổi hàng nâng, tự trọng xe con, tự trọng cầu trục, tải bánh xe, tải động và lực ngang thành các trường hợp tác dụng bất lợi; TCVN 2737:2023 dùng để đối chiếu nguyên tắc tải trọng, còn TCVN 5575:2024 dùng cho kiểm tra cấu kiện thép.',
+    updatedAt: '2026-10-06',
     readingTime: '8 phút đọc',
     sections: [
       {
@@ -213,7 +213,7 @@ export const guideArticles: GuideArticle[] = [
         bluf:
           'Nếu catalogue ghi tải bánh xe lớn nhất 65 kN/bánh, người tính nên dùng hệ bánh xe và khoảng cách bánh để tìm vị trí nội lực bất lợi trên dầm.',
         paragraphs: [
-          'Giả sử cầu trục có hai bánh trên một ray, tải bánh xe lớn nhất là 65 kN/bánh và khoảng cách hai bánh là 2.500 mm. Khi kiểm tra dầm theo phương đứng, không nên cộng đơn giản thành 130 kN đặt giữa nhịp nếu vị trí thực tế của bánh xe có thể tạo mô men hoặc lực cắt khác.',
+          'Ví dụ giả định để đọc tải, không phải dữ liệu catalogue: cầu trục có hai bánh trên một ray, tải bánh xe lớn nhất là 65 kN/bánh và khoảng cách hai bánh là 2.500 mm. Khi kiểm tra dầm theo phương đứng, không nên cộng đơn giản thành 130 kN đặt giữa nhịp nếu vị trí thực tế của bánh xe có thể tạo mô men hoặc lực cắt khác.',
           'Người tính nên quét vị trí cụm bánh xe dọc theo nhịp dầm để tìm mô men và lực cắt lớn nhất. Sau đó mới dùng kết quả nội lực để kiểm tra ứng suất, ổn định và độ võng theo TCVN 5575:2024. Cách này giúp tránh trường hợp kết quả nhìn có vẻ hợp lý nhưng bỏ sót vị trí bất lợi.'
         ],
       },
@@ -263,13 +263,13 @@ export const guideArticles: GuideArticle[] = [
     ],
   },
   {
-    title: 'Cách tính toán dầm cầu trục theo TCVN 5575:2024',
+    title: 'Cách tính dầm đỡ ray cầu trục trong nhà xưởng',
     slug: '/huong-dan/tinh-toan-dam-cau-truc',
     description:
-      'Quy trình tính toán dầm cầu trục nhà xưởng theo hướng dễ hiểu: xác định tải, lập sơ đồ, kiểm tra bền, ổn định, độ võng và hoàn thiện hồ sơ.',
+      'Quy trình tham khảo cho dầm đỡ ray cố định của nhà xưởng: chuẩn bị tải bánh xe, lập sơ đồ, chọn tiết diện và xác định các kiểm tra cần thực hiện.',
     summary:
-      'BLUF: Tính dầm cầu trục nên bắt đầu từ tải bánh xe và tổ hợp tải, sau đó kiểm tra ứng suất, ổn định, độ võng và chi tiết liên kết. TCVN 5575:2024 dùng cho kết cấu thép; TCVN 2737:2023 dùng để xác định tác động và tổ hợp tải, nhưng cần đọc bản tiêu chuẩn gốc cho dự án cụ thể.',
-    updatedAt: '2026-06-04',
+      'Bài này trình bày quy trình cho dầm đỡ ray cố định của nhà xưởng. Công cụ trang chủ tính sơ bộ dầm chính với tải điểm giữa nhịp; không tự động thực hiện quy trình tải bánh xe di động dưới đây. Tính dầm đỡ ray nên bắt đầu từ tải bánh xe và tổ hợp tải, sau đó kiểm tra ứng suất, ổn định, độ võng và chi tiết liên kết. TCVN 5575:2024 dùng cho kết cấu thép; TCVN 2737:2023 dùng để xác định tác động và tổ hợp tải, nhưng cần đọc bản tiêu chuẩn gốc cho dự án cụ thể.',
+    updatedAt: '2026-10-06',
     readingTime: '8 phút đọc',
     sections: [
       {
@@ -385,8 +385,8 @@ export const guideArticles: GuideArticle[] = [
     description:
       'Tổng hợp các công thức cốt lõi để tính tải trọng, nội lực, ứng suất, độ võng, đặc trưng tiết diện và hệ số kiểm tra dầm cầu trục.',
     summary:
-      'BLUF: Công thức tính dầm cầu trục thường đi theo chuỗi: xác định tải bánh xe, tính nội lực bất lợi, tính đặc trưng tiết diện, kiểm tra ứng suất, kiểm tra độ võng và kiểm tra ổn định. Các công thức dưới đây dùng cho kiểm tra sơ bộ; khi lập hồ sơ thật cần đối chiếu TCVN 5575:2024, TCVN 2737:2023 và dữ liệu cầu trục của nhà sản xuất.',
-    updatedAt: '2026-06-05',
+      'Công thức tải điểm giữa nhịp phù hợp mô hình dầm đơn giản; không thay thế việc quét tải bánh xe trên dầm đỡ ray. Công cụ trang chủ dùng mô hình dầm chính quy đổi giữa nhịp cùng tự trọng dầm. Công thức tính dầm cầu trục thường đi theo chuỗi: xác định tải bánh xe, tính nội lực bất lợi, tính đặc trưng tiết diện, kiểm tra ứng suất, kiểm tra độ võng và kiểm tra ổn định. Các công thức dưới đây dùng cho kiểm tra sơ bộ; khi lập hồ sơ thật cần đối chiếu TCVN 5575:2024, TCVN 2737:2023 và dữ liệu cầu trục của nhà sản xuất.',
+    updatedAt: '2026-10-06',
     readingTime: '9 phút đọc',
     sections: [
       {
@@ -419,7 +419,7 @@ export const guideArticles: GuideArticle[] = [
         table: {
           caption: 'Nhóm công thức tải trọng và nội lực sơ bộ',
           note:
-            'Các công thức này dùng để kiểm tra nhanh dầm đơn giản. Với tải bánh xe di động, cần quét vị trí bánh xe để tìm Mmax và Qmax bất lợi.',
+            'Các công thức này minh họa dầm đơn giản. Công cụ trang chủ tự tính q từ tiết diện, không có ô nhập q riêng. Với dầm đỡ ray chịu tải bánh xe di động, cần mô hình quét vị trí bánh xe để tìm Mmax và Qmax bất lợi.',
           headers: ['Nội dung', 'Công thức sơ bộ', 'Ghi chú sử dụng'],
           rows: [
             ['Tải đứng quy đổi', 'P = P_nang + P_thietbi', 'Cần cộng thêm hệ số động nếu tiêu chuẩn hoặc hồ sơ thiết bị yêu cầu.'],
@@ -470,7 +470,7 @@ export const guideArticles: GuideArticle[] = [
             ['Độ võng do tải tập trung giữa nhịp', 'f = P x L^3 / (48 x E x Jx)', 'Dùng cho dầm đơn giản, tải tập trung giữa nhịp.'],
             ['Độ võng do tải phân bố đều', 'f = 5 x q x L^4 / (384 x E x Jx)', 'Dùng cho dầm đơn giản chịu tải phân bố đều.'],
             ['Hệ số độ võng', 'n_f = f_allow / f', 'n_f >= 1 thường nghĩa là đạt theo điều kiện độ võng sơ bộ.'],
-            ['Kiểm tra ổn định sơ bộ', 'K_buckling = sigma_cr / sigma_u', 'Cần đối chiếu công thức ổn định theo TCVN 5575:2024 cho trường hợp cụ thể.']
+            ['Chỉ số độ mảnh bản cánh', 'K_buckling = lambda_limit / (c / t)', 'Chỉ số độ mảnh bản cánh theo cách code hiện tính; c là chiều rộng đại diện, t chiều dày bản cánh, lambda_limit phụ thuộc loại tiết diện và vật liệu. Không phải kiểm tra ổn định tổng thể.']
           ],
         },
       },
@@ -537,8 +537,8 @@ export const guideArticles: GuideArticle[] = [
     description:
       'Hướng dẫn chọn sơ bộ tiết diện dầm cầu trục: thép hình I, dầm tổ hợp hàn, dầm hộp và các tiêu chí kiểm tra trước khi chốt bản vẽ.',
     summary:
-      'BLUF: Chọn tiết diện dầm cầu trục không nên chỉ dựa vào nhịp và sức nâng. Cần chọn sơ bộ theo độ cứng, tải bánh xe, chế độ làm việc và khả năng chế tạo, rồi kiểm tra lại theo TCVN 5575:2024 và tải trọng theo TCVN 2737:2023.',
-    updatedAt: '2026-06-04',
+      'Bài này tập trung chọn tiết diện dầm đỡ ray của nhà xưởng. Các kiểm tra tải bánh xe, dầm hãm và liên kết ray cần mô hình riêng, ngoài phạm vi công cụ dầm chính trên trang chủ. Chọn tiết diện dầm đỡ ray không nên chỉ dựa vào nhịp và sức nâng. Cần chọn sơ bộ theo độ cứng, tải bánh xe, chế độ làm việc và khả năng chế tạo, rồi kiểm tra lại theo TCVN 5575:2024 và tải trọng theo TCVN 2737:2023.',
+    updatedAt: '2026-10-06',
     readingTime: '7 phút đọc',
     sections: [
       {
@@ -648,8 +648,8 @@ export const guideArticles: GuideArticle[] = [
     description:
       'Giải thích độ võng dầm cầu trục, cách tính sơ bộ, dữ liệu cần có và vì sao phải kiểm tra độ cứng bên cạnh kiểm tra ứng suất.',
     summary:
-      'BLUF: Độ võng dầm cầu trục phải được kiểm tra vì ray cần giữ ổn định để cầu trục chạy êm và an toàn. Không nên dùng một giới hạn truyền miệng cho mọi dự án; hãy kiểm tra theo tiêu chuẩn, hồ sơ thiết bị và yêu cầu vận hành cụ thể.',
-    updatedAt: '2026-06-04',
+      'Bài này tập trung độ võng dầm đỡ ray, với hệ bánh xe và yêu cầu cao trình ray. Công cụ trang chủ chỉ tính độ võng sơ bộ dầm chính theo tải điểm quy đổi giữa nhịp cùng tự trọng; không quét vị trí cụm bánh xe cho dầm đỡ ray. Không nên dùng một giới hạn truyền miệng cho mọi dự án; hãy kiểm tra theo tiêu chuẩn, hồ sơ thiết bị và yêu cầu vận hành cụ thể.',
+    updatedAt: '2026-10-06',
     readingTime: '6 phút đọc',
     sections: [
       {
