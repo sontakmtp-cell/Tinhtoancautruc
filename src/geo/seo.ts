@@ -73,9 +73,9 @@ export const organization = {
 export const routeMetadata: RouteMetadata[] = [
   {
     path: '/',
-    title: 'Công cụ tính toán dầm cầu trục online theo TCVN 5575:2024',
+    title: 'Tính toán dầm cầu trục online | Kỹ Thuật Vàng',
     description:
-      'Crane Beam Design Studio hỗ trợ tính toán, kiểm tra bền, ổn định, độ võng và xuất báo cáo PDF cho dầm cầu trục nhà xưởng.',
+      'Tính sơ bộ dầm chính cầu trục với dữ liệu tiết diện, tải nâng và xe con. Xem ứng suất, độ võng, độ mảnh bản cánh và xuất báo cáo PDF.',
     canonicalUrl: `${SITE_URL}/`,
     changefreq: 'weekly',
     priority: 1,
@@ -89,7 +89,7 @@ export const routeMetadata: RouteMetadata[] = [
   },
   {
     path: '/faq',
-    title: 'FAQ tính toán dầm cầu trục theo TCVN',
+    title: 'Câu hỏi thường gặp về tính dầm cầu trục',
     description:
       'Câu hỏi thường gặp về dầm cầu trục, tiêu chuẩn TCVN, tải trọng, độ võng và cách dùng công cụ tính toán online.',
     canonicalUrl: `${SITE_URL}/faq`,
@@ -108,16 +108,16 @@ export const routeMetadata: RouteMetadata[] = [
   },
   {
     path: '/huong-dan/dam-cau-truc-la-gi',
-    title: 'Dầm cầu trục là gì? Cấu tạo và phân loại',
+    title: 'Dầm cầu trục là gì? Dầm chính, dầm biên và dầm đỡ ray',
     description:
-      'Giải thích dầm cầu trục, cấu tạo chính, các dạng tiết diện phổ biến và dữ liệu cần có trước khi tính toán theo TCVN.',
+      'Phân biệt dầm chính, dầm biên và dầm đỡ ray cầu trục; hiểu đường truyền tải và dữ liệu cần chuẩn bị trước khi tính toán.',
     canonicalUrl: `${SITE_URL}/huong-dan/dam-cau-truc-la-gi`,
     changefreq: 'monthly',
     priority: 0.9,
     type: 'article',
     breadcrumb: [
       { name: 'Trang chủ', path: '/' },
-      { name: 'Hướng dẫn', path: '/huong-dan' },
+      { name: 'Hướng dẫn tính toán', path: '/huong-dan/tinh-toan-dam-cau-truc' },
       { name: 'Dầm cầu trục là gì', path: '/huong-dan/dam-cau-truc-la-gi' },
     ],
     sitemap: {
@@ -128,16 +128,16 @@ export const routeMetadata: RouteMetadata[] = [
   },
   {
     path: '/huong-dan/tai-trong-dam-cau-truc',
-    title: 'Cách tính tải trọng dầm cầu trục theo TCVN 2737:2023',
+    title: 'Tải trọng dầm đỡ ray cầu trục: dữ liệu cần chuẩn bị',
     description:
-      'Hướng dẫn xác định tải đứng, tải ngang, tải động và dữ liệu bánh xe khi tính dầm cầu trục nhà xưởng.',
+      'Hướng dẫn chuẩn bị tải bánh xe, tải ngang và tải động cho dầm đỡ ray nhà xưởng; phân biệt với tải nâng và xe con của dầm chính.',
     canonicalUrl: `${SITE_URL}/huong-dan/tai-trong-dam-cau-truc`,
     changefreq: 'monthly',
     priority: 0.9,
     type: 'article',
     breadcrumb: [
       { name: 'Trang chủ', path: '/' },
-      { name: 'Hướng dẫn', path: '/huong-dan' },
+      { name: 'Hướng dẫn tính toán', path: '/huong-dan/tinh-toan-dam-cau-truc' },
       { name: 'Tải trọng dầm cầu trục', path: '/huong-dan/tai-trong-dam-cau-truc' },
     ],
     sitemap: {
@@ -148,16 +148,15 @@ export const routeMetadata: RouteMetadata[] = [
   },
   {
     path: '/huong-dan/tinh-toan-dam-cau-truc',
-    title: 'Cách tính toán dầm cầu trục theo TCVN 5575:2024',
+    title: 'Cách tính dầm đỡ ray cầu trục trong nhà xưởng',
     description:
-      'Hướng dẫn từng bước xác định tải trọng, chọn sơ bộ tiết diện và kiểm tra dầm cầu trục nhà xưởng theo tiêu chuẩn Việt Nam.',
+      'Quy trình tham khảo cho dầm đỡ ray nhà xưởng: chuẩn bị tải bánh xe, lập sơ đồ, chọn tiết diện và xác định các kiểm tra cần thực hiện.',
     canonicalUrl: `${SITE_URL}/huong-dan/tinh-toan-dam-cau-truc`,
     changefreq: 'monthly',
     priority: 0.9,
     type: 'article',
     breadcrumb: [
       { name: 'Trang chủ', path: '/' },
-      { name: 'Hướng dẫn', path: '/huong-dan' },
       { name: 'Tính toán dầm cầu trục', path: '/huong-dan/tinh-toan-dam-cau-truc' },
     ],
     sitemap: {
@@ -177,7 +176,7 @@ export const routeMetadata: RouteMetadata[] = [
     type: 'article',
     breadcrumb: [
       { name: 'Trang chủ', path: '/' },
-      { name: 'Hướng dẫn', path: '/huong-dan' },
+      { name: 'Hướng dẫn tính toán', path: '/huong-dan/tinh-toan-dam-cau-truc' },
       { name: 'Công thức tính dầm cầu trục', path: '/huong-dan/cong-thuc-tinh-dam-cau-truc' },
     ],
     sitemap: {
@@ -197,7 +196,7 @@ export const routeMetadata: RouteMetadata[] = [
     type: 'article',
     breadcrumb: [
       { name: 'Trang chủ', path: '/' },
-      { name: 'Hướng dẫn', path: '/huong-dan' },
+      { name: 'Hướng dẫn tính toán', path: '/huong-dan/tinh-toan-dam-cau-truc' },
       { name: 'Chọn tiết diện dầm cầu trục', path: '/huong-dan/chon-tiet-dien-dam-cau-truc' },
     ],
     sitemap: {
@@ -208,7 +207,7 @@ export const routeMetadata: RouteMetadata[] = [
   },
   {
     path: '/huong-dan/kiem-tra-do-vong-dam-cau-truc',
-    title: 'Kiểm tra độ võng dầm cầu trục theo TCVN',
+    title: 'Kiểm tra độ võng dầm cầu trục: dữ liệu và giới hạn',
     description:
       'Giải thích cách kiểm tra độ võng đứng, độ võng ngang và giới hạn sử dụng khi thiết kế dầm cầu trục.',
     canonicalUrl: `${SITE_URL}/huong-dan/kiem-tra-do-vong-dam-cau-truc`,
@@ -217,7 +216,7 @@ export const routeMetadata: RouteMetadata[] = [
     type: 'article',
     breadcrumb: [
       { name: 'Trang chủ', path: '/' },
-      { name: 'Hướng dẫn', path: '/huong-dan' },
+      { name: 'Hướng dẫn tính toán', path: '/huong-dan/tinh-toan-dam-cau-truc' },
       { name: 'Kiểm tra độ võng dầm cầu trục', path: '/huong-dan/kiem-tra-do-vong-dam-cau-truc' },
     ],
     sitemap: {
@@ -261,7 +260,7 @@ export function buildWebSiteJsonLd(): JsonLdObject {
     alternateName: 'Công cụ tính toán dầm cầu trục online',
     url: `${SITE_URL}/`,
     description:
-      'Công cụ tính toán dầm cầu trục trực tuyến miễn phí cho kỹ sư kết cấu và sinh viên xây dựng tại Việt Nam.',
+      'Công cụ trực tuyến miễn phí để tính sơ bộ dầm chính cầu trục từ tiết diện, khẩu độ, tải nâng và tự trọng xe con.',
     inLanguage: 'vi-VN',
     publisher: {
       '@type': 'Organization',
@@ -271,14 +270,6 @@ export function buildWebSiteJsonLd(): JsonLdObject {
         '@type': 'ImageObject',
         url: organization.logo,
       },
-    },
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${SITE_URL}/?q={search_term_string}`,
-      },
-      'query-input': 'required name=search_term_string',
     },
   };
 }
@@ -300,19 +291,17 @@ export function buildWebApplicationJsonLd(): JsonLdObject {
       url: SITE_URL,
     },
     featureList: [
-      'Tính toán tải trọng dầm cầu trục',
-      'Kiểm tra bền và ổn định dầm thép',
+      'Tính sơ bộ dầm chính với tải điểm quy đổi giữa nhịp',
+      'Hiển thị ứng suất và kiểm tra độ mảnh bản cánh',
       'Kiểm tra độ võng dầm cầu trục',
-      'Kiểm tra mỏi theo nhóm chế độ làm việc khi có dữ liệu đầu vào',
       'Xuất báo cáo tính toán dạng PDF',
-      'Hỗ trợ thiết kế theo TCVN 5575:2024',
     ],
     offers: {
       '@type': 'Offer',
       price: '0',
       priceCurrency: 'VND',
     },
-    keywords: 'dầm cầu trục, TCVN 5575:2024, TCVN 2737:2023, tính toán kết cấu thép, crane beam calculator',
+    keywords: 'tính toán dầm cầu trục online, dầm chính cầu trục, tính sơ bộ dầm thép, crane beam calculator',
   };
 }
 
@@ -345,8 +334,8 @@ export function buildTechArticleJsonLd(article: TechArticleInput): JsonLdObject 
       '@id': url,
     },
     inLanguage: 'vi-VN',
-    datePublished: article.datePublished ?? '2026-06-04',
-    dateModified: article.dateModified ?? '2026-06-04',
+    ...(article.datePublished ? { datePublished: article.datePublished } : {}),
+    ...(article.dateModified ? { dateModified: article.dateModified } : {}),
     author: {
       '@type': 'Organization',
       name: article.authorName ?? ORGANIZATION_NAME,

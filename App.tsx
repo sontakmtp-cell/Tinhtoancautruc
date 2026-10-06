@@ -4,6 +4,7 @@ import { Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { CraneBeamCalculator } from './components/CraneBeamCalculator';
 import { TiktokFollowOverlay, TiktokFollowPreview } from './components/TiktokFollowPreview';
+import RouteLink from './components/RouteLink';
 import GeoStructuredData from './components/GeoStructuredData';
 import {
   buildBreadcrumbListJsonLd,
@@ -26,7 +27,7 @@ const getCurrentPath = () => {
     return '/';
   }
 
-  const path = window.location.pathname;
+  const path = window.location.pathname.replace(/\/index\.html$/, '') || '/';
   return path.endsWith('/') && path.length > 1 ? path.slice(0, -1) : path;
 };
 
@@ -46,8 +47,8 @@ const calculatorInputRows = [
   },
   {
     group: 'Tải trọng cầu trục',
-    fields: 'P_nang, P_thietbi, q',
-    purpose: 'Tính nội lực, ứng suất uốn, ứng suất cắt và độ võng do tải nâng và tải thiết bị.',
+    fields: 'P_nang, P_thietbi; tự trọng dầm tính tự động',
+    purpose: 'Tải nâng và xe con quy đổi thành tải điểm giữa nhịp; tự trọng dầm tính từ tiết diện thành tải phân bố.',
   },
   {
     group: 'Vật liệu thép',
@@ -57,14 +58,14 @@ const calculatorInputRows = [
   {
     group: 'Kết quả kiểm tra',
     fields: 'K_sigma, n_f, K_buckling, f, Mx, Jx, Jy',
-    purpose: 'Hiển thị đạt hoặc không đạt cho ứng suất, độ võng, ổn định và các thông số tính chính.',
+    purpose: 'Hiển thị các chỉ số ứng suất, độ võng, độ mảnh bản cánh và đặc trưng tiết diện theo mô hình sơ bộ.',
   },
 ];
 
 const calculatorChecks = [
-  'Kiểm tra ứng suất uốn và ứng suất cắt của dầm cầu trục.',
+  'Kiểm tra ứng suất uốn theo mô hình tải của dầm chính.',
   'Kiểm tra độ võng đứng theo nhịp dầm và độ cứng tiết diện.',
-  'Kiểm tra ổn định tổng thể, ổn định cục bộ và gợi ý sườn tăng cứng.',
+  'Kiểm tra độ mảnh bản cánh và gợi ý sườn tăng cứng theo mô hình hiện có.',
   'Vẽ biểu đồ nội lực, phân bố ứng suất và hình dạng võng sau khi bấm tính.',
   'Xuất báo cáo PDF có dữ liệu đầu vào, kết quả kiểm tra và biểu đồ kỹ thuật.',
 ];
@@ -77,13 +78,13 @@ const HomeCalculatorEvidence: React.FC<{ onNavigate: (path: string) => void }> =
           Công cụ tính toán đang hiển thị trên trang chủ
         </p>
         <h2 id="calculator-evidence-title" className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-          Trang này không chỉ là bài giới thiệu, mà có form nhập liệu và module tính thật
+          Nhập thông số và xem kết quả tính sơ bộ dầm cầu trục
         </h2>
         <p className="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-300">
-          Crane Beam Design Studio có các ô nhập số cho hình học tiết diện, tải trọng nâng, tải thiết bị,
-          vật liệu thép và nhịp dầm. Khi người dùng bấm nút tính, app chạy phép kiểm tra kết cấu và trả về
-          ứng suất, độ võng, ổn định, biểu đồ nội lực và báo cáo PDF. Phần dưới đây mô tả rõ các trường
-          input để crawler và AI bot nhận diện đây là một calculator, không phải trang nội dung mỏng.
+          Nhập hình học tiết diện, khẩu độ, tải nâng, tự trọng xe con và vật liệu để xem ứng suất,
+          độ võng, độ mảnh bản cánh và biểu đồ nội lực. Bảng dưới đây mô tả dữ liệu đầu vào và kết quả.
+          Mô hình dầm chính dùng tải điểm quy đổi giữa nhịp cùng tự trọng dầm phân bố; chưa quét
+          hệ bánh xe di động, nhận tải ngang riêng hoặc kiểm tra mỏi, ổn định tổng thể và liên kết.
         </p>
 
         <div className="mt-5 overflow-x-auto">
@@ -95,7 +96,7 @@ const HomeCalculatorEvidence: React.FC<{ onNavigate: (path: string) => void }> =
                   Nhóm dữ liệu
                 </th>
                 <th scope="col" className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">
-                  Tên trường trong calculator
+                  Trường nhập và đại lượng tính
                 </th>
                 <th scope="col" className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">
                   Dùng để làm gì
@@ -130,31 +131,27 @@ const HomeCalculatorEvidence: React.FC<{ onNavigate: (path: string) => void }> =
           ))}
         </ul>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-          <button
-            type="button"
-            onClick={() => onNavigate('/huong-dan/dam-cau-truc-la-gi')}
+          <RouteLink href="/huong-dan/dam-cau-truc-la-gi" onNavigate={onNavigate}
             className="rounded-md border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-900 transition hover:border-blue-400 hover:bg-blue-50 dark:border-gray-700 dark:text-white dark:hover:border-blue-500 dark:hover:bg-blue-950/30"
           >
-            Đọc cấu tạo dầm cầu trục
-          </button>
-          <button
-            type="button"
-            onClick={() => onNavigate('/huong-dan/tai-trong-dam-cau-truc')}
+            Phân biệt dầm chính và dầm đỡ ray
+          </RouteLink>
+          <RouteLink href="/huong-dan/tai-trong-dam-cau-truc" onNavigate={onNavigate}
             className="rounded-md border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-900 transition hover:border-blue-400 hover:bg-blue-50 dark:border-gray-700 dark:text-white dark:hover:border-blue-500 dark:hover:bg-blue-950/30"
           >
-            Xem cách xác định tải trọng
-          </button>
+            Dữ liệu tải bánh xe cho dầm đỡ ray
+          </RouteLink>
         </div>
       </aside>
     </div>
   </section>
 );
 
-const App: React.FC = () => {
-  const [currentPath, setCurrentPath] = useState(getCurrentPath);
+const App: React.FC<{ initialPath?: string }> = ({ initialPath }) => {
+  const [currentPath, setCurrentPath] = useState(() => initialPath ?? getCurrentPath());
   const [isDark, setIsDark] = useState(() => {
     // Kiểm tra localStorage trước, nếu không có thì mặc định là true (theme tối)
-    const saved = localStorage.getItem('theme');
+    const saved = typeof localStorage === 'undefined' ? null : localStorage.getItem('theme');
     return saved ? saved === 'dark' : true;
   });
   const [showTiktokFollow, setShowTiktokFollow] = useState(false);
@@ -269,11 +266,15 @@ const App: React.FC = () => {
     };
 
     setMetaContent('meta[property="og:url"]', currentRoute.canonicalUrl);
+    setMetaContent('meta[property="og:type"]', currentRoute.type === 'article' ? 'article' : 'website');
     setMetaContent('meta[property="og:title"]', currentRoute.title);
     setMetaContent('meta[property="og:description"]', currentRoute.description);
     setMetaContent('meta[name="twitter:url"]', currentRoute.canonicalUrl);
     setMetaContent('meta[name="twitter:title"]', currentRoute.title);
     setMetaContent('meta[name="twitter:description"]', currentRoute.description);
+    setMetaContent('meta[property="zalo:url"]', currentRoute.canonicalUrl);
+    setMetaContent('meta[property="zalo:title"]', currentRoute.title);
+    setMetaContent('meta[property="zalo:description"]', currentRoute.description);
   }, [currentRoute]);
 
   const renderMainContent = () => {
@@ -295,6 +296,14 @@ const App: React.FC = () => {
 
     return (
       <>
+        <section className="container mx-auto px-4 pt-8 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Tính toán dầm cầu trục online</h1>
+          <p className="mt-3 max-w-3xl text-base leading-7 text-gray-600 dark:text-gray-300">
+            Nhập kích thước tiết diện, khẩu độ, tải nâng và tự trọng xe con để tính sơ bộ dầm chính
+            cầu trục, xem ứng suất, độ võng, độ mảnh bản cánh và xuất báo cáo PDF. Công cụ có mô đun
+            dầm biên. Dầm chính đi cùng cầu trục; dầm đỡ ray cố định dọc nhà xưởng là cấu kiện khác.
+          </p>
+        </section>
         <CraneBeamCalculator />
         <HomeCalculatorEvidence onNavigate={navigateTo} />
         <section className="container mx-auto px-4 py-10 sm:px-6 lg:px-8">
@@ -306,14 +315,12 @@ const App: React.FC = () => {
               Hướng dẫn và FAQ hỗ trợ tính toán
             </h2>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-300">
-              Các trang nội dung dưới đây giải thích cách xác định tải trọng, chọn tiết diện, kiểm tra độ
-              võng và đọc kết quả tính toán. Nội dung dùng để tra cứu sơ bộ, không thay thế hồ sơ thiết kế
-              được kỹ sư kết cấu kiểm tra.
+              Các bài tải trọng và quy trình tập trung vào dầm đỡ ray cố định của nhà xưởng, nhận phản lực
+              bánh xe cầu trục. Bài công thức và độ võng giải thích giả thiết cần đối chiếu khi tính sơ bộ.
+              Quy trình tải bánh xe trong hướng dẫn cần mô hình riêng; công cụ trang chủ tính dầm chính.
             </p>
             <div className="mt-5 grid gap-3 md:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => navigateTo('/faq')}
+              <RouteLink href="/faq" onNavigate={navigateTo}
                 className="rounded-md border border-gray-200 p-4 text-left transition hover:border-blue-400 hover:bg-blue-50 dark:border-gray-700 dark:hover:border-blue-500 dark:hover:bg-blue-950/30"
               >
                 <span className="text-base font-semibold text-gray-900 dark:text-white">
@@ -322,7 +329,7 @@ const App: React.FC = () => {
                 <span className="mt-1 block text-sm text-gray-600 dark:text-gray-300">
                   15 câu hỏi về dầm cầu trục, tiêu chuẩn, tải trọng và cách dùng công cụ.
                 </span>
-              </button>
+              </RouteLink>
               <Suspense
                 fallback={
                   <div className="p-4 text-sm text-gray-500 dark:text-gray-400">
@@ -349,29 +356,23 @@ const App: React.FC = () => {
       <header className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex min-h-16 flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <button
-              type="button"
-              onClick={() => navigateTo('/')}
+            <RouteLink href="/" onNavigate={navigateTo}
               className="text-left text-xl font-bold text-gray-900 dark:text-white sm:text-2xl"
             >
               {t('app.title')}
-            </button>
+            </RouteLink>
             <div className="flex items-center gap-2">
-              <nav className="hidden items-center gap-1 md:flex" aria-label="Nội dung GEO">
-                <button
-                  type="button"
-                  onClick={() => navigateTo('/faq')}
+              <nav className="hidden items-center gap-1 md:flex" aria-label="Điều hướng chính">
+                <RouteLink href="/faq" onNavigate={navigateTo}
                   className="rounded-md px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
                 >
                   FAQ
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigateTo('/huong-dan/tinh-toan-dam-cau-truc')}
+                </RouteLink>
+                <RouteLink href="/huong-dan/tinh-toan-dam-cau-truc" onNavigate={navigateTo}
                   className="rounded-md px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
                 >
                   Hướng dẫn
-                </button>
+                </RouteLink>
               </nav>
               <div className="inline-flex rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <button
@@ -407,6 +408,19 @@ const App: React.FC = () => {
         </div>
       </header>
       <main>
+        {currentRoute.type !== 'home' && (
+          <nav aria-label="Đường dẫn trang" className="container mx-auto px-4 pt-6 sm:px-6 lg:px-8">
+            <ol className="flex flex-wrap gap-2 text-sm">
+              {currentRoute.breadcrumb.map((item, index) => (
+                <li key={item.path} className="flex gap-2">
+                  {index > 0 && <span aria-hidden="true">/</span>}
+                  {item.path === currentRoute.path ? <span aria-current="page">{item.name}</span> :
+                    <RouteLink href={item.path} onNavigate={navigateTo} className="text-blue-600 underline dark:text-blue-400">{item.name}</RouteLink>}
+                </li>
+              ))}
+            </ol>
+          </nav>
+        )}
         {renderMainContent()}
       </main>
       {showTiktokFollow && <TiktokFollowOverlay onClose={() => setShowTiktokFollow(false)} />}

@@ -46,7 +46,7 @@ export const geoFaqItems: GeoFAQItem[] = [
     group: 'basic-knowledge',
     question: 'Dầm cầu trục là gì?',
     answer:
-      'Dầm cầu trục là kết cấu chịu lực chính để đỡ và truyền tải từ pa lăng, xe con và hàng nâng xuống gối tựa hoặc ray. Nó thường làm bằng thép hình, dầm tổ hợp hàn, dầm hộp, dầm đôi hoặc các dạng dầm chuyên dụng theo mặt bằng nhà xưởng.\n\nKhi cầu trục làm việc, dầm không chỉ chịu tải trọng đứng mà còn có dao động, lực ngang và ảnh hưởng từ quá trình di chuyển. Vì vậy việc tính dầm cần xem cả độ bền, độ cứng và ổn định, không chỉ chọn tiết diện theo cảm tính.',
+      'Tên dầm cầu trục cần gắn với bộ phận đang xét: dầm chính đỡ pa lăng hoặc xe con và đi cùng cầu trục; dầm biên nối với dầm chính, mang bánh xe di chuyển; dầm đỡ ray là cấu kiện cố định dọc nhà xưởng, nhận phản lực bánh xe. Công cụ trang chủ tính sơ bộ dầm chính và có mô đun dầm biên.\n\nKhi cầu trục làm việc, dầm không chỉ chịu tải trọng đứng mà còn có dao động, lực ngang và ảnh hưởng từ quá trình di chuyển. Vì vậy việc tính dầm cần xem cả độ bền, độ cứng và ổn định, không chỉ chọn tiết diện theo cảm tính.',
   },
   {
     id: 'nhung-thong-so-quan-trong',
@@ -60,7 +60,7 @@ export const geoFaqItems: GeoFAQItem[] = [
     group: 'basic-knowledge',
     question: 'Tính dầm cầu trục có cần theo tiêu chuẩn không?',
     answer:
-      'Có, tính dầm cầu trục nên bám theo hệ tiêu chuẩn thiết kế kết cấu thép và tải trọng hiện hành, trong đó có thể tham chiếu TCVN 5575:2024 và TCVN 2737:2023. Công cụ tính nhanh giúp kiểm tra sơ bộ, nhưng không thay thế hồ sơ thiết kế được ký xác nhận.\n\nTCVN 5575:2024 liên quan đến thiết kế kết cấu thép, còn TCVN 2737:2023 liên quan đến tải trọng và tác động. Khi áp dụng, cần đọc đầy đủ tiêu chuẩn và các tài liệu liên quan thay vì suy diễn từ một vài công thức riêng lẻ.',
+      'Có, tính dầm cầu trục nên bám theo hệ tiêu chuẩn thiết kế kết cấu thép và tải trọng hiện hành, trong đó có thể tham chiếu TCVN 5575:2024 và TCVN 2737:2023. Công cụ dùng mô hình tính sơ bộ; các kiểm tra hiện có không xác nhận sự phù hợp đầy đủ với TCVN hay thay thế hồ sơ thiết kế được ký xác nhận.\n\nTCVN 5575:2024 liên quan đến thiết kế kết cấu thép, còn TCVN 2737:2023 liên quan đến tải trọng và tác động. Khi áp dụng, cần đọc đầy đủ tiêu chuẩn và các tài liệu liên quan thay vì suy diễn từ một vài công thức riêng lẻ.',
   },
   {
     id: 'tai-trong-cau-truc-gom-gi',
@@ -102,14 +102,14 @@ export const geoFaqItems: GeoFAQItem[] = [
     group: 'tool-usage',
     question: 'Cần nhập những dữ liệu nào vào công cụ tính dầm cầu trục?',
     answer:
-      'Người dùng cần nhập kích thước tiết diện, khẩu độ, tải trọng nâng, trọng lượng thiết bị, vật liệu và các thông số cơ học cần thiết. Đây là các dữ liệu đầu vào để công cụ tính diện tích, mômen quán tính, ứng suất, độ võng và các chỉ số kiểm tra.\n\nNếu chưa có đủ thông tin, hãy dùng số liệu từ bản vẽ, catalogue thiết bị hoặc thông số dự án đã được xác nhận. Không nên dùng kết quả tính cho thi công nếu đầu vào chỉ là ước lượng tạm thời.',
+      'Công cụ hiện nhận kích thước tiết diện, khẩu độ, tải nâng, tự trọng xe con/pa lăng và thông số vật liệu. Mô hình dầm chính quy đổi tải nâng và xe con thành tải điểm giữa nhịp, cộng tự trọng dầm tính từ tiết diện. Công cụ chưa nhận riêng phản lực và khoảng cách bánh xe, tải ngang hoặc chế độ làm việc để quét tải di động và kiểm tra mỏi.\n\nNếu chưa có đủ thông tin, hãy dùng số liệu từ bản vẽ, catalogue thiết bị hoặc thông số dự án đã được xác nhận. Không nên dùng kết quả tính cho thi công nếu đầu vào chỉ là ước lượng tạm thời.',
   },
   {
     id: 'doc-ket-qua-dat-khong-dat',
     group: 'tool-usage',
     question: 'Kết quả đạt hoặc không đạt trong công cụ nên hiểu thế nào?',
     answer:
-      'Kết quả đạt nghĩa là phương án đang nhập thỏa các kiểm tra mà công cụ đang tính, còn không đạt nghĩa là ít nhất một điều kiện cần xem lại. Đây là tín hiệu kỹ thuật để điều chỉnh tiết diện, vật liệu, khẩu độ hoặc tải trọng.\n\nCần đọc từng mục như ứng suất, độ võng và ổn định thay vì chỉ nhìn một nhãn kết luận. Nếu công trình quan trọng, kết quả nên được kỹ sư kết cấu kiểm tra lại bằng hồ sơ tính đầy đủ.',
+      'Nhãn đạt nghĩa là phương án thỏa các kiểm tra hiện có với đầu vào và giả thiết đang dùng; không đạt nghĩa là ít nhất một điều kiện cần xem lại. Nhãn này không xác nhận thiết kế đầy đủ hay sự phù hợp toàn bộ với tiêu chuẩn.\n\nCần đọc từng mục như ứng suất, độ võng và độ mảnh bản cánh, đồng thời kiểm tra riêng tải ngang, mỏi, ổn định tổng thể và liên kết. Nếu công trình quan trọng, kết quả nên được kỹ sư kết cấu kiểm tra lại bằng hồ sơ tính đầy đủ.',
   },
   {
     id: 'xuat-bao-cao-pdf',

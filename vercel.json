@@ -5,49 +5,145 @@
     {
       "source": "/manifest.json",
       "headers": [
-        { "key": "Content-Type", "value": "application/json" },
-        { "key": "Cache-Control", "value": "public, max-age=86400" }
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
       ]
     },
     {
       "source": "/service-worker.js",
       "headers": [
-        { "key": "Content-Type", "value": "application/javascript" },
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        {
+          "key": "Content-Type",
+          "value": "application/javascript"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
       ]
     },
     {
       "source": "/assets/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
       "source": "/fonts/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
       "source": "/icon-192x192.png",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
       "source": "/icon-512x512.png",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     }
   ],
   "rewrites": [
     {
-      "source": "/((?!manifest\\.json|service-worker\\.js|robots\\.txt|sitemap\\.xml|favicon\\.svg|preview\\.png|icon-.*\\.png|assets/|fonts/).*)",
-      "destination": "/index.html"
+      "source": "/faq",
+      "destination": "/faq/index.html"
+    },
+    {
+      "source": "/huong-dan/dam-cau-truc-la-gi",
+      "destination": "/huong-dan/dam-cau-truc-la-gi/index.html"
+    },
+    {
+      "source": "/huong-dan/tai-trong-dam-cau-truc",
+      "destination": "/huong-dan/tai-trong-dam-cau-truc/index.html"
+    },
+    {
+      "source": "/huong-dan/tinh-toan-dam-cau-truc",
+      "destination": "/huong-dan/tinh-toan-dam-cau-truc/index.html"
+    },
+    {
+      "source": "/huong-dan/cong-thuc-tinh-dam-cau-truc",
+      "destination": "/huong-dan/cong-thuc-tinh-dam-cau-truc/index.html"
+    },
+    {
+      "source": "/huong-dan/chon-tiet-dien-dam-cau-truc",
+      "destination": "/huong-dan/chon-tiet-dien-dam-cau-truc/index.html"
+    },
+    {
+      "source": "/huong-dan/kiem-tra-do-vong-dam-cau-truc",
+      "destination": "/huong-dan/kiem-tra-do-vong-dam-cau-truc/index.html"
     }
   ],
   "env": {
     "GEMINI_API_KEY": "${GEMINI_API_KEY}"
-  }
+  },
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/huong-dan",
+      "destination": "/huong-dan/tinh-toan-dam-cau-truc",
+      "permanent": true
+    },
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/faq/index.html",
+      "destination": "/faq",
+      "permanent": true
+    },
+    {
+      "source": "/huong-dan/dam-cau-truc-la-gi/index.html",
+      "destination": "/huong-dan/dam-cau-truc-la-gi",
+      "permanent": true
+    },
+    {
+      "source": "/huong-dan/tai-trong-dam-cau-truc/index.html",
+      "destination": "/huong-dan/tai-trong-dam-cau-truc",
+      "permanent": true
+    },
+    {
+      "source": "/huong-dan/tinh-toan-dam-cau-truc/index.html",
+      "destination": "/huong-dan/tinh-toan-dam-cau-truc",
+      "permanent": true
+    },
+    {
+      "source": "/huong-dan/cong-thuc-tinh-dam-cau-truc/index.html",
+      "destination": "/huong-dan/cong-thuc-tinh-dam-cau-truc",
+      "permanent": true
+    },
+    {
+      "source": "/huong-dan/chon-tiet-dien-dam-cau-truc/index.html",
+      "destination": "/huong-dan/chon-tiet-dien-dam-cau-truc",
+      "permanent": true
+    },
+    {
+      "source": "/huong-dan/kiem-tra-do-vong-dam-cau-truc/index.html",
+      "destination": "/huong-dan/kiem-tra-do-vong-dam-cau-truc",
+      "permanent": true
+    }
+  ]
 }
